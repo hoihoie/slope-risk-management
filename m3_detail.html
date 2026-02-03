@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 모델 상세 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+
+            .grid-2 { @apply grid gap-6 lg:grid-cols-2; }
+            .grid-2 > .card { @apply mb-0; }
+        }
+    </style>
+    <style>
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #2563EB;
+            text-decoration: none;
+        }
+
+        .viewer-3d {
+            height: 500px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .simulation-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 0;
+            backdrop-filter: blur(4px);
+        }
+
+        .viewer-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_logo.png" alt="Orbital" class="h-8 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="m2_satellite.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="m2_scenario.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="m3_danger.html" class="nav-item active">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2 id="page-title">3D 모델 상세</h2>
+                    <p>디지털 트윈 기반 붕괴 시뮬레이션</p>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="m3_danger.html"><i class="fas fa-arrow-left"></i> M3 붕괴 위험 관리</a>
+                <span>/</span>
+                <strong id="breadcrumb-site">개소명</strong>
+            </div>
+
+            <!-- 관련 페이지 이동 -->
+            <div class="mt-4 flex flex-wrap gap-2">
+                <a href="#" id="link-m1" class="btn btn-secondary btn-sm"><i class="fas fa-map"></i> 통합 관제 보기</a>
+                <a href="#" id="link-m2" class="btn btn-secondary btn-sm"><i class="fas fa-satellite-dish"></i> 위성 분석 보기</a>
+            </div>
+
+            <!-- 3D Viewer -->
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-cube text-slate-400"></i> 3D 디지털 트윈 뷰어</h3>
+                    <span id="site-badge" class="badge badge-danger">E등급 (심각)</span>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div style="position: relative; background: #0f172a; overflow: hidden;">
+                        <!-- Real 3D Model Image -->
+                        <img src="assets/images/3d_terrain_model.png" alt="3D 디지털 트윈 모델"
+                            style="width: 100%; height: auto; display: block; object-fit: cover;">
+
+                        <!-- Viewer Controls Overlay -->
+                        <div class="viewer-controls">
+                            <button class="btn btn-secondary btn-sm" title="회전"><i
+                                    class="fas fa-arrows-rotate"></i></button>
+                            <button class="btn btn-secondary btn-sm" title="확대"><i
+                                    class="fas fa-magnifying-glass-plus"></i></button>
+                            <button class="btn btn-secondary btn-sm" title="초기화"><i
+                                    class="fas fa-compress"></i></button>
+                            <button class="btn btn-secondary btn-sm" title="전체화면"><i class="fas fa-expand"></i></button>
+                        </div>
+
+                        <!-- Simulation Panel -->
+                        <div class="simulation-panel">
+                            <h4 class="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                <i class="fas fa-house-crack text-rose-600"></i> 붕괴 시뮬레이션
+                            </h4>
+                            <div class="flex items-end gap-4">
+                                <div class="flex-1">
+                                    <label class="mb-1.5 block text-xs font-semibold text-slate-600">강우 시나리오</label>
+                                    <select class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                        <option>시간당 50mm (주의보)</option>
+                                        <option>시간당 100mm (경보)</option>
+                                        <option>시간당 150mm (극한)</option>
+                                    </select>
+                                </div>
+                                <div class="flex-1">
+                                    <label class="mb-1.5 block text-xs font-semibold text-slate-600">지반 포화도</label>
+                                    <input type="range" value="70" class="w-full accent-sky-600">
+                                    <div class="mt-1 flex justify-between text-[11px] text-slate-500">
+                                        <span>건조(0%)</span>
+                                        <span>포화(100%)</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-danger h-10">
+                                    <i class="fas fa-play"></i> 시뮬레이션 실행
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Check History -->
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-history text-slate-400"></i> 안전 점검 이력</h3>
+                    <button class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> 점검 결과 등록</button>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>점검일</th>
+                                    <th>점검 유형</th>
+                                    <th>점검자</th>
+                                    <th>결과</th>
+                                    <th>조치 사항</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2026-01-15</td>
+                                    <td>현장 정기 점검</td>
+                                    <td>박안전 주무관</td>
+                                    <td><span class="badge badge-warning">주의 필요</span></td>
+                                    <td>배수로 정비 완료</td>
+                                    <td><button class="btn btn-secondary btn-sm">상세</button></td>
+                                </tr>
+                                <tr>
+                                    <td>2026-01-01</td>
+                                    <td>드론 영상 촬영</td>
+                                    <td>KT 엔지니어링</td>
+                                    <td><span class="badge badge-success">정상</span></td>
+                                    <td>특이사항 없음</td>
+                                    <td><button class="btn btn-secondary btn-sm">영상 보기</button></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-12-15</td>
+                                    <td>연말 정밀 점검</td>
+                                    <td>정선군청 합동</td>
+                                    <td><span class="badge badge-success">정상</span></td>
+                                    <td>옹벽 균열 모니터링 권고</td>
+                                    <td><button class="btn btn-secondary btn-sm">상세</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 개소 데이터
+        const siteData = {
+            'a1': { name: '정선읍 A구간', grade: 'E등급 (심각)', gradeClass: 'badge-danger' },
+            'a2': { name: '신동읍 B구간', grade: 'D등급 (경계)', gradeClass: 'badge-warning' },
+            'a3': { name: '화암면 C구간', grade: 'C등급 (주의)', gradeClass: 'badge-info' }
+        };
+
+        // URL 파라미터
+        const urlParams = new URLSearchParams(window.location.search);
+        const siteId = urlParams.get('site') || 'a1';
+        const site = siteData[siteId] || siteData['a1'];
+
+        // 페이지 업데이트
+        document.getElementById('page-title').textContent = site.name + ' 3D 모델';
+        document.getElementById('breadcrumb-site').textContent = site.name + ' (' + siteId + ')';
+
+        const badge = document.getElementById('site-badge');
+        badge.textContent = site.grade;
+        badge.className = 'badge ' + site.gradeClass;
+
+        // 관련 링크
+        document.getElementById('link-m1').href = 'mn1_detail.html?site=' + siteId;
+        document.getElementById('link-m2').href = 'm2_detail.html?site=' + siteId;
+    </script>
+</body>
+
+</html>

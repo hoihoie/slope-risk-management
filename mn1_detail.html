@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>통합 상세 분석(MN1) - 급경사지 안전관리 통합시스템</title>
+
+    <!-- Pretendard + Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+        }
+    </style>
+
+    <!-- Leaflet (mini map) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 3D GLB Viewer -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.2.0/dist/model-viewer.min.js"></script>
+
+    <style>
+        /* mini map */
+        #mn1MiniMap {
+            height: 180px;
+            width: 100%;
+        }
+
+        /* viewer stage */
+        .mn1-viewer-stage {
+            position: relative;
+            min-height: 620px;
+            background: radial-gradient(1100px 640px at 40% 25%, rgba(59, 130, 246, 0.22), rgba(15, 23, 42, 0.98) 62%);
+            overflow: hidden;
+        }
+
+        #mn1Viewer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #111827;
+        }
+
+        .mn1-watermark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .mn1-watermark-inner {
+            text-align: center;
+            color: rgba(148, 163, 184, 0.35);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .mn1-watermark-inner .icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .mn1-pill {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            color: #E2E8F0;
+            font-size: 12px;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+        }
+
+        .mn1-pill .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22C55E;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
+        }
+
+        .mn1-toolbar {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            backdrop-filter: blur(10px);
+        }
+
+        .mn1-tool-btn {
+            width: 36px;
+            height: 34px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(226, 232, 240, 0.92);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+        }
+
+        .mn1-tool-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.10);
+            border-color: rgba(226, 232, 240, 0.25);
+        }
+
+        .mn1-tool-btn:active {
+            transform: translateY(0);
+        }
+
+        .mn1-tool-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .mn1-sim-panel {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(226, 232, 240, 0.90);
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18), 0 2px 10px rgba(15, 23, 42, 0.08);
+            backdrop-filter: blur(10px);
+            padding: 14px 14px;
+        }
+
+        /* chart */
+        .mn1-chart-wrap {
+            height: 240px;
+            padding: 14px 18px 18px 18px;
+        }
+
+        @media (max-width: 1280px) {
+            .mn1-viewer-stage { min-height: 560px; }
+            #mn1MiniMap { height: 210px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_logo.png" alt="Orbital" class="h-8 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="m2_satellite.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="m2_scenario.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="m1_integrated.html" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left"></i> 목록
+                        </a>
+                        <h2>통합 상세 분석 <span class="text-slate-400 text-base font-semibold">(MN1)</span></h2>
+                    </div>
+                    <p id="mn1Subtitle">한 지점에서 위성·지형·센서 정보를 한 화면으로 통합</p>
+                </div>
+                <div class="header-actions">
+                    <span id="mn1GradeBadge" class="badge badge-danger">E등급 (심각)</span>
+                    <a id="mn1ReportBtn" href="r1_report.html" class="btn btn-primary btn-sm">
+                        <i class="fas fa-print"></i> 보고서 출력
+                    </a>
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid gap-6 xl:grid-cols-12">
+                <!-- LEFT: Satellite displacement -->
+                <section class="xl:col-span-3 flex flex-col gap-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-satellite text-slate-400"></i> 변위 분석 지표</h3>
+                            <span class="badge badge-info">INSAR</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="rounded-none bg-slate-50 p-4 ring-1 ring-slate-200">
+                                    <div class="text-xs font-semibold text-slate-500">일일 변위 속도</div>
+                                    <div class="mt-2 flex items-end gap-2">
+                                        <div id="mn1Vel" class="text-3xl font-bold tracking-tight text-slate-900">-</div>
+                                        <div class="text-sm font-semibold text-slate-500">mm/d</div>
+                                    </div>
+                                </div>
+                                <div class="rounded-none bg-slate-50 p-4 ring-1 ring-slate-200">
+                                    <div class="text-xs font-semibold text-slate-500">변위 가속도</div>
+                                    <div class="mt-2 flex items-end gap-2">
+                                        <div id="mn1Acc" class="text-3xl font-bold tracking-tight text-slate-900">-</div>
+                                        <div class="text-sm font-semibold text-slate-500">mm/d²</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-xs text-slate-500">
+                                * 최근 관측 구간 기반(프로토타입): 위성 누적 변위(cum_mm) 차분으로 산출
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line text-slate-400"></i> 누적 변위 모니터링</h3>
+                        </div>
+                        <div class="mn1-chart-wrap">
+                            <canvas id="mn1CumulativeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-link text-slate-400"></i> 관련 분석</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid gap-2">
+                                <a id="mn1GoM2" href="#" class="btn btn-secondary btn-sm justify-start">
+                                    <i class="fas fa-satellite-dish"></i> 위성 분석 상세 보기
+                                </a>
+                                <a id="mn1GoM3" href="#" class="btn btn-secondary btn-sm justify-start">
+                                    <i class="fas fa-cube"></i> 3D 위험관리(전체) 보기
+                                </a>
+                                <a id="mn1GoM1" href="m1_integrated.html" class="btn btn-secondary btn-sm justify-start">
+                                    <i class="fas fa-map"></i> 통합 관제 맵으로 돌아가기
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CENTER: 3D Digital Twin -->
+                <section class="xl:col-span-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-cube text-slate-400"></i> 3D 디지털 트윈</h3>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span id="mn1SiteLabel" class="text-sm font-semibold text-slate-700">-</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="mn1-viewer-stage">
+                                <model-viewer id="mn1Viewer" src="maps3d-2026-01-28_10-38-45.glb" alt="3D 지형 모델"
+                                    camera-controls disable-zoom disable-pan shadow-intensity="0.9" exposure="1"
+                                    min-camera-orbit="auto auto 5m" max-camera-orbit="auto auto 20000m"
+                                    interaction-prompt="none">
+                                </model-viewer>
+
+                                <div class="mn1-pill">
+                                    <span class="dot"></span>
+                                    <span>실시간 감지중</span>
+                                </div>
+
+                                <div class="mn1-toolbar" aria-label="3D 도구">
+                                    <button id="mn1BtnReset" type="button" class="mn1-tool-btn" title="지점 보기(고정 시점)">
+                                        <i class="fas fa-earth-asia"></i>
+                                    </button>
+                                    <button id="mn1BtnAuto" type="button" class="mn1-tool-btn" title="자동 회전 토글">
+                                        <i class="fas fa-plane"></i>
+                                    </button>
+                                    <button id="mn1BtnZoomIn" type="button" class="mn1-tool-btn" title="확대">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button id="mn1BtnZoomOut" type="button" class="mn1-tool-btn" title="축소">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                </div>
+
+                                <div class="mn1-watermark">
+                                    <div class="mn1-watermark-inner">
+                                        <div class="icon">
+                                            <div class="grid grid-cols-3 gap-1 opacity-80">
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/20"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/25"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/30"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/25"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/30"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/35"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/30"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/35"></span>
+                                                <span class="h-4 w-4 rounded-sm bg-slate-200/40"></span>
+                                            </div>
+                                        </div>
+                                        <div class="text-base">3D Drone Digital Twin</div>
+                                        <div id="mn1WatermarkSite" class="mt-1 text-sm font-semibold">
+                                            -
+                                        </div>
+                                        <div class="mt-1 text-xs font-semibold text-slate-400/70">
+                                            드론 촬영: 2024.12.20 · 위성 관측: 최신 2026.01
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mn1-sim-panel">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                            <i class="fas fa-house-crack text-rose-600"></i>
+                                            붕괴 시뮬레이션
+                                        </div>
+                                        <a href="m3_danger.html" class="text-xs font-semibold text-sky-700 hover:text-sky-800">
+                                            가상 예측
+                                        </a>
+                                    </div>
+                                    <div class="mt-3 flex flex-wrap items-end gap-3">
+                                        <div class="flex-1 min-w-[220px]">
+                                            <label class="mb-1.5 block text-xs font-semibold text-slate-600">강우 시나리오</label>
+                                            <select
+                                                class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                                <option>강우: 50mm/h (주의)</option>
+                                                <option>강우: 100mm/h (경보)</option>
+                                                <option>강우: 150mm/h (극한)</option>
+                                            </select>
+                                        </div>
+                                        <button id="mn1RunSim" class="btn btn-primary h-10">
+                                            <i class="fas fa-play"></i> 시뮬레이션
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RIGHT: Map + rules + thresholds -->
+                <section class="xl:col-span-3 flex flex-col gap-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-map-location-dot text-slate-400"></i> 위치</h3>
+                            <a href="m1_integrated.html" class="text-sm font-semibold text-sky-700 hover:text-sky-800">큰 지도 보기</a>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div id="mn1MiniMap"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bell text-slate-400"></i> 알림 단계 기준</h3>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 90px;">단계</th>
+                                            <th style="width: 90px;">상태</th>
+                                            <th>조치</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mn1StageTableBody">
+                                        <tr>
+                                            <td class="font-semibold text-rose-700">심각</td>
+                                            <td>-</td>
+                                            <td class="font-medium">대피</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-semibold text-amber-700">경계</td>
+                                            <td>-</td>
+                                            <td class="font-medium">통제</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-semibold text-yellow-700">주의</td>
+                                            <td>-</td>
+                                            <td class="font-medium">감시</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-semibold text-sky-700">관심</td>
+                                            <td>-</td>
+                                            <td class="font-medium">모니터링</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-ruler-combined text-slate-400"></i> 임계치(Threshold)</h3>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>구분</th>
+                                            <th style="width: 90px;">주의</th>
+                                            <th style="width: 90px;">심각</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="font-semibold">속도</td>
+                                            <td>2mm</td>
+                                            <td class="text-rose-600 font-semibold">10mm</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-semibold">가속도</td>
+                                            <td>0.5</td>
+                                            <td class="text-rose-600 font-semibold">2.0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="font-semibold">누적</td>
+                                            <td>30mm</td>
+                                            <td class="text-rose-600 font-semibold">100mm</td>
+                                        </tr>
+                                        <tr id="mn1CurrentRow" style="background: #FFFBEB;">
+                                            <td class="font-semibold">현재값</td>
+                                            <td colspan="2" class="font-semibold">
+                                                <span id="mn1CurrentText" class="text-slate-900">Vel: - / Acc: -</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        (function () {
+            // ============
+            // Site resolve
+            // ============
+            const FIXED_SITES = {
+                a1: { id: 'a1', name: '정선읍 A구간', address: '정선읍 봉양리 산 12-3', lat: 37.3805, lng: 128.6608, grade5: 5 },
+                a2: { id: 'a2', name: '신동읍 B구간', address: '신동읍 예미리 456-7', lat: 37.3505, lng: 128.6808, grade5: 4 },
+                a3: { id: 'a3', name: '화암면 C구간', address: '화암면 화암리 789-1', lat: 37.4005, lng: 128.6408, grade5: 3 },
+            };
+
+            const THRESHOLDS = {
+                vel: { caution: 2, severe: 10 },
+                acc: { caution: 0.5, severe: 2.0 },
+                cum: { caution: 30, severe: 100 },
+            };
+
+            function fnv1a32(str) {
+                let h = 0x811c9dc5;
+                const s = String(str ?? '');
+                for (let i = 0; i < s.length; i++) {
+                    h ^= s.charCodeAt(i);
+                    h = Math.imul(h, 0x01000193);
+                }
+                return h >>> 0;
+            }
+
+            function hash01(str) {
+                return (fnv1a32(str) % 1000000) / 1000000;
+            }
+
+            function toNumber(v) {
+                const n = Number.parseFloat(String(v ?? '').trim());
+                return Number.isFinite(n) ? n : null;
+            }
+
+            function formatNumber(v, digits = 1) {
+                const n = toNumber(v);
+                if (n == null) return '-';
+                return n.toFixed(digits);
+            }
+
+            function parseIsoDate(dateStr) {
+                const s = String(dateStr ?? '').trim();
+                if (!s) return null;
+                const d = new Date(`${s}T00:00:00`);
+                return Number.isNaN(d.getTime()) ? null : d;
+            }
+
+            function gradeInfo(grade5) {
+                const g = Number.parseInt(String(grade5 ?? ''), 10);
+                if (g === 5) return { grade: 'E', label: 'E등급 (심각)', badgeClass: 'badge-danger', stage: '심각', stageColor: '#EF4444' };
+                if (g === 4) return { grade: 'D', label: 'D등급 (경계)', badgeClass: 'badge-warning', stage: '경계', stageColor: '#F97316' };
+                if (g === 3) return { grade: 'C', label: 'C등급 (주의)', badgeClass: 'badge-warning', stage: '주의', stageColor: '#F59E0B' };
+                if (g === 2) return { grade: 'B', label: 'B등급 (관심)', badgeClass: 'badge-info', stage: '관심', stageColor: '#3B82F6' };
+                if (g === 1) return { grade: 'A', label: 'A등급 (안전)', badgeClass: 'badge-success', stage: '관심', stageColor: '#22C55E' };
+                return { grade: '-', label: '등급 미상', badgeClass: 'badge-info', stage: '관심', stageColor: '#64748B' };
+            }
+
+            function grade5FromAlarm(alarm) {
+                const s = String(alarm ?? '').trim();
+                if (!s) return 2;
+                if (s === '위험') return 5;
+                if (s === '경계') return 4;
+                if (s === '주의') return 3;
+                if (s === '관심') return 2;
+                if (s === '안전') return 1;
+                return 2;
+            }
+
+            function loadJsonFromStorage(key) {
+                try {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return null;
+                    return JSON.parse(raw);
+                } catch {
+                    return null;
+                }
+            }
+
+            function pickIntegratedSite(siteId) {
+                const id = String(siteId ?? '').trim();
+                if (!id) return null;
+
+                const cache = loadJsonFromStorage('m1_integrated_sites_cache_v1');
+                if (Array.isArray(cache)) {
+                    const found = cache.find((s) => s && s.id === id);
+                    if (found) return found;
+                }
+
+                const selected = loadJsonFromStorage('m1_integrated_selected_site_v1');
+                if (selected && selected.id === id) return selected;
+                return null;
+            }
+
+            function resolveSite(siteId, nameFromQuery, queryMeta) {
+                const id = String(siteId ?? '').trim();
+                if (id && FIXED_SITES[id]) return { ...FIXED_SITES[id], source: 'fixed' };
+
+                const integrated = pickIntegratedSite(id);
+                if (integrated) {
+                    return {
+                        id: integrated.id,
+                        name: integrated.name || (nameFromQuery || '급경사지'),
+                        address: integrated.address || '-',
+                        lat: Number(integrated.lat) || 37.3805,
+                        lng: Number(integrated.lng) || 128.6608,
+                        grade5: integrated.grade5 != null ? integrated.grade5 : 3,
+                        source: 'integrated_cache',
+                    };
+                }
+
+                // 위성 지점(맵)에서 넘어온 lat/lng + alarm 정보 지원
+                const qLat = queryMeta && Number.isFinite(queryMeta.lat) ? queryMeta.lat : null;
+                const qLng = queryMeta && Number.isFinite(queryMeta.lng) ? queryMeta.lng : null;
+                const qAlarm = queryMeta && typeof queryMeta.alarm === 'string' ? queryMeta.alarm : '';
+                if (qLat != null && qLng != null) {
+                    return {
+                        id: id || 'sat_point',
+                        name: nameFromQuery || (id ? `지점 ${id}` : '관측 지점'),
+                        address: '위성 관측 지점',
+                        lat: qLat,
+                        lng: qLng,
+                        grade5: grade5FromAlarm(qAlarm),
+                        source: 'query',
+                    };
+                }
+
+                // 마지막 방문 지점(옵션)
+                const last = loadJsonFromStorage('mn1_last_site_v1');
+                if (last && last.id && last.lat && last.lng) return { ...last, source: 'mn1_last' };
+
+                return { ...FIXED_SITES.a1, source: 'fallback' };
+            }
+
+            // ====================
+            // Satellite CSV loading
+            // ====================
+            const DATA_CSV = 'xinmo_3x3_table(수정).csv';
+
+            function parseCsvLine(line) {
+                const out = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                        continue;
+                    }
+                    if (ch === ',' && !inQuotes) {
+                        out.push(cur);
+                        cur = '';
+                        continue;
+                    }
+                    cur += ch;
+                }
+                out.push(cur);
+                return out;
+            }
+
+            function parseCsv(text) {
+                const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                const lines = normalized.split('\n').filter((l) => l.trim() !== '');
+                if (!lines.length) return { headers: [], rows: [] };
+                const headers = parseCsvLine(lines[0]).map((h) => h.trim());
+                const rows = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCsvLine(lines[i]);
+                    const obj = {};
+                    for (let j = 0; j < headers.length; j++) {
+                        obj[headers[j]] = (cols[j] ?? '').trim();
+                    }
+                    rows.push(obj);
+                }
+                return { headers, rows };
+            }
+
+            function fallbackSatelliteRows() {
+                return [
+                    { date: '2025-11-17', cum_mm: '67.53646596' },
+                    { date: '2025-11-23', cum_mm: '65.98305257' },
+                    { date: '2025-11-29', cum_mm: '74.1928143' },
+                    { date: '2025-12-05', cum_mm: '64.51434792' },
+                    { date: '2025-12-11', cum_mm: '63.18223996' },
+                    { date: '2025-12-17', cum_mm: '63.80116018' },
+                    { date: '2025-12-23', cum_mm: '51.74936549' },
+                    { date: '2025-12-29', cum_mm: '77.1013955' },
+                    { date: '2026-01-04', cum_mm: '62.50314289' },
+                    { date: '2026-01-10', cum_mm: '46.64511024' },
+                    { date: '2026-01-16', cum_mm: '29.89441999' },
+                    { date: '2026-01-22', cum_mm: '9.398800744' },
+                    { date: '2026-01-28', cum_mm: '20.58197763' },
+                ];
+            }
+
+            async function loadSatelliteRows() {
+                try {
+                    const res = await fetch(encodeURI(DATA_CSV), { cache: 'no-store' });
+                    if (!res.ok) throw new Error(`CSV 로딩 실패 (HTTP ${res.status})`);
+                    const text = await res.text();
+                    const parsed = parseCsv(text);
+                    if (!parsed.rows || !parsed.rows.length) throw new Error('empty');
+                    return parsed.rows;
+                } catch {
+                    return fallbackSatelliteRows();
+                }
+            }
+
+            function adjustCumForSite(cum, seed) {
+                const c = toNumber(cum);
+                if (c == null) return null;
+                const scale = 0.90 + hash01(seed + '|scale') * 0.25;   // 0.90~1.15
+                const offset = (hash01(seed + '|offset') - 0.5) * 10; // -5~+5mm
+                return c * scale + offset;
+            }
+
+            function computeTelemetry(rows, seed) {
+                const data = (rows || [])
+                    .map((r) => {
+                        const d = parseIsoDate(r.date);
+                        const c = adjustCumForSite(r.cum_mm, seed);
+                        return (d && c != null) ? { d, c } : null;
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => a.d - b.d);
+
+                if (data.length < 2) return { vel: null, acc: null, cum: null, latest: null, monthly: [] };
+
+                const last = data[data.length - 1];
+                const prev = data[data.length - 2];
+                const msDay = 24 * 60 * 60 * 1000;
+                const dt = Math.max(1, (last.d - prev.d) / msDay);
+                const vel = (last.c - prev.c) / dt;
+
+                let acc = null;
+                if (data.length >= 3) {
+                    const prev2 = data[data.length - 3];
+                    const dt2 = Math.max(1, (prev.d - prev2.d) / msDay);
+                    const velPrev = (prev.c - prev2.c) / dt2;
+                    acc = (vel - velPrev) / dt;
+                }
+
+                // last 6 months (monthly last observation)
+                const latest = last.d;
+                const months = [];
+                let carry = null;
+                for (let i = 5; i >= 0; i--) {
+                    const t = new Date(latest.getFullYear(), latest.getMonth(), 1);
+                    t.setMonth(t.getMonth() - i);
+                    const y = t.getFullYear();
+                    const m = t.getMonth();
+                    const label = `${m + 1}월`;
+                    const inMonth = data.filter((x) => x.d.getFullYear() === y && x.d.getMonth() === m);
+                    if (inMonth.length) {
+                        const picked = inMonth[inMonth.length - 1];
+                        carry = picked.c;
+                    }
+                    months.push({ label, value: carry });
+                }
+
+                return { vel, acc, cum: last.c, latest, monthly: months };
+            }
+
+            // ============
+            // UI bindings
+            // ============
+            const urlParams = new URLSearchParams(window.location.search);
+            const siteId = urlParams.get('site') || 'a1';
+            const siteNameFromQuery = urlParams.get('name') || '';
+            const queryLat = toNumber(urlParams.get('lat'));
+            const queryLng = toNumber(urlParams.get('lng'));
+            const queryAlarm = urlParams.get('alarm') || '';
+
+            const site = resolveSite(siteId, siteNameFromQuery, { lat: queryLat, lng: queryLng, alarm: queryAlarm });
+            const g = gradeInfo(site.grade5);
+
+            // persist last site for quick entry
+            try {
+                localStorage.setItem('mn1_last_site_v1', JSON.stringify(site));
+            } catch { }
+
+            const gradeBadgeEl = document.getElementById('mn1GradeBadge');
+            const subtitleEl = document.getElementById('mn1Subtitle');
+            const siteLabelEl = document.getElementById('mn1SiteLabel');
+            const wmSiteEl = document.getElementById('mn1WatermarkSite');
+            const velEl = document.getElementById('mn1Vel');
+            const accEl = document.getElementById('mn1Acc');
+            const currentTextEl = document.getElementById('mn1CurrentText');
+            const currentRowEl = document.getElementById('mn1CurrentRow');
+            const stageTbodyEl = document.getElementById('mn1StageTableBody');
+
+            const goM2El = document.getElementById('mn1GoM2');
+            const goM3El = document.getElementById('mn1GoM3');
+            const reportBtnEl = document.getElementById('mn1ReportBtn');
+
+            if (gradeBadgeEl) {
+                gradeBadgeEl.className = `badge ${g.badgeClass}`;
+                gradeBadgeEl.textContent = g.label;
+            }
+            try {
+                document.title = `${site.name} · 통합 상세 분석(MN1) - 급경사지 안전관리 통합시스템`;
+            } catch { }
+            if (subtitleEl) subtitleEl.textContent = `${site.name} · ${site.address} · 위성·지형·센서 통합 분석`;
+            if (siteLabelEl) siteLabelEl.textContent = `${site.name} · ${site.address}`;
+            if (wmSiteEl) wmSiteEl.textContent = `${site.name} (${site.address})`;
+
+            if (goM2El) goM2El.href = `m2_detail.html?site=${encodeURIComponent(site.id)}&name=${encodeURIComponent(site.name)}`;
+            if (goM3El) goM3El.href = `m3_danger.html`;
+            if (reportBtnEl) reportBtnEl.href = `r1_report.html`;
+
+            // stage table highlight
+            function renderStageTable(activeStage) {
+                if (!stageTbodyEl) return;
+                const bgByStage = {
+                    '심각': 'rgba(239, 68, 68, 0.06)',
+                    '경계': 'rgba(249, 115, 22, 0.08)',
+                    '주의': 'rgba(245, 158, 11, 0.10)',
+                    '관심': 'rgba(59, 130, 246, 0.08)',
+                };
+                const rows = Array.from(stageTbodyEl.querySelectorAll('tr'));
+                rows.forEach((tr) => {
+                    tr.style.background = '';
+                    const tds = tr.querySelectorAll('td');
+                    if (!tds || !tds.length) return;
+                    const stage = String(tds[0].textContent || '').trim();
+                    const statusCell = tds[1];
+                    if (statusCell) statusCell.textContent = stage === activeStage ? (stage === '관심' ? '정상' : '발령') : '-';
+                    if (stage === activeStage) {
+                        tr.style.background = bgByStage[stage] || 'rgba(148, 163, 184, 0.10)';
+                    }
+                });
+            }
+            renderStageTable(g.stage);
+
+            // ============
+            // Mini Map
+            // ============
+            function initMiniMap() {
+                const el = document.getElementById('mn1MiniMap');
+                if (!el || typeof L === 'undefined') return;
+
+                const map = L.map('mn1MiniMap', { zoomControl: false, attributionControl: false }).setView([site.lat, site.lng], 14);
+                const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
+                    maxZoom: 19
+                });
+                const imagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: 'Tiles &copy; Esri',
+                    maxZoom: 19
+                });
+
+                // 기본: 위성(영상)
+                imagery.addTo(map);
+                L.control.zoom({ position: 'topright' }).addTo(map);
+                L.control.layers({ '위성(영상)': imagery, '일반지도': osm }, null, { position: 'topleft' }).addTo(map);
+
+                const marker = L.circleMarker([site.lat, site.lng], {
+                    radius: 10,
+                    fillColor: g.stageColor,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map);
+                marker.bindTooltip(`<b>${site.name}</b><br>${site.address}`, { direction: 'top', opacity: 0.95 });
+            }
+            initMiniMap();
+
+            // ============
+            // 3D toolbar
+            // ============
+            const viewer = document.getElementById('mn1Viewer');
+            const btnReset = document.getElementById('mn1BtnReset');
+            const btnAuto = document.getElementById('mn1BtnAuto');
+            const btnZoomIn = document.getElementById('mn1BtnZoomIn');
+            const btnZoomOut = document.getElementById('mn1BtnZoomOut');
+            const btnSim = document.getElementById('mn1RunSim');
+
+            // MN1은 "한 지점"에 시점이 고정된 느낌이 중요해서,
+            // GLB 내부 좌표(프로젝트에 이미 쓰는 POI 좌표)를 재사용해 기본 카메라 타깃/줌을 고정합니다.
+            // ※ 실제 lat/lng → 3D 좌표 매핑은 추후 변환/피팅 로직으로 교체 가능.
+            const MN1_FOCUS_PRESETS = {
+                // m3_danger.html의 hotspot 위치를 재사용 (A/B/C)
+                a: { label: 'A', ri: '봉양리', target: '2567.20m 57.70m 4000.23m', orbit: '35deg 65deg 220m' },
+                b: { label: 'B', ri: '용탄리', target: '-5315.00m 57.70m 1505.00m', orbit: '-25deg 65deg 240m' },
+                c: { label: 'C', ri: '덕송리', target: '4505.00m 57.70m 1615.00m', orbit: '55deg 65deg 240m' },
+            };
+
+            function pickFocusKeyForSite(site) {
+                const poiParam = new URLSearchParams(window.location.search).get('poi');
+                if (poiParam && MN1_FOCUS_PRESETS[poiParam]) return poiParam;
+
+                const hay = `${site && site.address ? site.address : ''} ${site && site.name ? site.name : ''}`;
+                if (hay.includes('봉양리')) return 'a';
+                if (hay.includes('용탄리')) return 'b';
+                if (hay.includes('덕송리')) return 'c';
+
+                // a1/a2/a3는 프로토타입에서 A/B/C로 매핑
+                const id = String(site && site.id ? site.id : '').trim();
+                if (id === 'a1') return 'a';
+                if (id === 'a2') return 'b';
+                if (id === 'a3') return 'c';
+
+                // 그 외는 해시 기반으로 고정(매번 같은 시점)
+                const seed = String(site && (site.id || site.name) ? (site.id || site.name) : 'site');
+                const keys = ['a', 'b', 'c'];
+                return keys[fnv1a32(seed) % keys.length];
+            }
+
+            const focusKey = pickFocusKeyForSite(site);
+            const focusPreset = MN1_FOCUS_PRESETS[focusKey] || MN1_FOCUS_PRESETS.a;
+            // "부담스럽지 않게" 초기 시점만 살짝 줌아웃(마우스휠로 0.4 정도 굴린 느낌)
+            // - 값이 크면 더 멀리(줌아웃), 작으면 더 가까이(줌인)
+            const MN1_FOCUS_ZOOM_OUT_FACTOR = 5;
+            // 카메라가 보는 "좌우 방향(가로 회전)"을 180도 뒤집기
+            const MN1_FOCUS_YAW_OFFSET_DEG = 180;
+
+            function rotateOrbitYaw(orbitStr, yawOffsetDeg) {
+                const s = String(orbitStr ?? '').trim();
+                const parts = s.split(/\s+/).filter(Boolean);
+                if (parts.length < 3) return s;
+
+                const m = String(parts[0]).match(/^([-\d.]+)\s*(deg|rad)$/i);
+                if (!m) return s;
+
+                const value = Number.parseFloat(m[1]);
+                const unit = String(m[2] || '').toLowerCase();
+                if (!Number.isFinite(value)) return s;
+
+                const offset = Number.isFinite(Number(yawOffsetDeg)) ? Number(yawOffsetDeg) : 0;
+                let next = value;
+                if (unit === 'deg') {
+                    next = value + offset;
+                    next = ((next % 360) + 360) % 360;
+                    if (next > 180) next -= 360;
+                    next = Math.round(next);
+                    parts[0] = `${next}deg`;
+                    return parts.join(' ');
+                }
+                if (unit === 'rad') {
+                    const twoPi = Math.PI * 2;
+                    next = value + (offset * Math.PI / 180);
+                    next = ((next % twoPi) + twoPi) % twoPi;
+                    if (next > Math.PI) next -= twoPi;
+                    parts[0] = `${next.toFixed(3)}rad`;
+                    return parts.join(' ');
+                }
+
+                return s;
+            }
+
+            function syncAutoBtn() {
+                if (!btnAuto || !viewer) return;
+                const on = !!viewer.autoRotate;
+                btnAuto.style.borderColor = on ? 'rgba(56, 189, 248, 0.55)' : 'rgba(226, 232, 240, 0.16)';
+                btnAuto.style.background = on ? 'rgba(56, 189, 248, 0.10)' : 'rgba(255, 255, 255, 0.06)';
+            }
+
+            function applyFocusView() {
+                if (!viewer || !focusPreset) return;
+
+                // 시점(타깃) 고정 + 지형이 보이도록 약간 줌인
+                viewer.cameraTarget = focusPreset.target;
+                // orbit에 포함된 radius(m)만 살짝 늘려 줌아웃
+                const orbitStr = rotateOrbitYaw(String(focusPreset.orbit || 'auto auto 260m'), MN1_FOCUS_YAW_OFFSET_DEG);
+                const radiusMatch = orbitStr.match(/([-\d.]+)\s*m\s*$/i);
+                if (radiusMatch) {
+                    const baseRadius = Number.parseFloat(radiusMatch[1]);
+                    const nextRadius = Number.isFinite(baseRadius) ? Math.round(baseRadius * MN1_FOCUS_ZOOM_OUT_FACTOR) : null;
+                    if (nextRadius != null) {
+                        viewer.cameraOrbit = orbitStr.replace(radiusMatch[0], `${nextRadius}m`);
+                    } else {
+                        viewer.cameraOrbit = orbitStr;
+                    }
+                } else {
+                    viewer.cameraOrbit = orbitStr;
+                }
+
+                // 줌/팬 완전 고정: 반경(radius)을 현재 값으로 잠그기 (회전만 가능)
+                try {
+                    const applied = String(viewer.cameraOrbit || '');
+                    const m = applied.match(/([-\d.]+)\s*m\s*$/i);
+                    const radius = m ? Number.parseFloat(m[1]) : null;
+                    if (Number.isFinite(radius)) {
+                        const lock = `auto auto ${Math.round(radius)}m`;
+                        viewer.setAttribute('min-camera-orbit', lock);
+                        viewer.setAttribute('max-camera-orbit', lock);
+                    }
+                    viewer.setAttribute('disable-zoom', '');
+                    viewer.setAttribute('disable-pan', '');
+                } catch { }
+
+                // "고정 시점" 느낌을 위해 기본은 회전 OFF (원하면 버튼으로 ON)
+                viewer.autoRotate = false;
+                syncAutoBtn();
+            }
+
+            function clamp(v, min, max) {
+                return Math.min(max, Math.max(min, v));
+            }
+
+            function safeGetOrbit() {
+                try {
+                    return (viewer && typeof viewer.getCameraOrbit === 'function') ? viewer.getCameraOrbit() : null;
+                } catch {
+                    return null;
+                }
+            }
+
+            function setOrbit(orbit) {
+                if (!viewer || !orbit) return;
+                const theta = typeof orbit.theta === 'number' ? orbit.theta : 0;
+                const phi = typeof orbit.phi === 'number' ? orbit.phi : 1.2;
+                const radius = typeof orbit.radius === 'number' ? orbit.radius : 120;
+                viewer.cameraOrbit = `${theta}rad ${phi}rad ${radius}m`;
+            }
+
+            function zoomBy(factor) {
+                if (!viewer) return;
+                const o = safeGetOrbit();
+                if (!o) return;
+                const nextRadius = clamp(o.radius * factor, 20, 20000);
+                setOrbit({ ...o, radius: nextRadius });
+            }
+
+            if (btnReset) {
+                btnReset.addEventListener('click', () => {
+                    applyFocusView();
+                });
+            }
+            if (btnAuto) {
+                btnAuto.addEventListener('click', () => {
+                    if (!viewer) return;
+                    const next = !viewer.autoRotate;
+                    viewer.autoRotate = next;
+                    syncAutoBtn();
+                });
+            }
+            // 줌은 고정(회전만 가능) — 버튼도 비활성화
+            if (btnZoomIn) {
+                btnZoomIn.disabled = true;
+                btnZoomIn.title = '줌 고정';
+            }
+            if (btnZoomOut) {
+                btnZoomOut.disabled = true;
+                btnZoomOut.title = '줌 고정';
+            }
+
+            if (btnSim) {
+                btnSim.addEventListener('click', () => {
+                    alert('프로토타입: 시뮬레이션 엔진 연동 전입니다.');
+                });
+            }
+
+            // 모델 로드 완료 시 고정 시점 적용
+            if (viewer) {
+                viewer.addEventListener('load', () => {
+                    applyFocusView();
+                }, { once: true });
+
+                // 일부 환경에서 load 이벤트가 늦는 경우 대비(최대 1회 시도)
+                setTimeout(() => {
+                    try {
+                        applyFocusView();
+                    } catch { }
+                }, 900);
+            }
+
+            // ============
+            // Charts + telemetry
+            // ============
+            let chart = null;
+
+            function applyThresholdColor(el, value, thr) {
+                if (!el) return;
+                if (value == null) {
+                    el.className = 'text-3xl font-bold tracking-tight text-slate-900';
+                    return;
+                }
+                const abs = Math.abs(value);
+                if (abs >= thr.severe) {
+                    el.className = 'text-3xl font-bold tracking-tight text-rose-600';
+                } else if (abs >= thr.caution) {
+                    el.className = 'text-3xl font-bold tracking-tight text-amber-600';
+                } else {
+                    el.className = 'text-3xl font-bold tracking-tight text-slate-900';
+                }
+            }
+
+            function renderCumulativeChart(monthly) {
+                const canvas = document.getElementById('mn1CumulativeChart');
+                if (!canvas || typeof Chart === 'undefined') return;
+
+                const labels = (monthly || []).map((m) => m.label);
+                const values = (monthly || []).map((m) => (m.value == null ? null : Number(m.value)));
+                const thrLine = labels.map(() => THRESHOLDS.cum.caution);
+
+                if (chart) chart.destroy();
+                chart = new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [
+                            {
+                                label: '누적 변위 (mm)',
+                                data: values,
+                                borderColor: '#2563EB',
+                                backgroundColor: 'rgba(37, 99, 235, 0.10)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#2563EB',
+                                pointBorderColor: '#fff',
+                                pointBorderWidth: 2,
+                            },
+                            {
+                                label: '주의 기준',
+                                data: thrLine,
+                                borderColor: '#F59E0B',
+                                borderWidth: 2,
+                                borderDash: [6, 6],
+                                pointRadius: 0,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#64748B', font: { size: 11, weight: '600' } }
+                            },
+                            y: {
+                                grid: { color: 'rgba(148, 163, 184, 0.22)' },
+                                ticks: { color: '#64748B', font: { size: 11, weight: '600' } }
+                            }
+                        }
+                    }
+                });
+            }
+
+            loadSatelliteRows().then((rows) => {
+                const seed = site.id || site.name || 'site';
+                const t = computeTelemetry(rows, seed);
+
+                const velAbs = t.vel == null ? null : Math.abs(t.vel);
+                const accAbs = t.acc == null ? null : Math.abs(t.acc);
+                const cumAbs = t.cum == null ? null : Math.abs(t.cum);
+
+                if (velEl) velEl.textContent = formatNumber(velAbs, 1);
+                if (accEl) accEl.textContent = formatNumber(accAbs, 1);
+                applyThresholdColor(velEl, velAbs, THRESHOLDS.vel);
+                applyThresholdColor(accEl, accAbs, THRESHOLDS.acc);
+
+                if (currentTextEl) {
+                    currentTextEl.textContent = `Vel: ${formatNumber(velAbs, 1)} / Acc: ${formatNumber(accAbs, 1)} / Cum: ${formatNumber(cumAbs, 1)}`;
+                }
+                if (currentRowEl) {
+                    const sev = (velAbs != null && velAbs >= THRESHOLDS.vel.severe)
+                        || (accAbs != null && accAbs >= THRESHOLDS.acc.severe)
+                        || (cumAbs != null && cumAbs >= THRESHOLDS.cum.severe);
+                    const cau = (velAbs != null && velAbs >= THRESHOLDS.vel.caution)
+                        || (accAbs != null && accAbs >= THRESHOLDS.acc.caution)
+                        || (cumAbs != null && cumAbs >= THRESHOLDS.cum.caution);
+                    if (sev) {
+                        currentRowEl.style.background = 'rgba(254, 242, 242, 1)';
+                        if (currentTextEl) currentTextEl.style.color = '#B91C1C';
+                    } else if (cau) {
+                        currentRowEl.style.background = 'rgba(255, 251, 235, 1)';
+                        if (currentTextEl) currentTextEl.style.color = '#B45309';
+                    } else {
+                        currentRowEl.style.background = 'rgba(240, 253, 244, 1)';
+                        if (currentTextEl) currentTextEl.style.color = '#166534';
+                    }
+                }
+
+                renderCumulativeChart(t.monthly);
+            });
+        })();
+    </script>
+</body>
+
+</html>
+

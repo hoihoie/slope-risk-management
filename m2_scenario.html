@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>위성→드론 정밀 위험평가 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+        }
+    </style>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- 3D GLB Viewer -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.2.0/dist/model-viewer.min.js"></script>
+
+    <style>
+        #scenarioMap {
+            height: 560px;
+            width: 100%;
+            border-radius: 0;
+            z-index: 1;
+        }
+
+        .scenario-step {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(226, 232, 240, 1);
+            background: #fff;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .scenario-step.is-active {
+            background: rgba(14, 165, 233, 0.10);
+            border-color: rgba(14, 165, 233, 0.35);
+            color: #075985;
+        }
+
+        .scenario-step.is-done {
+            background: rgba(16, 185, 129, 0.10);
+            border-color: rgba(16, 185, 129, 0.35);
+            color: #065f46;
+        }
+
+        .scenario-step .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #94a3b8;
+        }
+
+        .scenario-step.is-active .dot {
+            background: #0ea5e9;
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.18);
+        }
+
+        .scenario-step.is-done .dot {
+            background: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+        }
+
+        .scenario-map-tools {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scenario-side-panel {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            z-index: 1000;
+            width: 340px;
+            max-width: calc(100% - 32px);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(226, 232, 240, 0.92);
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(10px);
+            padding: 14px 14px;
+        }
+
+        .candidate-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: #fff;
+            cursor: default;
+            transition: box-shadow 120ms ease, border-color 120ms ease;
+        }
+
+        .candidate-row:hover {
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.10);
+        }
+
+        .candidate-row.is-selected {
+            border-color: rgba(14, 165, 233, 0.35);
+            box-shadow: 0 10px 22px rgba(14, 165, 233, 0.14);
+            background: rgba(14, 165, 233, 0.06);
+        }
+
+        .alarm-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.10);
+        }
+
+        /* 3D viewer */
+        .scenario-viewer-stage {
+            position: relative;
+            min-height: 560px;
+            background: radial-gradient(1100px 640px at 40% 25%, rgba(59, 130, 246, 0.22), rgba(15, 23, 42, 0.98) 62%);
+            overflow: hidden;
+        }
+
+        #scenarioViewer {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: #111827;
+        }
+
+        .viewer-pill {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            color: #E2E8F0;
+            font-size: 12px;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+        }
+
+        .viewer-pill .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22C55E;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
+        }
+
+        .viewer-tools {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            backdrop-filter: blur(10px);
+            z-index: 5;
+        }
+
+        .viewer-tool-btn {
+            width: 36px;
+            height: 34px;
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(226, 232, 240, 0.92);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+        }
+
+        .viewer-tool-btn:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.10);
+            border-color: rgba(226, 232, 240, 0.25);
+        }
+
+        .viewer-tool-btn:active {
+            transform: translateY(0);
+        }
+
+        .viewer-tool-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* map marker (HTML divIcon) */
+        .alarm-div-icon,
+        .alarm-div-icon.leaflet-div-icon {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+        }
+
+        .alarm-marker {
+            width: var(--alarm-size, 26px);
+            height: var(--alarm-size, 26px);
+            position: relative;
+            overflow: visible;
+            transform: translateZ(0);
+        }
+
+        .alarm-marker .pulse {
+            position: absolute;
+            inset: 0;
+            border-radius: 999px;
+            background: var(--alarm-pulse, rgba(59, 130, 246, 0.25));
+            opacity: 0;
+            transform: scale(0.7);
+        }
+
+        .alarm-marker .core {
+            position: absolute;
+            inset: 18%;
+            border-radius: 999px;
+            background: var(--alarm-color, #3B82F6);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.18), 0 10px 22px rgba(15, 23, 42, 0.26);
+        }
+
+        .alarm-marker.is-pulsing .pulse {
+            animation: alarmPulse 1.6s ease-out infinite;
+            opacity: 0.65;
+        }
+
+        .alarm-marker.is-pulsing.fast .pulse {
+            animation-duration: 1.25s;
+        }
+
+        @keyframes alarmPulse {
+            0% { transform: scale(0.70); opacity: 0.65; }
+            70% { transform: scale(1.85); opacity: 0; }
+            100% { transform: scale(1.85); opacity: 0; }
+        }
+
+        @media (max-width: 1280px) {
+            #scenarioMap { height: 520px; }
+            .scenario-viewer-stage { min-height: 520px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_logo.png" alt="Orbital" class="h-8 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="m2_satellite.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="m2_scenario.html" class="nav-item active">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2>위성→드론 정밀 위험평가</h2>
+                    <p>위성 변위 탐지 → 후보지 선정 → 드론(LiDAR) 정밀탐지 → 리스크 스코어 산출</p>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-route text-slate-400"></i> 분석 흐름</h3>
+                    <div class="flex items-center gap-2">
+                        <button id="btnScenarioReset" class="btn btn-secondary btn-sm"><i class="fas fa-rotate-left"></i> 초기화</button>
+                        <a id="btnGoM2" href="m2_satellite.html" class="btn btn-secondary btn-sm"><i class="fas fa-satellite-dish"></i> 위성 페이지</a>
+                        <a id="btnGoM3" href="m3_danger.html" class="btn btn-secondary btn-sm"><i class="fas fa-cube"></i> 3D 위험관리</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <div id="step-sat" class="scenario-step is-active" data-step="sat">
+                            <span class="dot"></span> 1) 위성 변위 탐지
+                        </div>
+                        <div id="step-cand" class="scenario-step" data-step="cand">
+                            <span class="dot"></span> 2) 위험 후보지 선정
+                        </div>
+                        <div id="step-drone" class="scenario-step" data-step="drone">
+                            <span class="dot"></span> 3) 드론 정밀탐지(LiDAR)
+                        </div>
+                        <div id="step-risk" class="scenario-step" data-step="risk">
+                            <span class="dot"></span> 4) 리스크 스코어 산출
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-slate-600">
+                        TIP: <span class="font-semibold">AUTO DETECT</span>에서 <span class="font-semibold">정밀탐지</span>를 실행하면 드론 정밀탐지와 리스크 스코어 산출이 자동으로 진행됩니다.
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid gap-6 xl:grid-cols-12">
+                <!-- LEFT: Satellite displacement heatmap + candidate selection -->
+                <section class="xl:col-span-5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-satellite text-slate-400"></i> 위성 변위 히트맵</h3>
+                            <div class="flex items-center gap-2">
+                                <span class="badge badge-info">INSAR</span>
+                                <span id="satSelectedLabel" class="text-sm font-semibold text-slate-700">선택: -</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div style="position: relative;">
+                                <div id="scenarioMap"></div>
+
+                                <div class="scenario-map-tools">
+                                    <button id="btnHeatmapToggle" class="btn btn-secondary btn-sm" aria-pressed="true"
+                                        title="위성 변위 히트맵 오버레이 토글">
+                                        <i class="fas fa-layer-group"></i> 히트맵
+                                    </button>
+                                    <button id="btnMapFit" class="btn btn-secondary btn-sm" title="영역 맞춤">
+                                        <i class="fas fa-up-right-and-down-left-from-center"></i> 맞춤
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-slate-200 p-4">
+                                <div class="flex items-start justify-between gap-2">
+                                    <div>
+                                        <div class="text-xs font-semibold tracking-widest text-slate-400 uppercase">AUTO DETECT</div>
+                                        <div class="mt-1 text-sm font-semibold text-slate-900">변위 클러스터(후보지)</div>
+                                    </div>
+                                    <span class="badge badge-info">3건</span>
+                                </div>
+
+                                <div id="candidateList" class="mt-3 space-y-2"></div>
+
+                                <div class="mt-3 text-[11px] text-slate-500">
+                                    * 각 후보는 위성 변위 기반 “우선 점검 대상”이며, 드론 정밀탐지로 최종 위험도를 산출합니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RIGHT: Drone/LiDAR detail + risk score -->
+                <section class="xl:col-span-7">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-helicopter text-slate-400"></i> 드론 정밀탐지 (LiDAR) · 3D 디지털 트윈</h3>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="badge badge-info">DRONE</span>
+                                <span id="droneSelectedLabel" class="text-sm font-semibold text-slate-700">대상: -</span>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="scenario-viewer-stage">
+                                <model-viewer id="scenarioViewer" src="maps3d-2026-01-28_10-38-45.glb" alt="3D 지형 모델"
+                                    camera-controls shadow-intensity="0.9" exposure="1" min-camera-orbit="auto auto 5m"
+                                    max-camera-orbit="auto auto 20000m" interaction-prompt="none">
+                                    <!-- POI hotspots (m3_danger와 동일 좌표) -->
+                                    <button id="scenarioPoiA" data-poi-id="a" slot="hotspot-poi-a"
+                                        data-position="2567.20m 57.70m 4000.23m" data-normal="0 1 0" title="봉양리 (지점 A)"
+                                        style="width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(59, 130, 246, 0.95); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
+                                    </button>
+                                    <button id="scenarioPoiB" data-poi-id="b" slot="hotspot-poi-b"
+                                        data-position="-5315.00m 57.70m 1505.00m" data-normal="0 1 0" title="용탄리 (지점 B)"
+                                        style="width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(59, 130, 246, 0.95); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
+                                    </button>
+                                    <button id="scenarioPoiC" data-poi-id="c" slot="hotspot-poi-c"
+                                        data-position="4505.00m 57.70m 1615.00m" data-normal="0 1 0" title="덕송리 (지점 C)"
+                                        style="width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(59, 130, 246, 0.95); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
+                                    </button>
+                                </model-viewer>
+
+                                <div class="viewer-pill">
+                                    <span class="dot"></span>
+                                    <span>LiDAR 정밀 스캔 준비</span>
+                                </div>
+
+                                <div class="viewer-tools" aria-label="3D 도구">
+                                    <button id="btnViewerReset" type="button" class="viewer-tool-btn" title="기본 시점">
+                                        <i class="fas fa-earth-asia"></i>
+                                    </button>
+                                    <button id="btnViewerAuto" type="button" class="viewer-tool-btn" title="자동 회전 토글">
+                                        <i class="fas fa-plane"></i>
+                                    </button>
+                                    <button id="btnViewerLockZoom" type="button" class="viewer-tool-btn" title="줌 고정" disabled>
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-bolt text-slate-400"></i> 정밀 위험평가 결과 (RiskScore)</h3>
+                            <div class="flex items-center gap-2">
+                                <span id="riskBadge" class="badge badge-info">분석 대기</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div id="riskTitle" class="text-sm font-semibold text-slate-900">대상을 선택하세요</div>
+                                    <div id="riskSub" class="mt-1 text-xs text-slate-500">후보지에서 “정밀탐지”를 실행하면 자동으로 리스크 스코어가 산출됩니다.</div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a id="btnOpenM3" href="m3_danger.html" class="btn btn-secondary btn-sm">
+                                        <i class="fas fa-up-right-from-square"></i> 3D에서 보기
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div id="riskInferencePanel" class="mt-4 hidden rounded-none bg-slate-900/95 p-3 text-slate-100 ring-1 ring-slate-900/40">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="text-sm font-semibold">AI 위험도 산출 중…</div>
+                                    <div id="riskInferenceStep" class="text-xs text-slate-300">-</div>
+                                </div>
+                                <div class="mt-2 h-2 w-full rounded bg-slate-700">
+                                    <div id="riskInferenceBar" class="h-2 rounded bg-sky-400" style="width: 0%;"></div>
+                                </div>
+                                <div id="riskInferenceLog" class="mt-2 space-y-1 text-xs text-slate-300"></div>
+                            </div>
+
+                            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div class="rounded-none bg-slate-50 p-3 ring-1 ring-slate-200">
+                                    <div class="text-[11px] font-semibold text-slate-500">RiskScore</div>
+                                    <div id="riskScore" class="mt-1 text-2xl font-bold text-slate-900">--</div>
+                                </div>
+                                <div class="rounded-none bg-slate-50 p-3 ring-1 ring-slate-200">
+                                    <div class="text-[11px] font-semibold text-slate-500">Susceptibility</div>
+                                    <div id="riskSus" class="mt-1 text-2xl font-bold text-slate-900">--</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <div class="mb-2 text-xs font-semibold text-slate-600">모델 입력(요약)</div>
+                                <div class="grid grid-cols-2 gap-2 text-sm">
+                                    <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">경사도</div>
+                                        <div id="featSlope" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                    </div>
+                                    <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">곡률</div>
+                                        <div id="featCurv" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                    </div>
+                                    <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">거칠기</div>
+                                        <div id="featRough" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                    </div>
+                                    <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">사면향</div>
+                                        <div id="featAspect" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                    </div>
+                                    <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">S1_transfer</div>
+                                        <div id="featS1Transfer" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                    </div>
+                                    <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">S1_used</div>
+                                        <div id="featS1Used" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet Heat (canvas heatmap layer) -->
+    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+    <script>
+        (function () {
+            // =========================
+            // Scenario data (prototype)
+            // =========================
+            const ALARM_COLORS = {
+                '위험': '#EF4444',
+                '경계': '#F97316',
+                '주의': '#F59E0B',
+                '관심': '#3B82F6',
+                '안전': '#22C55E',
+            };
+
+            const POI_META = {
+                a: { label: 'A', ri: '봉양리' },
+                b: { label: 'B', ri: '용탄리' },
+                c: { label: 'C', ri: '덕송리' },
+            };
+
+            const CLUSTERS = [
+                { poiId: 'a', name: '봉양리 권역', lat: 37.3805, lng: 128.6608, alarm: '위험', dispMm: 22.4, trend: '가속' },
+                { poiId: 'b', name: '용탄리 권역', lat: 37.3105, lng: 128.6908, alarm: '경계', dispMm: 14.2, trend: '지속' },
+                { poiId: 'c', name: '덕송리 권역', lat: 37.2700, lng: 128.6250, alarm: '주의', dispMm: 8.6, trend: '초기' },
+            ];
+
+            // =========================
+            // Stepper
+            // =========================
+            const stepSatEl = document.getElementById('step-sat');
+            const stepCandEl = document.getElementById('step-cand');
+            const stepDroneEl = document.getElementById('step-drone');
+            const stepRiskEl = document.getElementById('step-risk');
+
+            function setStep(step) {
+                const order = ['sat', 'cand', 'drone', 'risk'];
+                const idx = Math.max(0, order.indexOf(step));
+                const map = { sat: stepSatEl, cand: stepCandEl, drone: stepDroneEl, risk: stepRiskEl };
+                order.forEach((k, i) => {
+                    const el = map[k];
+                    if (!el) return;
+                    el.classList.remove('is-active', 'is-done');
+                    if (i < idx) el.classList.add('is-done');
+                    if (i === idx) el.classList.add('is-active');
+                });
+            }
+
+            // =========================
+            // Satellite map + heatmap overlay
+            // =========================
+            const mapEl = document.getElementById('scenarioMap');
+            const btnHeatmapToggle = document.getElementById('btnHeatmapToggle');
+            const btnMapFit = document.getElementById('btnMapFit');
+            const satSelectedLabelEl = document.getElementById('satSelectedLabel');
+            const droneSelectedLabelEl = document.getElementById('droneSelectedLabel');
+
+            const candidateListEl = document.getElementById('candidateList');
+            const btnReset = document.getElementById('btnScenarioReset');
+
+            const viewer = document.getElementById('scenarioViewer');
+            const btnViewerReset = document.getElementById('btnViewerReset');
+            const btnViewerAuto = document.getElementById('btnViewerAuto');
+
+            const btnOpenM3 = document.getElementById('btnOpenM3');
+
+            const riskBadgeEl = document.getElementById('riskBadge');
+            const riskTitleEl = document.getElementById('riskTitle');
+            const riskSubEl = document.getElementById('riskSub');
+            const riskScoreEl = document.getElementById('riskScore');
+            const riskSusEl = document.getElementById('riskSus');
+            const featSlopeEl = document.getElementById('featSlope');
+            const featCurvEl = document.getElementById('featCurv');
+            const featRoughEl = document.getElementById('featRough');
+            const featAspectEl = document.getElementById('featAspect');
+            const featS1TransferEl = document.getElementById('featS1Transfer');
+            const featS1UsedEl = document.getElementById('featS1Used');
+
+            const inferencePanelEl = document.getElementById('riskInferencePanel');
+            const inferenceStepEl = document.getElementById('riskInferenceStep');
+            const inferenceBarEl = document.getElementById('riskInferenceBar');
+            const inferenceLogEl = document.getElementById('riskInferenceLog');
+
+            let selectedPoiId = null;
+            let isHeatmapVisible = true;
+            let inferenceToken = 0;
+
+            function safeText(el, value) {
+                if (!el) return;
+                el.textContent = value == null ? '' : String(value);
+            }
+
+            function toNumber(value) {
+                const n = Number.parseFloat(value);
+                return Number.isFinite(n) ? n : null;
+            }
+
+            function formatNumber(value, digits = 2) {
+                const n = toNumber(value);
+                if (n == null) return '--';
+                return n.toFixed(digits);
+            }
+
+            function formatPercent01(value, digits = 1) {
+                const n = toNumber(value);
+                if (n == null) return '--';
+                return `${(n * 100).toFixed(digits)}%`;
+            }
+
+            function applyBadge(el, text, badgeVariantClass) {
+                if (!el) return;
+                el.className = `badge ${badgeVariantClass || 'badge-info'}`;
+                el.textContent = text || '';
+            }
+
+            function gradeInfo(grade5) {
+                const g = Number.parseInt(String(grade5 ?? ''), 10);
+                if (g === 5) return { label: 'E등급 (심각)', badgeClass: 'badge-danger' };
+                if (g === 4) return { label: 'D등급 (경계)', badgeClass: 'badge-warning' };
+                if (g === 3) return { label: 'C등급 (주의)', badgeClass: 'badge-warning' };
+                if (g === 2) return { label: 'B등급 (관심)', badgeClass: 'badge-info' };
+                if (g === 1) return { label: 'A등급 (안전)', badgeClass: 'badge-success' };
+                return { label: '등급 미상', badgeClass: 'badge-info' };
+            }
+
+            function setInferenceVisible(isVisible) {
+                if (!inferencePanelEl) return;
+                if (isVisible) inferencePanelEl.classList.remove('hidden');
+                else inferencePanelEl.classList.add('hidden');
+            }
+
+            function setInferenceProgress(stepText, percent, logLines) {
+                safeText(inferenceStepEl, stepText || '-');
+                if (inferenceBarEl) inferenceBarEl.style.width = `${Math.max(0, Math.min(100, percent || 0))}%`;
+                if (!inferenceLogEl) return;
+                inferenceLogEl.innerHTML = '';
+                (logLines || []).forEach((line) => {
+                    const div = document.createElement('div');
+                    div.textContent = line;
+                    inferenceLogEl.appendChild(div);
+                });
+            }
+
+            function sleep(ms) {
+                return new Promise((resolve) => setTimeout(resolve, ms));
+            }
+
+            function clamp(num, min, max) {
+                return Math.max(min, Math.min(max, num));
+            }
+
+            function fnv1a32(str) {
+                let h = 0x811c9dc5;
+                const s = String(str ?? '');
+                for (let i = 0; i < s.length; i++) {
+                    h ^= s.charCodeAt(i);
+                    h = Math.imul(h, 0x01000193);
+                }
+                return h >>> 0;
+            }
+
+            function hash01(str) {
+                return (fnv1a32(str) % 1000000) / 1000000;
+            }
+
+            // --------------
+            // CSV risk score loading (same idea as m3_danger)
+            // --------------
+            const CSV_PATH = 'risk_scored_정선_v2(라벨없음).csv';
+            const FALLBACK_ROWS_BY_POI = {
+                a: {
+                    '관리번호': '7',
+                    '급경사지명': '봉양5지구',
+                    '소재지': '정선읍 봉양리 821-2전',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '10.0',
+                    '곡률(Curvature)': '-0.93',
+                    '거칠기(Roughness)': '57.03',
+                    '사면향(Aspect)': '102.83',
+                    'S1_transfer': '0.8025741576571698',
+                    'S1_used': '0.7680371121099365',
+                    'Susceptibility': '0.6144296896879493',
+                    'RiskScore': '61.442969',
+                    'risk_grade5_by_region': '5'
+                },
+                b: {
+                    '관리번호': '47',
+                    '급경사지명': '강원 정선 정선 용탄 N2지구',
+                    '소재지': '정선읍 용탄리 산1임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '8.98',
+                    '곡률(Curvature)': '-0.83',
+                    '거칠기(Roughness)': '66.08',
+                    '사면향(Aspect)': '116.24',
+                    'S1_transfer': '0.8585486705105906',
+                    'S1_used': '0.8327562561457694',
+                    'Susceptibility': '0.6662050049166156',
+                    'RiskScore': '66.6205',
+                    'risk_grade5_by_region': '5'
+                },
+                c: {
+                    '관리번호': '14',
+                    '급경사지명': '덕송3지구',
+                    '소재지': '정선읍 덕송리 산66임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '13.7',
+                    '곡률(Curvature)': '0.78',
+                    '거칠기(Roughness)': '72.28',
+                    '사면향(Aspect)': '140.69',
+                    'S1_transfer': '0.7932846366983243',
+                    'S1_used': '0.757381778157062',
+                    'Susceptibility': '0.6059054225256496',
+                    'RiskScore': '60.590542',
+                    'risk_grade5_by_region': '5'
+                }
+            };
+
+            let riskRowsCache = null;
+            let riskRowsSourceLabel = null;
+
+            function parseCsvLine(line) {
+                const out = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                        continue;
+                    }
+                    if (ch === ',' && !inQuotes) {
+                        out.push(cur);
+                        cur = '';
+                        continue;
+                    }
+                    cur += ch;
+                }
+                out.push(cur);
+                return out;
+            }
+
+            function parseCsv(text) {
+                const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                const lines = normalized.split('\n').filter((l) => l.trim() !== '');
+                if (!lines.length) return [];
+                const header = parseCsvLine(lines[0]).map((h) => h.trim());
+                const rows = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCsvLine(lines[i]);
+                    const obj = {};
+                    for (let j = 0; j < header.length; j++) {
+                        obj[header[j]] = (cols[j] ?? '').trim();
+                    }
+                    rows.push(obj);
+                }
+                return rows;
+            }
+
+            async function loadRiskRows(options = {}) {
+                const force = options && options.force === true;
+                if (riskRowsCache && !force) return { rows: riskRowsCache, sourceLabel: riskRowsSourceLabel || 'CSV 캐시' };
+                try {
+                    const res = await fetch(encodeURI(CSV_PATH), { cache: 'no-store' });
+                    if (!res.ok) throw new Error(`CSV 로딩 실패 (HTTP ${res.status})`);
+                    const text = await res.text();
+                    const rows = parseCsv(text);
+                    if (!rows.length) throw new Error('CSV가 비어있습니다.');
+                    riskRowsCache = rows;
+                    riskRowsSourceLabel = `CSV (${CSV_PATH})`;
+                    return { rows, sourceLabel: riskRowsSourceLabel };
+                } catch (e) {
+                    const fallback = Object.values(FALLBACK_ROWS_BY_POI);
+                    riskRowsCache = fallback;
+                    riskRowsSourceLabel = '내장 샘플(오프라인 fallback)';
+                    return { rows: fallback, sourceLabel: riskRowsSourceLabel, error: e };
+                }
+            }
+
+            function pickBestRowForPoi(poiId, rows) {
+                const meta = POI_META[poiId];
+                if (!meta) return null;
+                const ri = meta.ri;
+                const candidates = (rows || []).filter((r) => String(r['소재지'] || '').includes(ri));
+                if (!candidates.length) return FALLBACK_ROWS_BY_POI[poiId] || null;
+                let best = candidates[0];
+                let bestScore = toNumber(best['RiskScore']) ?? -Infinity;
+                for (const r of candidates) {
+                    const s = toNumber(r['RiskScore']);
+                    if (s != null && s > bestScore) {
+                        best = r;
+                        bestScore = s;
+                    }
+                }
+                return best;
+            }
+
+            function resetRiskPanel() {
+                applyBadge(riskBadgeEl, '분석 대기', 'badge-info');
+                safeText(riskTitleEl, '대상을 선택하세요');
+                safeText(riskSubEl, '후보지에서 “정밀탐지”를 실행하면 자동으로 리스크 스코어가 산출됩니다.');
+                safeText(riskScoreEl, '--');
+                safeText(riskSusEl, '--');
+                safeText(featSlopeEl, '--');
+                safeText(featCurvEl, '--');
+                safeText(featRoughEl, '--');
+                safeText(featAspectEl, '--');
+                safeText(featS1TransferEl, '--');
+                safeText(featS1UsedEl, '--');
+                setInferenceVisible(false);
+            }
+
+            function renderRiskResult(poiId, row, sourceLabel) {
+                const meta = POI_META[poiId];
+                if (!meta || !row) return;
+                const g = gradeInfo(row['risk_grade5_by_region']);
+                const siteName = row['급경사지명'] || `${meta.ri} 지구`;
+                const addr = row['소재지'] || `정선읍 ${meta.ri}`;
+                const id = row['관리번호'] ? `관리번호 ${row['관리번호']}` : '관리번호 -';
+                const note = row['비고(Note)'] || '-';
+
+                safeText(riskTitleEl, `지점 ${meta.label} · ${siteName}`);
+                safeText(riskSubEl, `${addr} · ${id} · ${note}`);
+                applyBadge(riskBadgeEl, g.label, g.badgeClass);
+
+                safeText(riskScoreEl, formatNumber(row['RiskScore'], 2));
+                safeText(riskSusEl, formatPercent01(row['Susceptibility'], 1));
+                safeText(featSlopeEl, `${formatNumber(row['경사도(Slope)'], 2)}°`);
+                safeText(featCurvEl, formatNumber(row['곡률(Curvature)'], 2));
+                safeText(featRoughEl, formatNumber(row['거칠기(Roughness)'], 2));
+                safeText(featAspectEl, `${formatNumber(row['사면향(Aspect)'], 2)}°`);
+                safeText(featS1TransferEl, formatNumber(row['S1_transfer'], 3));
+                safeText(featS1UsedEl, formatNumber(row['S1_used'], 3));
+            }
+
+            async function runFakeInference(poiId, options = {}) {
+                const token = ++inferenceToken;
+                const force = options && options.force === true;
+                if (!poiId) return;
+
+                const meta = POI_META[poiId];
+                setStep('risk');
+                setInferenceVisible(true);
+
+                const logs = [];
+                function push(step, percent) {
+                    logs.push(step);
+                    setInferenceProgress(step, percent, logs.slice(-5));
+                }
+
+                applyBadge(riskBadgeEl, '분석 중', 'badge-info');
+                safeText(riskTitleEl, meta ? `지점 ${meta.label} · AI 분석 준비 중…` : 'AI 분석 준비 중…');
+                safeText(riskSubEl, meta ? `${meta.ri} 권역 데이터를 불러오는 중입니다.` : '데이터를 불러오는 중입니다.');
+                safeText(riskScoreEl, '--');
+                safeText(riskSusEl, '--');
+
+                push('입력 데이터 로딩', 10);
+                await sleep(220);
+                if (token !== inferenceToken) return;
+
+                const { rows, sourceLabel } = await loadRiskRows({ force });
+                if (token !== inferenceToken) return;
+                const best = pickBestRowForPoi(poiId, rows);
+
+                push('전처리/피처 엔지니어링', 30);
+                await sleep(240);
+                if (token !== inferenceToken) return;
+
+                push(`지도학습 모델 추론 (S1_transfer=${formatNumber(best && best['S1_transfer'], 3)})`, 55);
+                await sleep(240);
+                if (token !== inferenceToken) return;
+
+                push(`비지도 이상탐지 (S1_used=${formatNumber(best && best['S1_used'], 3)})`, 75);
+                await sleep(240);
+                if (token !== inferenceToken) return;
+
+                push(`앙상블/리스크 스코어 산출 (Sus=${formatPercent01(best && best['Susceptibility'], 1)}, Risk=${formatNumber(best && best['RiskScore'], 2)})`, 92);
+                await sleep(220);
+                if (token !== inferenceToken) return;
+
+                renderRiskResult(poiId, best, sourceLabel);
+                push('결과 반영 완료', 100);
+                await sleep(260);
+                if (token !== inferenceToken) return;
+
+                setInferenceVisible(false);
+            }
+
+            // --------------
+            // Leaflet map init
+            // --------------
+            const fallbackCenter = [37.3505, 128.6808];
+            const map = L.map('scenarioMap').setView(fallbackCenter, 10);
+            const layerImagery = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                {
+                    attribution: 'Tiles &copy; Esri',
+                    maxZoom: 19
+                }
+            );
+            const layerOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors',
+                maxZoom: 19
+            });
+            layerImagery.addTo(map);
+            L.control.layers({ '위성(영상)': layerImagery, '일반지도': layerOsm }, null, { position: 'topleft' }).addTo(map);
+
+            // Heatmap overlay (자연스러운 지도 레이어 느낌)
+            // - 가능하면 Leaflet.heat(캔버스 히트맵)를 사용하고,
+            // - 로드되지 않은 환경에서는 기존 이미지 오버레이로 fallback 합니다.
+            const HEATMAP_FALLBACK_BOUNDS = L.latLngBounds([37.18, 128.50], [37.55, 128.90]);
+            let heatLayer = null;
+            let heatmapFallbackOverlay = null;
+            let heatmapBounds = HEATMAP_FALLBACK_BOUNDS;
+
+            function buildHeatPoints() {
+                // CLUSTERS 주변에 점들을 생성해 “자연스러운” 히트맵처럼 보이도록 합니다.
+                // intensity는 0..1
+                const pts = [];
+                (CLUSTERS || []).forEach((c) => {
+                    const seedBase = `${c.poiId}|${c.alarm}|${c.dispMm}|${c.trend}`;
+                    const alarmW = alarmRank(c.alarm) / 5; // 0.2..1
+                    const dispW = clamp((Number(c.dispMm) || 0) / 25, 0.25, 1);
+                    const baseIntensity = clamp(0.25 + (0.55 * alarmW) + (0.25 * dispW), 0.25, 1);
+
+                    const count = c.alarm === '위험' ? 90 : c.alarm === '경계' ? 75 : 60;
+                    for (let i = 0; i < count; i++) {
+                        // 중심부가 더 진하고, 바깥으로 갈수록 약해지는 분포
+                        const u = hash01(`${seedBase}|u|${i}`);
+                        const v = hash01(`${seedBase}|v|${i}`);
+                        const ang = u * Math.PI * 2;
+                        const r = Math.sqrt(v); // 0..1 (중심 밀집)
+
+                    // 대략 km 단위로 퍼지는 정도(위도/경도 스케일 단순화)
+                    // 히트맵 "범위"를 더 크게 보이도록 spread를 상향합니다.
+                    const latSpread = (c.alarm === '위험' ? 0.090 : c.alarm === '경계' ? 0.075 : 0.060);
+                    const lngSpread = (c.alarm === '위험' ? 0.120 : c.alarm === '경계' ? 0.105 : 0.085);
+                        const latJ = Math.cos(ang) * r * latSpread * (0.35 + hash01(`${seedBase}|s1|${i}`) * 0.85);
+                        const lngJ = Math.sin(ang) * r * lngSpread * (0.35 + hash01(`${seedBase}|s2|${i}`) * 0.85);
+
+                        const intensity = clamp(baseIntensity * (1 - r * 0.55) * (0.85 + hash01(`${seedBase}|w|${i}`) * 0.30), 0.15, 1);
+                        pts.push([c.lat + latJ, c.lng + lngJ, intensity]);
+                    }
+                });
+                return pts;
+            }
+
+            function rebuildHeatmap() {
+                const pts = buildHeatPoints();
+                if (pts.length) {
+                    heatmapBounds = L.latLngBounds(pts.map((p) => [p[0], p[1]])).pad(0.15);
+                } else {
+                    heatmapBounds = HEATMAP_FALLBACK_BOUNDS;
+                }
+
+                if (typeof L !== 'undefined' && typeof L.heatLayer === 'function') {
+                    // 위성 변위 분석 의미와 동일하게: 파랑(낮음) → 빨강(높음)
+                    // 보라로 보이는 중간 보간을 피하기 위해 "파랑 → (거의 흰색) → 빨강"으로 구성합니다.
+                    const gradient = {
+                        0.00: 'rgba(59, 130, 246, 0.00)',  // Blue (transparent)
+                        0.18: 'rgba(59, 130, 246, 0.92)',  // Blue (strong)
+                        0.32: 'rgba(59, 130, 246, 0.98)',  // Blue (stronger)
+                        0.52: 'rgba(255, 255, 255, 0.08)', // Near white (very thin)
+                        0.68: 'rgba(239, 68, 68, 0.82)',   // Red (starts earlier)
+                        1.00: 'rgba(239, 68, 68, 0.98)',   // Red (strong)
+                    };
+                    heatLayer = L.heatLayer(pts, {
+                        // 반경/블러를 키우면 "범위가 넓은" 느낌이 더 자연스럽게 납니다.
+                        radius: 56,
+                        blur: 40,
+                        maxZoom: 16,
+                        minOpacity: 0.22,
+                        gradient,
+                    });
+                    heatLayer.addTo(map);
+                    heatmapFallbackOverlay = null;
+                    return;
+                }
+
+                // Fallback: 이미지 오버레이
+                heatmapFallbackOverlay = L.imageOverlay('assets/images/위성_변위_히트맵.png', HEATMAP_FALLBACK_BOUNDS, { opacity: 0.45, interactive: false });
+                heatmapFallbackOverlay.addTo(map);
+                heatLayer = null;
+                heatmapBounds = HEATMAP_FALLBACK_BOUNDS;
+            }
+
+            rebuildHeatmap();
+
+            function fitToBounds() {
+                map.fitBounds((heatmapBounds || HEATMAP_FALLBACK_BOUNDS).pad(0.08));
+            }
+            fitToBounds();
+
+            function alarmRank(alarm) {
+                if (alarm === '위험') return 5;
+                if (alarm === '경계') return 4;
+                if (alarm === '주의') return 3;
+                if (alarm === '관심') return 2;
+                return 1;
+            }
+
+            function markerSizeForAlarm(alarm) {
+                const r = alarmRank(alarm);
+                if (r >= 5) return 34;
+                if (r === 4) return 32;
+                if (r === 3) return 28;
+                if (r === 2) return 24;
+                return 22;
+            }
+
+            function hexToRgba(hex, alpha) {
+                const h = String(hex || '').trim().replace('#', '');
+                if (!/^[0-9a-fA-F]{6}$/.test(h)) return `rgba(59, 130, 246, ${alpha})`;
+                const r = Number.parseInt(h.slice(0, 2), 16);
+                const g = Number.parseInt(h.slice(2, 4), 16);
+                const b = Number.parseInt(h.slice(4, 6), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+
+            function createAlarmIcon(alarm, color) {
+                const size = markerSizeForAlarm(alarm);
+                const isPulsing = alarm === '위험' || alarm === '경계';
+                const isFast = alarm === '위험';
+                const pulse = hexToRgba(color, alarm === '위험' ? 0.42 : 0.34);
+                const html = `
+                    <div class="alarm-marker ${isPulsing ? 'is-pulsing' : ''} ${isFast ? 'fast' : ''}"
+                         style="--alarm-size:${size}px; --alarm-color:${color}; --alarm-pulse:${pulse};">
+                        <span class="pulse"></span>
+                        <span class="core"></span>
+                    </div>
+                `;
+                return L.divIcon({
+                    className: 'alarm-div-icon',
+                    html,
+                    iconSize: [size, size],
+                    iconAnchor: [size / 2, size / 2],
+                    tooltipAnchor: [0, -size / 2],
+                });
+            }
+
+            const markerByPoi = new Map();
+
+            function renderCandidateList() {
+                if (!candidateListEl) return;
+                candidateListEl.innerHTML = '';
+                CLUSTERS.forEach((c) => {
+                    const row = document.createElement('div');
+                    row.className = `candidate-row ${c.poiId === selectedPoiId ? 'is-selected' : ''}`;
+                    row.dataset.poiId = c.poiId;
+
+                    const left = document.createElement('div');
+                    left.className = 'min-w-0 flex-1';
+
+                    const top = document.createElement('div');
+                    top.className = 'flex items-center gap-2';
+
+                    const dot = document.createElement('span');
+                    dot.className = 'alarm-dot';
+                    dot.style.background = ALARM_COLORS[c.alarm] || '#3B82F6';
+
+                    const title = document.createElement('div');
+                    title.className = 'text-sm font-semibold text-slate-900 truncate';
+                    const meta = POI_META[c.poiId];
+                    title.textContent = meta ? `지점 ${meta.label} · ${c.name}` : c.name;
+
+                    top.appendChild(dot);
+                    top.appendChild(title);
+
+                    const sub = document.createElement('div');
+                    sub.className = 'mt-1 text-xs text-slate-500';
+                    sub.textContent = `변위 ${c.dispMm.toFixed(1)}mm · 추세 ${c.trend} · 알람 ${c.alarm}`;
+
+                    left.appendChild(top);
+                    left.appendChild(sub);
+
+                    const right = document.createElement('div');
+                    right.className = 'flex flex-col items-end gap-1';
+                    const badge = document.createElement('span');
+                    badge.className = `badge ${c.alarm === '위험' ? 'badge-danger' : c.alarm === '경계' ? 'badge-warning' : c.alarm === '주의' ? 'badge-warning' : 'badge-info'}`;
+                    badge.textContent = c.alarm;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'btn btn-primary btn-sm';
+                    btn.textContent = '정밀탐지';
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectCluster(c.poiId, { focusMap: true, focus3d: true, autoRisk: true });
+                    });
+
+                    right.appendChild(badge);
+                    right.appendChild(btn);
+
+                    row.appendChild(left);
+                    row.appendChild(right);
+                    candidateListEl.appendChild(row);
+                });
+            }
+
+            function focusOnPoi(poiId) {
+                if (!viewer) return;
+                const el = document.querySelector(`[data-poi-id="${poiId}"]`);
+                if (!el) return;
+                const pos = el.getAttribute('data-position');
+                if (!pos) return;
+                viewer.cameraTarget = pos;
+
+                // zoom-in 느낌
+                if (typeof viewer.getCameraOrbit === 'function') {
+                    try {
+                        const orbit = viewer.getCameraOrbit();
+                        const theta = orbit && typeof orbit.theta === 'number' ? orbit.theta : 0;
+                        const phi = orbit && typeof orbit.phi === 'number' ? orbit.phi : 1.0;
+                        const radius = orbit && typeof orbit.radius === 'number' ? orbit.radius : 240;
+                        const nextRadius = Math.max(radius * 0.35, 30);
+                        viewer.cameraOrbit = `${theta}rad ${phi}rad ${nextRadius}m`;
+                    } catch { }
+                }
+            }
+
+            function selectCluster(poiId, options = {}) {
+                const meta = POI_META[poiId];
+                const cluster = CLUSTERS.find((x) => x.poiId === poiId);
+                if (!meta || !cluster) return;
+                selectedPoiId = poiId;
+
+                // Step updates
+                setStep('drone');
+
+                // labels
+                safeText(satSelectedLabelEl, `선택: 지점 ${meta.label} (${meta.ri})`);
+                safeText(droneSelectedLabelEl, `대상: 지점 ${meta.label} · ${cluster.name}`);
+
+                if (btnOpenM3) btnOpenM3.href = `m3_danger.html?poi=${encodeURIComponent(poiId)}`;
+
+                // map focus
+                if (options.focusMap !== false) {
+                    map.setView([cluster.lat, cluster.lng], Math.max(map.getZoom(), 12), { animate: true });
+                    const m = markerByPoi.get(poiId);
+                    if (m) m.openTooltip();
+                }
+
+                // 3D focus
+                if (options.focus3d !== false) {
+                    focusOnPoi(poiId);
+                }
+
+                // reset risk panel (selection changed)
+                resetRiskPanel();
+                safeText(riskTitleEl, `지점 ${meta.label} · 분석 중…`);
+                safeText(riskSubEl, `${meta.ri} 권역 데이터를 불러오고 있습니다.`);
+
+                renderCandidateList();
+
+                // 정밀탐지(선택) 시 자동으로 RiskScore 산출
+                const autoRisk = !(options && options.autoRisk === false);
+                if (autoRisk) {
+                    runFakeInference(poiId, { force: true });
+                }
+            }
+
+            // Markers
+            CLUSTERS.forEach((c) => {
+                const color = ALARM_COLORS[c.alarm] || '#3B82F6';
+                const icon = createAlarmIcon(c.alarm, color);
+                const marker = L.marker([c.lat, c.lng], {
+                    icon,
+                    riseOnHover: true,
+                    riseOffset: 250,
+                    zIndexOffset: 1000 + (alarmRank(c.alarm) * 100),
+                }).addTo(map);
+                const meta = POI_META[c.poiId];
+                marker.bindTooltip(`<b>지점 ${meta ? meta.label : ''} · ${c.name}</b><br>${c.alarm} · ${c.dispMm.toFixed(1)}mm`, {
+                    direction: 'top',
+                    offset: [0, -6],
+                    opacity: 0.95
+                });
+                marker.on('click', () => {
+                    // 후보지 선택/분석은 AUTO DETECT의 "정밀탐지" 버튼으로만 실행
+                    marker.openTooltip();
+                });
+                markerByPoi.set(c.poiId, marker);
+            });
+
+            renderCandidateList();
+            resetRiskPanel();
+
+            // -------------------------
+            // Controls
+            // -------------------------
+            if (btnMapFit) btnMapFit.addEventListener('click', fitToBounds);
+            if (btnHeatmapToggle) {
+                btnHeatmapToggle.addEventListener('click', () => {
+                    isHeatmapVisible = !isHeatmapVisible;
+                    btnHeatmapToggle.setAttribute('aria-pressed', isHeatmapVisible ? 'true' : 'false');
+                    btnHeatmapToggle.classList.toggle('btn-danger', isHeatmapVisible);
+                    btnHeatmapToggle.classList.toggle('btn-secondary', !isHeatmapVisible);
+                    if (isHeatmapVisible) {
+                        if (heatLayer && !map.hasLayer(heatLayer)) heatLayer.addTo(map);
+                        if (heatmapFallbackOverlay && !map.hasLayer(heatmapFallbackOverlay)) heatmapFallbackOverlay.addTo(map);
+                    } else {
+                        if (heatLayer && map.hasLayer(heatLayer)) map.removeLayer(heatLayer);
+                        if (heatmapFallbackOverlay && map.hasLayer(heatmapFallbackOverlay)) map.removeLayer(heatmapFallbackOverlay);
+                    }
+                });
+                // 초기 상태: ON
+                btnHeatmapToggle.classList.add('btn-danger');
+                btnHeatmapToggle.classList.remove('btn-secondary');
+            }
+
+            function resetAll() {
+                selectedPoiId = null;
+                setStep('sat');
+                safeText(satSelectedLabelEl, '선택: -');
+                safeText(droneSelectedLabelEl, '대상: -');
+                if (btnOpenM3) btnOpenM3.href = 'm3_danger.html';
+                resetRiskPanel();
+                renderCandidateList();
+                fitToBounds();
+            }
+
+            if (btnReset) btnReset.addEventListener('click', resetAll);
+
+            // 3D tool: reset + auto rotate
+            function syncAutoBtn() {
+                if (!btnViewerAuto || !viewer) return;
+                const on = !!viewer.autoRotate;
+                btnViewerAuto.style.borderColor = on ? 'rgba(56, 189, 248, 0.55)' : 'rgba(226, 232, 240, 0.16)';
+                btnViewerAuto.style.background = on ? 'rgba(56, 189, 248, 0.10)' : 'rgba(255, 255, 255, 0.06)';
+            }
+
+            function applyDefaultView() {
+                if (!viewer) return;
+                viewer.cameraTarget = '2567.20m 57.70m 4000.23m';
+                viewer.cameraOrbit = '35deg 65deg 260m';
+                viewer.autoRotate = false;
+                syncAutoBtn();
+            }
+
+            if (btnViewerReset) btnViewerReset.addEventListener('click', () => {
+                if (selectedPoiId) focusOnPoi(selectedPoiId);
+                else applyDefaultView();
+            });
+            if (btnViewerAuto) btnViewerAuto.addEventListener('click', () => {
+                if (!viewer) return;
+                viewer.autoRotate = !viewer.autoRotate;
+                syncAutoBtn();
+            });
+
+            // Hotspot click in viewer (also allow selecting)
+            const poiEls = Array.from(document.querySelectorAll('[data-poi-id]'));
+            poiEls.forEach((el) => {
+                el.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+                el.addEventListener('pointerup', (ev) => ev.stopPropagation());
+                el.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    // 후보지 선택/분석은 AUTO DETECT의 "정밀탐지" 버튼으로만 실행
+                    return;
+                });
+            });
+
+            if (viewer) {
+                viewer.addEventListener('load', () => {
+                    applyDefaultView();
+                }, { once: true });
+            }
+
+            // Auto-select via query (?poi=a)
+            const params = new URLSearchParams(window.location.search);
+            const qPoi = params.get('poi');
+            if (qPoi && POI_META[qPoi]) {
+                // 후보지 선택/분석은 AUTO DETECT의 "정밀탐지" 버튼으로만 실행
+                // 딥링크는 지도/3D 포커싱만 수행합니다.
+                const cluster = CLUSTERS.find((x) => x.poiId === qPoi);
+                if (cluster) {
+                    map.setView([cluster.lat, cluster.lng], Math.max(map.getZoom(), 12), { animate: true });
+                    const m = markerByPoi.get(qPoi);
+                    if (m) m.openTooltip();
+                }
+                focusOnPoi(qPoi);
+            }
+        })();
+    </script>
+</body>
+
+</html>
+

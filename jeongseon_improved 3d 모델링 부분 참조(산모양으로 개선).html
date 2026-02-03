@@ -1,0 +1,6646 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <title>정선군 AI 급경사지 관리 시스템 - KT Enterprise</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Pretendard', 'Noto Sans KR', -apple-system, sans-serif;
+      background: #f5f7fa;
+    }
+
+    /* ===== 로그인 페이지 ===== */
+    .login-container {
+      display: flex;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      color: white;
+    }
+
+    .login-logo {
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      margin-bottom: 30px;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-title {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .login-subtitle {
+      font-size: 16px;
+      opacity: 0.95;
+      text-align: center;
+      line-height: 1.6;
+      letter-spacing: 0.5px;
+    }
+
+    .login-right {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+      padding: 60px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 450px;
+    }
+
+    .login-box h2 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #BC0028;
+      margin-bottom: 10px;
+    }
+
+    .login-box p {
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 15px;
+    }
+
+    .user-type-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .user-type-btn {
+      padding: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .user-type-btn:hover {
+      border-color: #BC0028;
+      transform: translateY(-3px);
+      box-shadow: 0 4px 15px rgba(188, 0, 40, 0.2);
+    }
+
+    .user-type-btn.active {
+      border-color: #BC0028;
+      background: #fff5f7;
+    }
+
+    .user-type-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #BC0028;
+      box-shadow: 0 0 0 3px rgba(188, 0, 40, 0.1);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #BC0028 0%, #E31C3D 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(188, 0, 40, 0.3);
+    }
+
+    .login-footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+    }
+
+    /* ===== 메인 애플리케이션 ===== */
+    .app-container {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .app-container.active {
+      display: block;
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #BC0028 0%, #E31C3D 100%);
+      color: white;
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(188, 0, 40, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .app-header-left {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .app-logo {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 2px;
+    }
+
+    .app-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .app-nav {
+      display: flex;
+      gap: 5px;
+    }
+
+    .nav-btn {
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-btn.active {
+      background: white;
+      color: #BC0028;
+    }
+
+    .app-user {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-info {
+      text-align: right;
+    }
+
+    .user-name {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .user-role {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .logout-btn {
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid white;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      background: white;
+      color: #BC0028;
+    }
+
+    /* ===== 페이지 컨테이너 ===== */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* ===== M1: 통합관리 페이지 ===== */
+    .dashboard-container {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      height: calc(100vh - 80px);
+    }
+
+    .dashboard-sidebar {
+      background: white;
+      padding: 25px;
+      overflow-y: auto;
+      box-shadow: 2px 0 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .sidebar-section {
+      margin-bottom: 30px;
+    }
+
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #BC0028;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-summary {
+      display: grid;
+      gap: 12px;
+    }
+
+    .status-card {
+      padding: 15px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-left: 4px solid;
+    }
+
+    .status-card.normal {
+      border-color: #00C73C;
+    }
+
+    .status-card.warning {
+      border-color: #FFA500;
+    }
+
+    .status-card.danger {
+      border-color: #E31C3D;
+    }
+
+    .status-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .status-card-name {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-normal {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .badge-warning {
+      background: #fff3e0;
+      color: #ef6c00;
+    }
+
+    .badge-danger {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .status-card-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: #BC0028;
+    }
+
+    .dashboard-map {
+      position: relative;
+    }
+
+    #dashboardMap {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .map-control-btn {
+      background: white;
+      border: 2px solid #BC0028;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .map-control-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .map-control-btn.active {
+      background: #BC0028;
+      color: white;
+    }
+
+    /* ===== M2: 위성 데이터 페이지 ===== */
+    .satellite-container {
+      padding: 30px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .satellite-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: #BC0028;
+    }
+
+    .time-selector {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .time-selector select {
+      padding: 10px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .satellite-content {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 25px;
+    }
+
+    .satellite-map-container {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .satellite-map {
+      width: 100%;
+      height: 600px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .satellite-info {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .info-section {
+      margin-bottom: 25px;
+    }
+
+    .info-section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #BC0028;
+      margin-bottom: 15px;
+    }
+
+    .displacement-data {
+      display: grid;
+      gap: 12px;
+    }
+
+    .displacement-item {
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .displacement-date {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .displacement-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: #333;
+    }
+
+    .displacement-change {
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .change-positive {
+      color: #E31C3D;
+    }
+
+    .change-negative {
+      color: #00C73C;
+    }
+
+    .risk-chart {
+      width: 100%;
+      height: 200px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      margin-top: 15px;
+    }
+
+    /* ===== M3: 붕괴위험지역 페이지 ===== */
+    .risk-area-container {
+      padding: 30px;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    .risk-areas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+      gap: 25px;
+      margin-top: 30px;
+    }
+
+    .risk-area-card {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .risk-area-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .risk-area-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .risk-area-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: #333;
+    }
+
+    .risk-grade {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .grade-a {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .grade-b {
+      background: #fff3e0;
+      color: #ef6c00;
+    }
+
+    .grade-c {
+      background: #fff9c4;
+      color: #f57f17;
+    }
+
+    .grade-d {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .risk-area-preview {
+      width: 100%;
+      height: 250px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 48px;
+    }
+
+    .risk-area-info {
+      display: grid;
+      gap: 10px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #666;
+    }
+
+    .info-value {
+      font-weight: 700;
+      color: #333;
+    }
+
+    /* ===== R1: 보고서 생성 페이지 ===== */
+    .report-container {
+      padding: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .report-wizard {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      margin-top: 30px;
+    }
+
+    .wizard-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 50px;
+    }
+
+    .wizard-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+
+    .wizard-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 60%;
+      right: -40%;
+      height: 2px;
+      background: #e0e0e0;
+      z-index: 0;
+    }
+
+    .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #e0e0e0;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-weight: 800;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wizard-step.active .step-number {
+      background: #BC0028;
+    }
+
+    .wizard-step.completed .step-number {
+      background: #00C73C;
+    }
+
+    .step-label {
+      font-weight: 600;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .wizard-content {
+      margin-top: 40px;
+    }
+
+    .report-type-selector {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .report-type-option {
+      padding: 30px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .report-type-option:hover {
+      border-color: #BC0028;
+      transform: translateY(-3px);
+      box-shadow: 0 4px 15px rgba(188, 0, 40, 0.2);
+    }
+
+    .report-type-option.selected {
+      border-color: #BC0028;
+      background: #fff5f7;
+    }
+
+    .report-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .report-type-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .report-type-desc {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    .wizard-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+    }
+
+    .wizard-btn {
+      padding: 14px 32px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .wizard-btn-prev {
+      background: #f0f0f0;
+      color: #666;
+    }
+
+    .wizard-btn-next {
+      background: linear-gradient(135deg, #BC0028 0%, #E31C3D 100%);
+      color: white;
+    }
+
+    .wizard-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .report-log {
+      margin-top: 40px;
+    }
+
+    .report-log-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .report-log-table th {
+      background: #f8f9fa;
+      padding: 15px;
+      text-align: left;
+      font-weight: 700;
+      color: #333;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .report-log-table td {
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .report-log-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .download-btn {
+      padding: 8px 16px;
+      background: #BC0028;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    /* ===== 로딩 ===== */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .loading-content {
+      text-align: center;
+      color: white;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    /* ===== 3D 뷰어 모달 ===== */
+    .modal-3d {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.95);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-3d.active {
+      display: flex;
+    }
+
+    .viewer-container {
+      width: 100%;
+      max-width: 1400px;
+      background: #2a2a2a;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .viewer-header {
+      background: #1a1a1a;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #BC0028;
+    }
+
+    .viewer-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #BC0028;
+    }
+
+    .viewer-info {
+      font-size: 13px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    .viewer-close-btn {
+      background: none;
+      border: 2px solid #666;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .viewer-close-btn:hover {
+      border-color: #BC0028;
+      background: #BC0028;
+    }
+
+    .viewer-main {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      background: #1a1a1a;
+    }
+
+    .model-canvas {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .model-placeholder {
+      text-align: center;
+      color: #666;
+    }
+
+    .model-placeholder-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .model-placeholder-text {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: white;
+    }
+
+    .model-placeholder-sub {
+      font-size: 13px;
+      color: #999;
+      line-height: 1.6;
+    }
+
+    .measurement-point {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #ff3333;
+      border: 2px solid white;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+    }
+
+    .measurement-point:hover {
+      transform: scale(1.5);
+      box-shadow: 0 0 20px rgba(255, 51, 51, 0.8);
+    }
+
+    .measurement-label {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      pointer-events: none;
+      transform: translate(-50%, -30px);
+    }
+
+    .viewer-controls {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .control-btn {
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.7);
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s;
+    }
+
+    .control-btn:hover {
+      background: rgba(188, 0, 40, 0.8);
+      border-color: #BC0028;
+    }
+
+    .viewer-info-panel {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 15px;
+      border-radius: 10px;
+      min-width: 200px;
+      backdrop-filter: blur(10px);
+    }
+
+    .viewer-footer {
+      background: #1a1a1a;
+      padding: 20px 30px;
+      display: flex;
+      gap: 15px;
+      border-top: 1px solid #333;
+    }
+
+    .view-mode-btn {
+      flex: 1;
+      padding: 12px;
+      background: #2a2a2a;
+      border: 2px solid #444;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .view-mode-btn:hover,
+    .view-mode-btn.active {
+      background: #BC0028;
+      border-color: #BC0028;
+    }
+
+    .btn-3d-view {
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .btn-3d-view:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+    }
+
+    .legend-title {
+      font-weight: 800;
+      font-size: 13px;
+      margin-bottom: 10px;
+      color: #BC0028;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 로딩 오버레이 -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">시스템을 로드하는 중입니다...</div>
+    </div>
+  </div>
+
+  <!-- 로그인 페이지 -->
+  <div class="login-container" id="loginPage">
+    <div class="login-left">
+      <div class="login-logo">KT</div>
+      <h1 class="login-title">정선군 AI 급경사지<br>통합 관리 시스템</h1>
+      <p class="login-subtitle">
+        Jeongseon AI-based Slope Risk<br>
+        Assessment & Management System
+      </p>
+    </div>
+    <div class="login-right">
+      <div class="login-box">
+        <h2>로그인</h2>
+        <p>정선군 급경사지 관리 시스템에 오신 것을 환영합니다</p>
+
+        <div class="user-type-selector">
+          <div class="user-type-btn active" onclick="selectUserType('admin')">
+            <div class="user-type-name">관리자</div>
+          </div>
+          <div class="user-type-btn" onclick="selectUserType('viewer')">
+            <div class="user-type-name">조회자</div>
+          </div>
+        </div>
+
+        <form onsubmit="login(event)">
+          <div class="form-group">
+            <label>아이디</label>
+            <input type="text" id="username" placeholder="아이디를 입력하세요" required>
+          </div>
+          <div class="form-group">
+            <label>비밀번호</label>
+            <input type="password" id="password" placeholder="비밀번호를 입력하세요" required>
+          </div>
+          <button type="submit" class="login-btn">로그인</button>
+        </form>
+
+        <div class="login-footer">
+          © 2024 KT Enterprise. All rights reserved.<br>
+          문의: kt-slope@kt.com | 02-1234-5678
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메인 애플리케이션 -->
+  <div class="app-container" id="appContainer">
+    <!-- 헤더 -->
+    <div class="app-header">
+      <div class="app-header-left">
+        <div class="app-logo">KT</div>
+        <div class="app-title">정선군 AI 급경사지 관리 시스템</div>
+      </div>
+      <div class="app-nav">
+        <button class="nav-btn active" onclick="showPage('dashboard')">통합관리</button>
+        <button class="nav-btn" onclick="showPage('satellite')">위성데이터</button>
+        <button class="nav-btn" onclick="showPage('riskarea')">붕괴위험지역</button>
+        <button class="nav-btn" onclick="showPage('report')">보고서생성</button>
+      </div>
+      <div class="app-user">
+        <div class="user-info">
+          <div class="user-name" id="userName">관리자</div>
+          <div class="user-role">정선군 자연재난과</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">로그아웃</button>
+      </div>
+    </div>
+
+    <!-- M1: 통합관리 페이지 -->
+    <div class="page active" id="dashboardPage">
+      <div class="dashboard-container">
+        <div class="dashboard-sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-title">
+              <span>📊</span>
+              <span>전체 현황</span>
+            </div>
+            <div class="status-summary">
+              <div class="status-card danger">
+                <div class="status-card-header">
+                  <span class="status-card-name">D등급 (매우위험)</span>
+                  <span class="status-badge badge-danger">긴급</span>
+                </div>
+                <div class="status-card-value">23</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">개소</div>
+              </div>
+              <div class="status-card normal">
+                <div class="status-card-header">
+                  <span class="status-card-name">사북읍 사북리</span>
+                  <span class="status-badge badge-normal">정상</span>
+                </div>
+                <div class="status-card-value">28</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">위험지수</div>
+              </div>
+              <div class="status-card normal">
+                <div class="status-card-header">
+                  <span class="status-card-name">고한읍 고한리</span>
+                  <span class="status-badge badge-normal">정상</span>
+                </div>
+                <div class="status-card-value">35</div>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">위험지수</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">
+              <span>🎮</span>
+              <span>시뮬레이션</span>
+            </div>
+            <div style="display: grid; gap: 10px;">
+              <button class="map-control-btn" onclick="simulateNormal()" style="width: 100%;">✅ 정상 상태</button>
+              <button class="map-control-btn" onclick="simulateRain()" style="width: 100%;">🌧️ 집중 호우</button>
+              <button class="map-control-btn" onclick="simulateDanger()" style="width: 100%;">⚠️ 위험 상태</button>
+            </div>
+          </div>
+        </div>
+        <div class="dashboard-map">
+          <div id="dashboardMap"></div>
+          <div class="map-controls">
+            <button class="map-control-btn active" id="satelliteBtn" onclick="changeMapView('satellite')">🛰️
+              위성</button>
+            <button class="map-control-btn" id="roadmapBtn" onclick="changeMapView('roadmap')">🗺️ 지도</button>
+            <button class="map-control-btn" id="terrainBtn" onclick="changeMapView('terrain')">⛰️ 지형</button>
+          </div>
+          <div class="legend">
+            <div class="legend-title">위험도 등급별 범례</div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #00C73C;"></div>
+              <span>정상 (0-40)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #FFA500;"></div>
+              <span>주의 (41-70)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #E31C3D;"></div>
+              <span>위험 (71-100)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- M2: 위성 데이터 페이지 -->
+    <div class="page" id="satellitePage">
+      <div class="satellite-container">
+        <div class="satellite-header">
+          <h1 class="page-title">🛰️ 위성 InSAR 변위 데이터 분석</h1>
+          <div class="time-selector">
+            <label style="font-weight: 600;">시계열 선택:</label>
+            <select onchange="updateSatelliteData(this.value)">
+              <option value="latest">최신 데이터</option>
+              <option value="1week">1주일 전</option>
+              <option value="2week">2주일 전</option>
+              <option value="1month">1개월 전</option>
+              <option value="2month">2개월 전</option>
+            </select>
+          </div>
+        </div>
+        <div class="satellite-content">
+          <div class="satellite-map-container">
+            <h3 style="margin-bottom: 15px; font-size: 18px; font-weight: 800; color: #BC0028;">
+              색깔별 위험지수 표시 맵
+            </h3>
+            <div class="satellite-map" id="satelliteMap"></div>
+            <p style="margin-top: 15px; font-size: 13px; color: #666;">
+              * 지도를 클릭하면 해당 지역의 상세 변위 데이터를 확인할 수 있습니다.<br>
+              * 6일 주기로 데이터가 업데이트됩니다.
+            </p>
+          </div>
+          <div class="satellite-info">
+            <div class="info-section">
+              <div class="info-section-title">📈 시점별 지반 침하량 변화</div>
+              <div class="displacement-data">
+                <div class="displacement-item">
+                  <div class="displacement-date">2024.01.21 (최신)</div>
+                  <div class="displacement-value">-3.2 mm</div>
+                  <div class="displacement-change change-positive">▲ 0.8mm 증가</div>
+                </div>
+                <div class="displacement-item">
+                  <div class="displacement-date">2024.01.15 (6일 전)</div>
+                  <div class="displacement-value">-2.4 mm</div>
+                  <div class="displacement-change change-positive">▲ 0.5mm 증가</div>
+                </div>
+                <div class="displacement-item">
+                  <div class="displacement-date">2024.01.09 (12일 전)</div>
+                  <div class="displacement-value">-1.9 mm</div>
+                  <div class="displacement-change change-negative">▼ 0.2mm 감소</div>
+                </div>
+                <div class="displacement-item">
+                  <div class="displacement-date">2024.01.03 (18일 전)</div>
+                  <div class="displacement-value">-2.1 mm</div>
+                  <div class="displacement-change change-positive">▲ 0.3mm 증가</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <div class="info-section-title">🎯 AI 위험도 분석</div>
+              <div
+                style="padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white;">
+                <div style="font-size: 14px; margin-bottom: 10px;">현재 위험지수</div>
+                <div style="font-size: 36px; font-weight: 800; margin-bottom: 15px;">32 / 100</div>
+                <div style="font-size: 13px; line-height: 1.6;">
+                  최근 2개월간 변위 증가 추세 감지.<br>
+                  향후 2개월 예측: 위험도 38 (낮음)
+                </div>
+              </div>
+            </div>
+
+            <div class="info-section">
+              <div class="info-section-title">📊 변위 트렌드 차트</div>
+              <div class="risk-chart">
+                변위 추이 그래프<br>(시계열 데이터 시각화)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- M3: 붕괴위험지역 페이지 -->
+    <div class="page" id="riskareaPage">
+      <div class="risk-area-container">
+        <div class="satellite-header">
+          <h1 class="page-title">⚠️ 붕괴위험지역 관리</h1>
+          <div>
+            <select style="padding: 10px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-weight: 600;">
+              <option>전체 등급</option>
+              <option>D등급 (매우위험)</option>
+              <option>C등급 (위험)</option>
+              <option>B등급 (주의)</option>
+              <option>A등급 (양호)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="risk-areas-grid">
+          <div class="risk-area-card" onclick="showRiskDetail('4277000392')">
+            <div class="risk-area-header">
+              <div class="risk-area-name">강원 정선 화암 화암 N3지구</div>
+              <div class="risk-grade grade-d">D등급</div>
+            </div>
+            <div class="risk-area-preview">🏔️</div>
+            <div class="risk-area-info">
+              <div class="info-row">
+                <span class="info-label">위험지수</span>
+                <span class="info-value">32 (낮음)</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">최근 점검일</span>
+                <span class="info-value">2024.01.10</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">지반 변위</span>
+                <span class="info-value">-3.2mm</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">3D 모델</span>
+                <span class="info-value" style="color: #00C73C;">✓ 사용가능</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="risk-area-card" onclick="showRiskDetail(2)">
+            <div class="risk-area-header">
+              <div class="risk-area-name">사북읍 사북리 B-03</div>
+              <div class="risk-grade grade-d">D등급</div>
+            </div>
+            <div class="risk-area-preview">🏔️</div>
+            <div class="risk-area-info">
+              <div class="info-row">
+                <span class="info-label">위험지수</span>
+                <span class="info-value">28 (낮음)</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">최근 점검일</span>
+                <span class="info-value">2024.01.12</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">지반 변위</span>
+                <span class="info-value">-2.1mm</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">3D 모델</span>
+                <span class="info-value" style="color: #00C73C;">✓ 사용가능</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="risk-area-card" onclick="showRiskDetail(3)">
+            <div class="risk-area-header">
+              <div class="risk-area-name">고한읍 고한리 C-05</div>
+              <div class="risk-grade grade-c">C등급</div>
+            </div>
+            <div class="risk-area-preview">🏔️</div>
+            <div class="risk-area-info">
+              <div class="info-row">
+                <span class="info-label">위험지수</span>
+                <span class="info-value">45 (중간)</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">최근 점검일</span>
+                <span class="info-value">2024.01.08</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">지반 변위</span>
+                <span class="info-value">-5.8mm</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">3D 모델</span>
+                <span class="info-value" style="color: #FFA500;">⚠ 생성 중</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- R1: 보고서 생성 페이지 -->
+    <div class="page" id="reportPage">
+      <div class="report-container">
+        <h1 class="page-title">📄 보고서 자동 생성</h1>
+
+        <div class="report-wizard">
+          <div class="wizard-steps">
+            <div class="wizard-step active">
+              <div class="step-number">1</div>
+              <div class="step-label">보고서 유형 선택</div>
+            </div>
+            <div class="wizard-step">
+              <div class="step-number">2</div>
+              <div class="step-label">대상 지역 선택</div>
+            </div>
+            <div class="wizard-step">
+              <div class="step-number">3</div>
+              <div class="step-label">생성 및 다운로드</div>
+            </div>
+          </div>
+
+          <div class="wizard-content">
+            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 25px; color: #333;">
+              생성할 보고서 유형을 선택하세요
+            </h3>
+            <div class="report-type-selector">
+              <div class="report-type-option" onclick="selectReportType('monthly')">
+                <div class="report-icon">📊</div>
+                <div class="report-type-name">월간 정기 보고서</div>
+                <div class="report-type-desc">
+                  월별 전체 급경사지 현황 및<br>위험도 변화 추이 종합 분석
+                </div>
+              </div>
+              <div class="report-type-option" onclick="selectReportType('satellite')">
+                <div class="report-icon">🛰️</div>
+                <div class="report-type-name">위성 데이터 변화 분석</div>
+                <div class="report-type-desc">
+                  InSAR 위성 변위 데이터 기반<br>6일 주기 변화량 분석 보고서
+                </div>
+              </div>
+              <div class="report-type-option" onclick="selectReportType('inspection')">
+                <div class="report-icon">🔍</div>
+                <div class="report-type-name">정기 안전점검 보고서</div>
+                <div class="report-type-desc">
+                  연 2회 정기 안전점검 결과<br>및 조치사항 종합 보고서
+                </div>
+              </div>
+              <div class="report-type-option" onclick="selectReportType('emergency')">
+                <div class="report-icon">🚨</div>
+                <div class="report-type-name">긴급 위험 감지 보고서</div>
+                <div class="report-type-desc">
+                  AI 이상징후 자동 탐지 시<br>즉시 생성되는 긴급 보고서
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="wizard-actions">
+            <button class="wizard-btn wizard-btn-prev" disabled>이전</button>
+            <button class="wizard-btn wizard-btn-next" onclick="generateReport()">보고서 생성</button>
+          </div>
+        </div>
+
+        <div class="report-log">
+          <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 20px; color: #BC0028;">
+            📋 보고서 생성 이력
+          </h2>
+          <table class="report-log-table">
+            <thead>
+              <tr>
+                <th>생성일시</th>
+                <th>보고서 유형</th>
+                <th>대상 지역</th>
+                <th>생성자</th>
+                <th>다운로드</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>2024-01-21 14:23</td>
+                <td>월간 정기 보고서</td>
+                <td>전체 지역</td>
+                <td>관리자</td>
+                <td><button class="download-btn">다운로드</button></td>
+              </tr>
+              <tr>
+                <td>2024-01-15 09:15</td>
+                <td>위성 데이터 분석</td>
+                <td>정선읍 구절리</td>
+                <td>관리자</td>
+                <td><button class="download-btn">다운로드</button></td>
+              </tr>
+              <tr>
+                <td>2024-01-10 16:42</td>
+                <td>긴급 위험 감지</td>
+                <td>고한읍 고한리</td>
+                <td>시스템 자동</td>
+                <td><button class="download-btn">다운로드</button></td>
+              </tr>
+              <tr>
+                <td>2024-01-05 11:30</td>
+                <td>정기 안전점검</td>
+                <td>전체 지역</td>
+                <td>관리자</td>
+                <td><button class="download-btn">다운로드</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 구글 맵 API 로드 -->
+  <!-- 3D 뷰어 모달 -->
+  <div class="modal-3d" id="viewer3D">
+    <div class="viewer-container">
+      <div class="viewer-header">
+        <div>
+          <div class="viewer-title">🏔️ 3D 디지털 트윈 뷰어</div>
+          <div class="viewer-info" id="viewer3DInfo">급경사지 3D 모델 - LiDAR 스캔 데이터</div>
+        </div>
+        <button class="viewer-close-btn" onclick="close3DViewer()">닫기</button>
+      </div>
+
+      <div class="viewer-main">
+        <div class="viewer-controls">
+          <button class="control-btn" title="확대" onclick="zoom3D(1.2)">🔍</button>
+          <button class="control-btn" title="축소" onclick="zoom3D(0.8)">🔍</button>
+          <button class="control-btn" title="회전 초기화" onclick="reset3DView()">🔄</button>
+          <button class="control-btn" title="와이어프레임" onclick="toggle3DWireframe()">📏</button>
+          <button class="control-btn" title="스냅샷" onclick="snapshot3D()">📷</button>
+        </div>
+
+        <div class="viewer-info-panel" id="viewer3DData">
+          <div style="font-weight: 700; margin-bottom: 10px; color: #BC0028;">측정 정보</div>
+          <div class="info-row">
+            <span class="info-label">경사각</span>
+            <span class="info-value">-°</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">높이</span>
+            <span class="info-value">-m</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">길이</span>
+            <span class="info-value">-m</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">위험도</span>
+            <span class="info-value">-점</span>
+          </div>
+        </div>
+
+        <!-- Three.js 렌더링 캔버스 -->
+        <div id="threejs-container" style="width: 100%; height: 100%;"></div>
+      </div>
+
+      <div class="viewer-footer">
+        <button class="view-mode-btn active" onclick="change3DViewMode('ortho')">정사투영</button>
+        <button class="view-mode-btn" onclick="change3DViewMode('perspective')">투시도</button>
+        <button class="view-mode-btn" onclick="change3DViewMode('heatmap')">히트맵</button>
+        <button class="view-mode-btn" onclick="change3DViewMode('wireframe')">와이어프레임</button>
+        <button class="view-mode-btn" onclick="change3DViewMode('analysis')">변위 분석</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAYiwkCWT2ulxacpn7kErzEBFY0zD8AuXw&language=ko"></script>
+
+  <script>
+    // 실제 정선군 급경사지 데이터 (235개)
+    // 실제 정선군 급경사지 데이터 (235개)
+    const realSitesData = [
+      {
+        "id": 4277000288,
+        "name": "증산운동장위지구",
+        "address": "강원특별자치도 정선군 남면 문곡리 산 589-3",
+        "lat": 37.26143667,
+        "lon": 128.7603047,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 100.0,
+        "height": 5.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000289,
+        "name": "동원A지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 397-22",
+        "lat": 37.224178,
+        "lon": 128.814588,
+        "grade": "B",
+        "score": 36,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 15.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "토사",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000291,
+        "name": "봉양3지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 861",
+        "lat": 37.38166667,
+        "lon": 128.6413889,
+        "grade": "B",
+        "score": 42,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 150.0,
+        "height": 28.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "재산(차량3대)",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000176,
+        "name": "화성지구",
+        "address": "강원특별자치도 정선군 임계면 임계리 산 487",
+        "lat": 37.538559,
+        "lon": 128.870745,
+        "grade": "B",
+        "score": 39,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 8.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000177,
+        "name": "장찬골지구",
+        "address": "강원특별자치도 정선군 임계면 임계리 668-9",
+        "lat": 37.502874,
+        "lon": 128.882823,
+        "grade": "B",
+        "score": 35,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 60.0,
+        "height": 10.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "토사유출",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000178,
+        "name": "고양6교지구",
+        "address": "강원특별자치도 정선군 임계면 고양리 411",
+        "lat": 37.427277,
+        "lon": 128.788847,
+        "grade": "B",
+        "score": 23,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 5.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000179,
+        "name": "갈마동지구",
+        "address": "강원특별자치도 정선군 임계면 임계리 1166",
+        "lat": 37.545364,
+        "lon": 128.868412,
+        "grade": "B",
+        "score": 25,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 40.0,
+        "height": 10.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000053,
+        "name": "막골2지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 307-2",
+        "lat": 37.19775361,
+        "lon": 128.8542311,
+        "grade": "D",
+        "score": 63,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "석축",
+        "length": 50.0,
+        "height": 2.0,
+        "slope": "-",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 5177000052,
+        "name": "세대8지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 산30",
+        "lat": 37.38163444,
+        "lon": 128.6263192,
+        "grade": "D",
+        "score": 64,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 8.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000012,
+        "name": "덕송3지구",
+        "address": "강원특별자치도 정선군 정선읍 덕송리 산 66",
+        "lat": 37.39625,
+        "lon": 128.6722222,
+        "grade": "D",
+        "score": 68,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 130.0,
+        "height": 28.0,
+        "slope": "65",
+        "department": "건설과",
+        "history": "소규모낙석 낙석(20년 7.28~8.11. 호우)",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000014,
+        "name": "고한2지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 99-1",
+        "lat": 37.19819444,
+        "lon": 128.8534722,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 280.0,
+        "height": 20.0,
+        "slope": "63",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000015,
+        "name": "건설본부지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 57-35",
+        "lat": 37.19983028,
+        "lon": 128.8560497,
+        "grade": "A",
+        "score": 18,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "옹벽",
+        "length": 250.0,
+        "height": 2.0,
+        "slope": "-",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000016,
+        "name": "고한읍사무소지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 84-8",
+        "lat": 37.20166667,
+        "lon": 128.8527778,
+        "grade": "B",
+        "score": 40,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000005,
+        "name": "세대1지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 485",
+        "lat": 37.38652778,
+        "lon": 128.6352778,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 8.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "토사및낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000007,
+        "name": "세대3지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 산 134-1",
+        "lat": 37.38878556,
+        "lon": 128.6087233,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 20.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000008,
+        "name": "세대4지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 산 133-2",
+        "lat": 37.38962639,
+        "lon": 128.6079411,
+        "grade": "B",
+        "score": 31,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 60.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000009,
+        "name": "세대5지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 산 156-2",
+        "lat": 37.38319278,
+        "lon": 128.6122611,
+        "grade": "C",
+        "score": 43,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 150.0,
+        "height": 25.0,
+        "slope": "89",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000010,
+        "name": "세대6지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 산104-2",
+        "lat": 37.39954889,
+        "lon": 128.6227622,
+        "grade": "C",
+        "score": 47,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 30.0,
+        "height": 6.0,
+        "slope": "63",
+        "department": "건설과",
+        "history": "낙석(2회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000011,
+        "name": "세대7지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 산 66-1",
+        "lat": 37.37625,
+        "lon": 128.6156944,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 90.0,
+        "height": 5.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000151,
+        "name": "구절종량동지구",
+        "address": "강원특별자치도 정선군 여량면 구절리 243-30",
+        "lat": 37.53545,
+        "lon": 128.728633,
+        "grade": "B",
+        "score": 37,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 40.0,
+        "height": 10.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000153,
+        "name": "고양스므골지구",
+        "address": "강원특별자치도 정선군 여량면 고양리 465-1",
+        "lat": 37.442568,
+        "lon": 128.709864,
+        "grade": "B",
+        "score": 32,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 20.0,
+        "height": 8.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000154,
+        "name": "지경지구",
+        "address": "강원특별자치도 정선군 여량면 유천리 836",
+        "lat": 37.471247,
+        "lon": 128.760849,
+        "grade": "C",
+        "score": 42,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 8.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000155,
+        "name": "외봉정지구",
+        "address": "강원특별자치도 정선군 여량면 유천리 832",
+        "lat": 37.472559,
+        "lon": 128.760317,
+        "grade": "B",
+        "score": 34,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 5.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000156,
+        "name": "앞실골지구",
+        "address": "강원특별자치도 정선군 여량면 남곡리 32",
+        "lat": 37.513138,
+        "lon": 128.803539,
+        "grade": "B",
+        "score": 24,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 40.0,
+        "height": 7.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000157,
+        "name": "싸리골지구",
+        "address": "강원특별자치도 정선군 여량면 유천리 산 213-1",
+        "lat": 37.496151,
+        "lon": 128.712362,
+        "grade": "B",
+        "score": 34,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 7.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000158,
+        "name": "항골2지구",
+        "address": "강원특별자치도 정선군 북평면 북평리 436-1",
+        "lat": 37.46708333,
+        "lon": 128.6630556,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 30.0,
+        "slope": "38",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000017,
+        "name": "삼봉지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 36-14",
+        "lat": 37.19111111,
+        "lon": 128.8648611,
+        "grade": "B",
+        "score": 44,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 30.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000018,
+        "name": "대원A진입로지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 261-46",
+        "lat": 37.20303306,
+        "lon": 128.8551061,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000019,
+        "name": "스키장입구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 124-123",
+        "lat": 37.20430556,
+        "lon": 128.8444444,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 95.0,
+        "height": 33.0,
+        "slope": "43",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000105,
+        "name": "함백관지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 1-129",
+        "lat": 37.20801389,
+        "lon": 128.877625,
+        "grade": "A",
+        "score": 15,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "옹벽",
+        "length": 300.0,
+        "height": 3.0,
+        "slope": "-",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000106,
+        "name": "정암사지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 213-20",
+        "lat": 37.19929167,
+        "lon": 128.892125,
+        "grade": "B",
+        "score": 30,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 20.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "소규모 토사 및 낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000107,
+        "name": "범바위지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 240-1",
+        "lat": 37.22777778,
+        "lon": 128.8388889,
+        "grade": "B",
+        "score": 26,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "옹벽",
+        "length": 50.0,
+        "height": 6.0,
+        "slope": "-",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000112,
+        "name": "시가지지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 452-21",
+        "lat": 37.22430556,
+        "lon": 128.8191667,
+        "grade": "C",
+        "score": 58,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "옹벽",
+        "length": 80.0,
+        "height": 5.0,
+        "slope": "0",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000113,
+        "name": "읍사무소뒤지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 317-248",
+        "lat": 37.22736111,
+        "lon": 128.8231944,
+        "grade": "B",
+        "score": 31,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 5.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000020,
+        "name": "스키장입구2지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 219-1",
+        "lat": 37.20527778,
+        "lon": 128.8405556,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 100.0,
+        "height": 25.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000021,
+        "name": "소두문동지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 332-3",
+        "lat": 37.19916667,
+        "lon": 128.8825,
+        "grade": "D",
+        "score": 64,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 300.0,
+        "height": 16.0,
+        "slope": "65",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000022,
+        "name": "직전리지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 산 194",
+        "lat": 37.25597222,
+        "lon": 128.8238889,
+        "grade": "C",
+        "score": 44,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 80.0,
+        "height": 25.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000023,
+        "name": "사북여중지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 산 70-9",
+        "lat": 37.22819444,
+        "lon": 128.8358333,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000144,
+        "name": "면사무소뒤지구",
+        "address": "강원특별자치도 정선군 남면 문곡리 98-3",
+        "lat": 37.46027778,
+        "lon": 129.2356944,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 30.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000145,
+        "name": "자뭇골지구",
+        "address": "강원특별자치도 정선군 남면 무릉리 772",
+        "lat": 37.42069444,
+        "lon": 129.2855556,
+        "grade": "A",
+        "score": 18,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "옹벽",
+        "length": 60.0,
+        "height": 5.0,
+        "slope": "-",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000146,
+        "name": "증산초교지구",
+        "address": "강원특별자치도 정선군 남면 무릉리 788-2",
+        "lat": 37.42875,
+        "lon": 129.3034722,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "철도",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "65",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000148,
+        "name": "고양삼거리지구",
+        "address": "강원특별자치도 정선군 여량면 고양리 218-2",
+        "lat": 37.432371,
+        "lon": 128.73407,
+        "grade": "B",
+        "score": 31,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 50.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000149,
+        "name": "신기동지구",
+        "address": "강원특별자치도 정선군 여량면 고양리 408",
+        "lat": 37.445437,
+        "lon": 128.721388,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 60.0,
+        "height": 25.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000150,
+        "name": "마산재지구",
+        "address": "강원특별자치도 정선군 여량면 여량리 578-1",
+        "lat": 37.465691,
+        "lon": 128.718761,
+        "grade": "B",
+        "score": 40,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 5.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000121,
+        "name": "예미지구",
+        "address": "강원특별자치도 정선군 신동읍 예미리 산 53-4",
+        "lat": 37.22489833,
+        "lon": 128.6339203,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 8.0,
+        "slope": "51",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000122,
+        "name": "예미3리 2지구",
+        "address": "강원특별자치도 정선군 신동읍 예미리 산 191-2",
+        "lat": 37.21263889,
+        "lon": 128.64625,
+        "grade": "C",
+        "score": 48,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 30.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "소규모 토사 및 낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000123,
+        "name": "조동1리지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 302",
+        "lat": 37.20541667,
+        "lon": 128.6694444,
+        "grade": "C",
+        "score": 54,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "복합",
+        "length": 200.0,
+        "height": 13.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000124,
+        "name": "조동1리2지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 300-2",
+        "lat": 37.20638889,
+        "lon": 128.6684722,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 15.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000132,
+        "name": "화암4리지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 산 15",
+        "lat": 37.33805556,
+        "lon": 128.8104444,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000133,
+        "name": "그림바위모텔지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 449-2",
+        "lat": 37.32320833,
+        "lon": 128.8122917,
+        "grade": "C",
+        "score": 48,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 9.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "토사",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000134,
+        "name": "동면빌라지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 396",
+        "lat": 37.33740278,
+        "lon": 128.7907778,
+        "grade": "C",
+        "score": 57,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "복합",
+        "length": 45.0,
+        "height": 10.0,
+        "slope": "65",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000135,
+        "name": "팍스빌지구",
+        "address": "강원특별자치도 정선군 화암면 호촌리 484-6",
+        "lat": 37.30094444,
+        "lon": 128.8350694,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000136,
+        "name": "백전초교지구",
+        "address": "강원특별자치도 정선군 화암면 백전리 산 98",
+        "lat": 37.31334722,
+        "lon": 128.8326667,
+        "grade": "C",
+        "score": 58,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "암반",
+        "length": 85.0,
+        "height": 60.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000137,
+        "name": "호촌지구",
+        "address": "강원특별자치도 정선군 화암면 호촌리 311-4",
+        "lat": 37.29161111,
+        "lon": 128.8367361,
+        "grade": "C",
+        "score": 58,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 60.0,
+        "height": 15.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000138,
+        "name": "윗마을지구",
+        "address": "강원특별자치도 정선군 남면 유평리 336-4",
+        "lat": 37.50625,
+        "lon": 129.2329167,
+        "grade": "B",
+        "score": 29,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 3.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000139,
+        "name": "중간마을지구",
+        "address": "강원특별자치도 정선군 남면 유평리 671-1",
+        "lat": 37.50569444,
+        "lon": 129.2216667,
+        "grade": "B",
+        "score": 36,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000125,
+        "name": "조동3리지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 291-1",
+        "lat": 37.20833333,
+        "lon": 128.6701389,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 80.0,
+        "height": 10.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000126,
+        "name": "조동4리지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 산 5-5",
+        "lat": 37.21333333,
+        "lon": 128.6711111,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000127,
+        "name": "방제1리지구",
+        "address": "강원특별자치도 정선군 신동읍 방제리 산 1-19",
+        "lat": 37.19097222,
+        "lon": 128.6801389,
+        "grade": "B",
+        "score": 40,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 10.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000128,
+        "name": "조동6리지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 산 9-1",
+        "lat": 37.215,
+        "lon": 128.6725,
+        "grade": "A",
+        "score": 20,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 8.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000129,
+        "name": "운치3지구",
+        "address": "강원특별자치도 정선군 신동읍 운치리 120",
+        "lat": 37.26597222,
+        "lon": 128.6070833,
+        "grade": "D",
+        "score": 62,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 15.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000130,
+        "name": "마을회관지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 176",
+        "lat": 37.33826389,
+        "lon": 128.8070972,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 28.0,
+        "slope": "42",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000131,
+        "name": "정수장뒤지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 326-10",
+        "lat": 37.33530556,
+        "lon": 128.7952222,
+        "grade": "C",
+        "score": 47,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 70.0,
+        "height": 10.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000108,
+        "name": "범바위2지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 278-3",
+        "lat": 37.229605,
+        "lon": 128.831941,
+        "grade": "B",
+        "score": 34,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 80.0,
+        "height": 10.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000109,
+        "name": "노른가리지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 119",
+        "lat": 37.25708333,
+        "lon": 128.8251389,
+        "grade": "B",
+        "score": 29,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 50.0,
+        "height": 5.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000110,
+        "name": "공전골지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 11",
+        "lat": 37.26166667,
+        "lon": 128.8354167,
+        "grade": "B",
+        "score": 29,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 80.0,
+        "height": 15.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000111,
+        "name": "안골지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 70",
+        "lat": 37.23833333,
+        "lon": 128.8609722,
+        "grade": "C",
+        "score": 44,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 3.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "사면붕괴(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000069,
+        "name": "도사곡지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 산 160-18",
+        "lat": 37.22194444,
+        "lon": 128.8025,
+        "grade": "B",
+        "score": 34,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "옹벽",
+        "length": 70.0,
+        "height": 10.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000084,
+        "name": "비룡동지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 778-1",
+        "lat": 37.40222222,
+        "lon": 128.6076389,
+        "grade": "B",
+        "score": 29,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000085,
+        "name": "용탄교회지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 산 204-1",
+        "lat": 37.40222222,
+        "lon": 128.6076389,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 70.0,
+        "height": 30.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000086,
+        "name": "벽탄초교지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 산 305",
+        "lat": 37.39236111,
+        "lon": 128.6,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "토사",
+        "length": 70.0,
+        "height": 25.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000087,
+        "name": "회동교지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 949-2",
+        "lat": 37.39805556,
+        "lon": 128.5906944,
+        "grade": "B",
+        "score": 32,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 15.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000088,
+        "name": "광하교밑지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 548-12",
+        "lat": 37.36472222,
+        "lon": 128.6206944,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 40.0,
+        "height": 6.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000089,
+        "name": "광하가스충전소지구",
+        "address": "강원특별자치도 정선군 정선읍 광하리 115-1",
+        "lat": 37.36194444,
+        "lon": 128.6118056,
+        "grade": "B",
+        "score": 35,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 90.0,
+        "height": 30.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000091,
+        "name": "만항지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 214-25",
+        "lat": 37.14716667,
+        "lon": 128.9063333,
+        "grade": "B",
+        "score": 24,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 5.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000045,
+        "name": "봉정4지구",
+        "address": "강원특별자치도 정선군 여량면 봉정리 산 115",
+        "lat": 37.45958333,
+        "lon": 128.7566667,
+        "grade": "C",
+        "score": 54,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000046,
+        "name": "봉정5지구",
+        "address": "강원특별자치도 정선군 여량면 봉정리 산 74-1",
+        "lat": 37.46125,
+        "lon": 128.77375,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 60.0,
+        "height": 10.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "개비온파손(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000047,
+        "name": "봉정6지구",
+        "address": "강원특별자치도 정선군 여량면 봉정리 산 74-1",
+        "lat": 37.45944444,
+        "lon": 128.7829167,
+        "grade": "D",
+        "score": 62,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 15.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000048,
+        "name": "봉정7지구",
+        "address": "강원특별자치도 정선군 여량면 봉정리 산 149-1",
+        "lat": 37.45763889,
+        "lon": 128.7756944,
+        "grade": "C",
+        "score": 42,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 200.0,
+        "height": 13.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "토사 및 소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000049,
+        "name": "봉정1지구",
+        "address": "강원특별자치도 정선군 여량면 봉정리 445-7",
+        "lat": 37.45915167,
+        "lon": 128.7740264,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 45.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000050,
+        "name": "봉정2지구",
+        "address": "강원특별자치도 정선군 여량면 봉정리 450-1",
+        "lat": 37.46252472,
+        "lon": 128.7703294,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 40.0,
+        "height": 12.0,
+        "slope": "52",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000051,
+        "name": "싸리골2지구",
+        "address": "강원특별자치도 정선군 여량면 유천리 472-10",
+        "lat": 37.49379694,
+        "lon": 128.7130547,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000070,
+        "name": "정선병원지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 430",
+        "lat": 37.38055556,
+        "lon": 128.6584722,
+        "grade": "B",
+        "score": 37,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "옹벽",
+        "length": 120.0,
+        "height": 28.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000071,
+        "name": "향교지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 25-3",
+        "lat": 37.38263889,
+        "lon": 128.6654167,
+        "grade": "D",
+        "score": 64,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 455.0,
+        "height": 41.0,
+        "slope": "75",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000072,
+        "name": "납덕동지구",
+        "address": "강원특별자치도 정선군 정선읍 덕송리 685",
+        "lat": 37.39847222,
+        "lon": 128.6566667,
+        "grade": "B",
+        "score": 37,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000024,
+        "name": "영동A밑지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 산 70-31",
+        "lat": 37.25277778,
+        "lon": 128.8334722,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "옹벽",
+        "length": 200.0,
+        "height": 7.0,
+        "slope": "0",
+        "department": "건설과",
+        "history": "토사및낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000025,
+        "name": "사북2지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 229-3",
+        "lat": 37.22630833,
+        "lon": 128.8391031,
+        "grade": "C",
+        "score": 56,
+        "status": "이상없음",
+        "type": "아파트",
+        "structure": "옹벽",
+        "length": 75.0,
+        "height": 10.0,
+        "slope": "0",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000026,
+        "name": "선명A앞지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 산 72-16",
+        "lat": 37.21958333,
+        "lon": 128.8290278,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "석축",
+        "length": 100.0,
+        "height": 26.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000028,
+        "name": "직전1지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 산 127-2",
+        "lat": 37.26555556,
+        "lon": 128.8290278,
+        "grade": "C",
+        "score": 47,
+        "status": "이상없음",
+        "type": "공단",
+        "structure": "암반",
+        "length": 20.0,
+        "height": 10.0,
+        "slope": "62",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000029,
+        "name": "직전2지구",
+        "address": "강원특별자치도 정선군 남면 무릉리 산 374-3",
+        "lat": 37.23152778,
+        "lon": 128.8081944,
+        "grade": "C",
+        "score": 44,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 310.0,
+        "height": 15.0,
+        "slope": "48",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000030,
+        "name": "예미3리지구",
+        "address": "강원특별자치도 정선군 신동읍 예미리 산 191",
+        "lat": 37.21236111,
+        "lon": 128.6465278,
+        "grade": "C",
+        "score": 41,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 10.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000031,
+        "name": "터널위지구",
+        "address": "강원특별자치도 정선군 신동읍 예미리 산 26-1",
+        "lat": 37.22458333,
+        "lon": 128.6208333,
+        "grade": "B",
+        "score": 40,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 50.0,
+        "height": 5.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000032,
+        "name": "예미4지구(터널위2)",
+        "address": "강원특별자치도 정선군 신동읍 예미리 산 27-1",
+        "lat": 37.225,
+        "lon": 128.6209722,
+        "grade": "D",
+        "score": 64,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 600.0,
+        "height": 16.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000033,
+        "name": "운치지구",
+        "address": "강원특별자치도 정선군 신동읍 운치리 274",
+        "lat": 37.225,
+        "lon": 128.6209722,
+        "grade": "C",
+        "score": 54,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 50.0,
+        "height": 30.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모 토사 및 낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000034,
+        "name": "화암지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 1102-1",
+        "lat": 37.342035,
+        "lon": 128.7864231,
+        "grade": "C",
+        "score": 59,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 50.0,
+        "height": 50.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000035,
+        "name": "석곡지구",
+        "address": "강원특별자치도 정선군 화암면 석곡리 산 124",
+        "lat": 37.35488944,
+        "lon": 128.7299044,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 170.0,
+        "height": 28.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000037,
+        "name": "낙동2지구",
+        "address": "강원특별자치도 정선군 남면 낙동리 산 33-1",
+        "lat": 37.31672667,
+        "lon": 128.6745769,
+        "grade": "D",
+        "score": 61,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 170.0,
+        "height": 60.0,
+        "slope": "78",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000039,
+        "name": "증산역위지구",
+        "address": "강원특별자치도 정선군 남면 무릉리 608-3",
+        "lat": 30.31444444,
+        "lon": 128.69875,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 80.0,
+        "height": 8.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000041,
+        "name": "자개입구지구",
+        "address": "강원특별자치도 정선군 여량면 구절리 313-1",
+        "lat": 37.51361111,
+        "lon": 128.7156944,
+        "grade": "B",
+        "score": 28,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000042,
+        "name": "여량지구",
+        "address": "강원특별자치도 정선군 여량면 여량리 산 7-3",
+        "lat": 37.45909833,
+        "lon": 128.7739972,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 150.0,
+        "height": 25.0,
+        "slope": "63",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000043,
+        "name": "봉정9지구",
+        "address": "강원특별자치도 정선군 여량면 여량리 산 7-5",
+        "lat": 37.46832417,
+        "lon": 128.7421856,
+        "grade": "D",
+        "score": 69,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 130.0,
+        "height": 25.0,
+        "slope": "88",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000044,
+        "name": "봉정3지구",
+        "address": "강원특별자치도 정선군 여량면 여량리 49-4",
+        "lat": 37.45986111,
+        "lon": 128.7506944,
+        "grade": "C",
+        "score": 48,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 200.0,
+        "height": 25.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000114,
+        "name": "SK주유소일원지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 산 77-6",
+        "lat": 37.22680556,
+        "lon": 128.82375,
+        "grade": "C",
+        "score": 41,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "복합",
+        "length": 60.0,
+        "height": 25.0,
+        "slope": "25",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000115,
+        "name": "동원A옆지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 381-40",
+        "lat": 37.22388889,
+        "lon": 128.8144444,
+        "grade": "C",
+        "score": 41,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "석축",
+        "length": 30.0,
+        "height": 4.0,
+        "slope": "0",
+        "department": "건설과",
+        "history": "낙석(2회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000116,
+        "name": "동원A뒤지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 산 157-2",
+        "lat": 37.22194444,
+        "lon": 128.8118056,
+        "grade": "B",
+        "score": 26,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000117,
+        "name": "뒷골지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 559",
+        "lat": 37.24347222,
+        "lon": 128.8115278,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 90.0,
+        "height": 30.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "토사",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000118,
+        "name": "작은이시네골지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 277",
+        "lat": 37.26,
+        "lon": 128.8245833,
+        "grade": "C",
+        "score": 56,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000119,
+        "name": "무넬골지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 184-2",
+        "lat": 37.27777778,
+        "lon": 128.8252778,
+        "grade": "B",
+        "score": 36,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 80.0,
+        "height": 20.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "토사",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000120,
+        "name": "예미1지구",
+        "address": "강원특별자치도 정선군 신동읍 예미리 691-25",
+        "lat": 37.21472222,
+        "lon": 128.6466667,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 10.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000074,
+        "name": "정선역뒤지구",
+        "address": "강원특별자치도 정선군 정선읍 애산리 355-1",
+        "lat": 37.38527778,
+        "lon": 128.6731944,
+        "grade": "A",
+        "score": 16,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "옹벽",
+        "length": 40.0,
+        "height": 3.0,
+        "slope": "-",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000075,
+        "name": "외반점지구",
+        "address": "강원특별자치도 정선군 정선읍 덕송리 402",
+        "lat": 37.40777778,
+        "lon": 128.6713889,
+        "grade": "A",
+        "score": 16,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "토사",
+        "length": 40.0,
+        "height": 2.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000076,
+        "name": "오반동지구",
+        "address": "강원특별자치도 정선군 정선읍 애산리 169",
+        "lat": 37.39041667,
+        "lon": 128.7002778,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 60.0,
+        "height": 10.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "소규모 토사 및 낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000077,
+        "name": "신치지구",
+        "address": "강원특별자치도 정선군 정선읍 신월리 554",
+        "lat": 37.34875,
+        "lon": 128.6844444,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 60.0,
+        "height": 12.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000078,
+        "name": "엇재지구",
+        "address": "강원특별자치도 정선군 정선읍 신월리 25-2",
+        "lat": 37.36236111,
+        "lon": 128.6947222,
+        "grade": "C",
+        "score": 43,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000080,
+        "name": "북실골안지구",
+        "address": "강원특별자치도 정선군 정선읍 북실리 41",
+        "lat": 37.35402778,
+        "lon": 128.6618056,
+        "grade": "B",
+        "score": 35,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000081,
+        "name": "오리장지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 469",
+        "lat": 37.38125,
+        "lon": 128.6454167,
+        "grade": "B",
+        "score": 32,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000093,
+        "name": "소두문동2지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 264",
+        "lat": 37.20840278,
+        "lon": 128.8826389,
+        "grade": "B",
+        "score": 22,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 15.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000094,
+        "name": "삼봉2지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 1-210",
+        "lat": 37.19198611,
+        "lon": 128.8640278,
+        "grade": "C",
+        "score": 48,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "옹벽",
+        "length": 110.0,
+        "height": 8.0,
+        "slope": "0",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000095,
+        "name": "절골지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 367-4",
+        "lat": 37.19794444,
+        "lon": 128.85775,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 80.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000173,
+        "name": "용골지구",
+        "address": "강원특별자치도 정선군 임계면 용산리 564-2",
+        "lat": 37.43107,
+        "lon": 128.85413,
+        "grade": "B",
+        "score": 35,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 5.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000174,
+        "name": "피원지구",
+        "address": "강원특별자치도 정선군 임계면 직원리 127-4",
+        "lat": 37.530124,
+        "lon": 128.919542,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000159,
+        "name": "나전1지구",
+        "address": "강원특별자치도 정선군 북평면 나전리 191",
+        "lat": 37.43777778,
+        "lon": 128.6441667,
+        "grade": "B",
+        "score": 29,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 5.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000160,
+        "name": "문곡큰골지구",
+        "address": "강원특별자치도 정선군 북평면 문곡리 68-3",
+        "lat": 37.41166667,
+        "lon": 128.7055556,
+        "grade": "B",
+        "score": 35,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "43",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000161,
+        "name": "벗밭2지구",
+        "address": "강원특별자치도 정선군 북평면 숙암리 26",
+        "lat": 37.49527778,
+        "lon": 128.6301389,
+        "grade": "C",
+        "score": 44,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 15.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000163,
+        "name": "야미지구",
+        "address": "강원특별자치도 정선군 북평면 나전리 49-2",
+        "lat": 37.41402778,
+        "lon": 128.6481944,
+        "grade": "C",
+        "score": 41,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 4.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000164,
+        "name": "단임지구",
+        "address": "강원특별자치도 정선군 북평면 숙암리 222",
+        "lat": 37.54958333,
+        "lon": 128.5994444,
+        "grade": "B",
+        "score": 39,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 30.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000165,
+        "name": "다실지구",
+        "address": "강원특별자치도 정선군 북평면 남평리 578-2",
+        "lat": 37.43902778,
+        "lon": 128.6645833,
+        "grade": "B",
+        "score": 50,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 10.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000166,
+        "name": "봉화치지구",
+        "address": "강원특별자치도 정선군 북평면 남평리 34-1",
+        "lat": 37.43888889,
+        "lon": 128.6858333,
+        "grade": "B",
+        "score": 36,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000167,
+        "name": "장열지구",
+        "address": "강원특별자치도 정선군 북평면 장열리 45-6",
+        "lat": 37.45833333,
+        "lon": 128.6929167,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000168,
+        "name": "북평지구",
+        "address": "강원특별자치도 정선군 북평면 북평리 산 186",
+        "lat": 37.45416667,
+        "lon": 128.6695833,
+        "grade": "A",
+        "score": 19,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 3.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모 토사 및 낙석",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000169,
+        "name": "골지하동지구",
+        "address": "강원특별자치도 정선군 임계면 문래리 195",
+        "lat": 37.42552,
+        "lon": 128.862425,
+        "grade": "B",
+        "score": 33,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 30.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000082,
+        "name": "관음동지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 503-2",
+        "lat": 37.38208333,
+        "lon": 128.6388889,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 100.0,
+        "height": 20.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "낙석(2회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000083,
+        "name": "세대지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 산 69-5",
+        "lat": 37.37527778,
+        "lon": 128.6184722,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 5.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "토사(1회)",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000052,
+        "name": "벗밭지구",
+        "address": "강원특별자치도 정선군 북평면 숙암리 산 264-1",
+        "lat": 37.49597222,
+        "lon": 128.6238889,
+        "grade": "C",
+        "score": 42,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 70.0,
+        "height": 25.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000053,
+        "name": "문곡지구",
+        "address": "강원특별자치도 정선군 북평면 문곡리 산 59",
+        "lat": 37.41152778,
+        "lon": 128.69875,
+        "grade": "C",
+        "score": 41,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 400.0,
+        "height": 10.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "토사",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000054,
+        "name": "숙암1지구",
+        "address": "강원특별자치도 정선군 북평면 숙암리 산 264-3",
+        "lat": 37.56180556,
+        "lon": 128.5898611,
+        "grade": "C",
+        "score": 42,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 70.0,
+        "height": 25.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000058,
+        "name": "숙암5지구",
+        "address": "강원특별자치도 정선군 북평면 숙암리 산 146",
+        "lat": 37.49097222,
+        "lon": 128.5838889,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 30.0,
+        "height": 10.0,
+        "slope": "30",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000060,
+        "name": "숙암7지구",
+        "address": "강원특별자치도 정선군 북평면 숙암리 산 1-1",
+        "lat": 37.4775,
+        "lon": 128.6063889,
+        "grade": "B",
+        "score": 36,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 80.0,
+        "height": 40.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000061,
+        "name": "항골지구",
+        "address": "강원특별자치도 정선군 북평면 북평리 산 62",
+        "lat": 37.47791667,
+        "lon": 128.6675,
+        "grade": "B",
+        "score": 31,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 600.0,
+        "height": 25.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000062,
+        "name": "구미정지구",
+        "address": "강원특별자치도 정선군 임계면 봉산리 산 169-4",
+        "lat": 37.47444444,
+        "lon": 128.8202778,
+        "grade": "D",
+        "score": 62,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 25.0,
+        "height": 20.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000063,
+        "name": "봉산2지구",
+        "address": "강원특별자치도 정선군 임계면 반천리 302-1",
+        "lat": 37.47352056,
+        "lon": 128.8179631,
+        "grade": "C",
+        "score": 48,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 300.0,
+        "height": 27.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000097,
+        "name": "진골지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 47-1",
+        "lat": 37.19398611,
+        "lon": 128.8609167,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 12.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000098,
+        "name": "주공지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 63-40",
+        "lat": 37.19572222,
+        "lon": 128.8604444,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000099,
+        "name": "양지말지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 260-9",
+        "lat": 37.19902778,
+        "lon": 128.8566389,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 50.0,
+        "height": 10.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000100,
+        "name": "대원A지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 261-15",
+        "lat": 37.20206944,
+        "lon": 128.8560833,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "아파트",
+        "structure": "토사",
+        "length": 100.0,
+        "height": 15.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000101,
+        "name": "막골1지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 99-23",
+        "lat": 37.20491667,
+        "lon": 128.8551528,
+        "grade": "C",
+        "score": 43,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 50.0,
+        "height": 17.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000170,
+        "name": "낙천광산골지구",
+        "address": "강원특별자치도 정선군 임계면 낙천리 산 20-3",
+        "lat": 37.471326,
+        "lon": 128.857634,
+        "grade": "B",
+        "score": 35,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000171,
+        "name": "군대지구",
+        "address": "강원특별자치도 정선군 임계면 가목리 61-1",
+        "lat": 37.501861,
+        "lon": 128.939734,
+        "grade": "B",
+        "score": 40,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 40.0,
+        "height": 15.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000172,
+        "name": "월탄지구",
+        "address": "강원특별자치도 정선군 임계면 용산리 153",
+        "lat": 37.453302,
+        "lon": 128.857564,
+        "grade": "B",
+        "score": 34,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "토사",
+        "length": 20.0,
+        "height": 10.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000064,
+        "name": "여우새지구",
+        "address": "강원특별자치도 정선군 임계면 반천리 산 161-4",
+        "lat": 37.45902778,
+        "lon": 128.7868056,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 25.0,
+        "slope": "52",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000065,
+        "name": "반천2지구",
+        "address": "강원특별자치도 정선군 임계면 반천리 산 219",
+        "lat": 37.44194444,
+        "lon": 128.8031944,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 15.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "낙석(3회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000066,
+        "name": "반천1지구",
+        "address": "강원특별자치도 정선군 임계면 반천리 산 280-5",
+        "lat": 37.46763889,
+        "lon": 128.8190278,
+        "grade": "A",
+        "score": 19,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 350.0,
+        "height": 27.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#00C73C"
+      },
+      {
+        "id": 4277000067,
+        "name": "반천3지구",
+        "address": "강원특별자치도 정선군 임계면 반천리 산 115-1",
+        "lat": 37.46097222,
+        "lon": 128.8031944,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 150.0,
+        "height": 7.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000068,
+        "name": "가목지구",
+        "address": "강원특별자치도 정선군 임계면 가목리 106-4",
+        "lat": 37.52732917,
+        "lon": 128.9476986,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 150.0,
+        "height": 5.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000140,
+        "name": "아랫마을지구",
+        "address": "강원특별자치도 정선군 남면 유평리 701-19",
+        "lat": 37.50569444,
+        "lon": 129.2216667,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000141,
+        "name": "수와우지구",
+        "address": "강원특별자치도 정선군 남면 광덕리 138-1",
+        "lat": 37.49097222,
+        "lon": 129.1591667,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "복합",
+        "length": 50.0,
+        "height": 20.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000142,
+        "name": "자미원지구",
+        "address": "강원특별자치도 정선군 남면 문곡리 257-13",
+        "lat": 37.44972222,
+        "lon": 129.2213889,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 40.0,
+        "height": 5.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000143,
+        "name": "가스충전소지구",
+        "address": "강원특별자치도 정선군 남면 문곡리 32-1",
+        "lat": 37.40805556,
+        "lon": 129.2213889,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 30.0,
+        "height": 50.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "소규모낙석",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000102,
+        "name": "막골3지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 50-84",
+        "lat": 37.19657639,
+        "lon": 128.8543608,
+        "grade": "D",
+        "score": 69,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "석축",
+        "length": 50.0,
+        "height": 2.0,
+        "slope": "-",
+        "department": "건설과",
+        "history": "낙석(3회)",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000103,
+        "name": "고토일지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 85-1",
+        "lat": 37.21736111,
+        "lon": 128.83825,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 50.0,
+        "height": 8.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000003,
+        "name": "군언2지구",
+        "address": "강원특별자치도 정선군 정선읍 광하리 산 242-2",
+        "lat": 37.36486111,
+        "lon": 128.615,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 300.0,
+        "height": 28.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000001,
+        "name": "영동소수력지구",
+        "address": "강원특별자치도 정선군 정선읍 덕송리 산 24-1",
+        "lat": 37.40456944,
+        "lon": 128.6864411,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "기타",
+        "structure": "암반",
+        "length": 20.0,
+        "height": 6.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000002,
+        "name": "봉양2지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 산 10",
+        "lat": 37.38,
+        "lon": 128.6541667,
+        "grade": "D",
+        "score": 64,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 1000.0,
+        "height": 25.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "낙석",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000295,
+        "name": "유평3지구",
+        "address": "강원특별자치도 정선군 남면 유평리 산 73",
+        "lat": 37.29157556,
+        "lon": 128.7376853,
+        "grade": "B",
+        "score": 39,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 250.0,
+        "height": 5.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "토사및낙석(3회)",
+        "color": "#FFA500"
+      },
+      {
+        "id": 4277000386,
+        "name": "북실지구",
+        "address": "강원특별자치도 정선군 정선읍 북실리 산 3-14",
+        "lat": 37.37819444,
+        "lon": 128.6542547,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 220.0,
+        "height": 20.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000011,
+        "name": "형제카센터지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 373",
+        "lat": 37.19514806,
+        "lon": 128.8689292,
+        "grade": "C",
+        "score": 53,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 50.0,
+        "height": 80.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000012,
+        "name": "고한초교옆지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 73-14",
+        "lat": 37.20230333,
+        "lon": 128.8543656,
+        "grade": "D",
+        "score": 64,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 70.0,
+        "height": 14.0,
+        "slope": "56",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 5177000009,
+        "name": "휴관광호텔지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 88",
+        "lat": 37.22030083,
+        "lon": 128.8375031,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 170.0,
+        "height": 30.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000008,
+        "name": "봉양5지구",
+        "address": "강원특별자치도 정선군 정선읍 봉양리 821-2",
+        "lat": 37.38793972,
+        "lon": 128.6189625,
+        "grade": "C",
+        "score": 53,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 20.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000010,
+        "name": "진밭골지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산 223",
+        "lat": 37.19094861,
+        "lon": 128.8762222,
+        "grade": "D",
+        "score": 62,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "토사",
+        "length": 150.0,
+        "height": 30.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000375,
+        "name": "군언2지구",
+        "address": "강원특별자치도 정선군 정선읍 광하리 산 244",
+        "lat": 37.36791389,
+        "lon": 128.6129878,
+        "grade": "D",
+        "score": 62,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 350.0,
+        "height": 20.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "낙석(1회)",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000395,
+        "name": "강원 정선 고한 고한 N6지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 230",
+        "lat": 37.22136111,
+        "lon": 128.8596528,
+        "grade": "D",
+        "score": 67,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 60.0,
+        "height": 54.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000397,
+        "name": "강원 정선 고한 고한 N4지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산55-1",
+        "lat": 37.21870833,
+        "lon": 128.8544167,
+        "grade": "C",
+        "score": 65,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 40.0,
+        "height": 60.0,
+        "slope": "65",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000405,
+        "name": "강원 정선 여량 남곡 N2지구",
+        "address": "강원특별자치도 정선군 여량면 남곡리 44",
+        "lat": 37.51176389,
+        "lon": 128.8017083,
+        "grade": "C",
+        "score": 64,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 60.0,
+        "height": 70.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000408,
+        "name": "강원 정선 여량 남곡 N5지구",
+        "address": "강원특별자치도 정선군 여량면 남곡리 산49",
+        "lat": 37.50202778,
+        "lon": 128.7850972,
+        "grade": "C",
+        "score": 61,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 90.0,
+        "height": 53.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000410,
+        "name": "강원 정선 여량 여량 N1지구",
+        "address": "강원특별자치도 정선군 여량면 여량리 산27",
+        "lat": 37.45770833,
+        "lon": 128.7314306,
+        "grade": "C",
+        "score": 64,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 60.0,
+        "height": 70.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000419,
+        "name": "강원 정선 정선 여탄 N1지구",
+        "address": "강원특별자치도 정선군 정선읍 여탄리 산 47",
+        "lat": 37.37747222,
+        "lon": 128.7115,
+        "grade": "C",
+        "score": 66,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 90.0,
+        "height": 70.0,
+        "slope": "55",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000388,
+        "name": "강원 정선 신동 조동 N1지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 97-14",
+        "lat": 37.21104167,
+        "lon": 128.6434861,
+        "grade": "D",
+        "score": 66,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 240.0,
+        "height": 16.0,
+        "slope": "62",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000389,
+        "name": "강원 정선 신동 조동 N2지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 95-26",
+        "lat": 37.20966667,
+        "lon": 128.6642222,
+        "grade": "D",
+        "score": 66,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 140.0,
+        "height": 11.0,
+        "slope": "63",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000390,
+        "name": "강원 정선 여량 구절 N1지구",
+        "address": "강원특별자치도 정선군 여량면 구절리 산2-7",
+        "lat": 37.53231944,
+        "lon": 128.7308889,
+        "grade": "C",
+        "score": 62,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 200.0,
+        "height": 22.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000391,
+        "name": "강원 정선 여량 유천 N1지구",
+        "address": "강원특별자치도 정선군 여량면 유천리 746-1",
+        "lat": 37.49431944,
+        "lon": 128.5383333,
+        "grade": "D",
+        "score": 70,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 900.0,
+        "height": 29.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 4277000392,
+        "name": "강원 정선 화암 화암 N3지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 산352-3",
+        "lat": 37.36080556,
+        "lon": 128.7796667,
+        "grade": "C",
+        "score": 68,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 175.0,
+        "height": 19.0,
+        "slope": "70",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 4277000387,
+        "name": "애산지구",
+        "address": "강원특별자치도 정선군 정선읍 북실리 산 214",
+        "lat": 37.37550528,
+        "lon": 128.65852,
+        "grade": "D",
+        "score": 63,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 950.0,
+        "height": 100.0,
+        "slope": "60",
+        "department": "건설과",
+        "history": "낙석발생(수시)",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 5177000153,
+        "name": "강원 정선 남 유평 N5지구",
+        "address": "강원특별자치도 정선군 남면 유평리 산291-1",
+        "lat": 37.27555556,
+        "lon": 128.7529167,
+        "grade": "C",
+        "score": 56,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 453.0,
+        "height": 9.0,
+        "slope": "47",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000154,
+        "name": "강원 정선 임계 반천 N1지구",
+        "address": "강원특별자치도 정선군 임계면 반천리 산57-4",
+        "lat": 37.48180556,
+        "lon": 128.7844444,
+        "grade": "C",
+        "score": 57,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 97.0,
+        "height": 9.0,
+        "slope": "42",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000155,
+        "name": "강원 정선 여량 남곡 N7지구",
+        "address": "강원특별자치도 정선군 여량면 남곡리 54-3",
+        "lat": 37.50555556,
+        "lon": 128.7930556,
+        "grade": "B",
+        "score": 30,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 17.0,
+        "slope": "37",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000156,
+        "name": "강원 정선 임계 봉산 N2지구",
+        "address": "강원특별자치도 정선군 임계면 봉산리 산144",
+        "lat": 37.49611111,
+        "lon": 128.8270833,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 147.0,
+        "height": 14.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000157,
+        "name": "강원 정선 임계 임계 N1지구",
+        "address": "강원특별자치도 정선군 임계면 임계리 산566",
+        "lat": 37.55666667,
+        "lon": 128.8759722,
+        "grade": "C",
+        "score": 57,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 200.0,
+        "height": 6.0,
+        "slope": "48",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000158,
+        "name": "강원 정선 정선 여탄 N4지구",
+        "address": "강원특별자치도 정선군 정선읍 여탄리 산91",
+        "lat": 37.36791667,
+        "lon": 128.7111111,
+        "grade": "B",
+        "score": 32,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 216.0,
+        "height": 13.0,
+        "slope": "44",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000159,
+        "name": "강원 정선 임계 덕암 N4지구",
+        "address": "강원특별자치도 정선군 임계면 덕암리 385-1",
+        "lat": 37.34930556,
+        "lon": 128.8477778,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "48",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000160,
+        "name": "강원 정선 정선 덕우 N2지구",
+        "address": "강원특별자치도 정선군 정선읍 덕우리 679-1",
+        "lat": 37.3425,
+        "lon": 128.7094444,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 15.0,
+        "slope": "39",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000161,
+        "name": "강원 정선 고한 고한 N17지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 63-38",
+        "lat": 37.19777778,
+        "lon": 128.8579167,
+        "grade": "C",
+        "score": 44,
+        "status": "이상없음",
+        "type": "체육시설",
+        "structure": "암반",
+        "length": 30.0,
+        "height": 34.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000162,
+        "name": "강원 정선 남 유평 N6지구",
+        "address": "강원특별자치도 정선군 남면 유평리 산197-2",
+        "lat": 37.28805556,
+        "lon": 128.7630556,
+        "grade": "B",
+        "score": 39,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 184.0,
+        "height": 8.0,
+        "slope": "36",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000163,
+        "name": "강원 정선 고한 고한 N18지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산1-270",
+        "lat": 37.21138889,
+        "lon": 128.8276389,
+        "grade": "B",
+        "score": 37,
+        "status": "이상없음",
+        "type": "주차장",
+        "structure": "암반",
+        "length": 37.0,
+        "height": 15.0,
+        "slope": "84",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000164,
+        "name": "강원 정선 남 유평 N7지구",
+        "address": "강원특별자치도 정선군 남면 유평리 44-2",
+        "lat": 37.28722222,
+        "lon": 128.7634722,
+        "grade": "C",
+        "score": 50,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 96.0,
+        "height": 9.0,
+        "slope": "47",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000165,
+        "name": "강원 정선 신동 고성 N1지구",
+        "address": "강원특별자치도 정선군 신동읍 고성리 산17-4",
+        "lat": 37.26069444,
+        "lon": 128.6051389,
+        "grade": "B",
+        "score": 37,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 114.0,
+        "height": 15.0,
+        "slope": "39",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000166,
+        "name": "강원 정선 사북 직전 N2지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 산279-4",
+        "lat": 37.23777778,
+        "lon": 128.8097222,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 200.0,
+        "height": 9.0,
+        "slope": "39",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000167,
+        "name": "강원 정선 고한 고한 N19지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 129-6",
+        "lat": 37.21138889,
+        "lon": 128.8305556,
+        "grade": "C",
+        "score": 41,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 190.0,
+        "height": 24.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000168,
+        "name": "강원 정선 고한 고한 N20지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산346",
+        "lat": 37.21125,
+        "lon": 128.8270833,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "주차장",
+        "structure": "정보없음",
+        "length": 46.0,
+        "height": 7.0,
+        "slope": "87",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000169,
+        "name": "강원 정선 신동 예미 N2지구",
+        "address": "강원특별자치도 정선군 신동읍 예미리 산25-4",
+        "lat": 37.22555556,
+        "lon": 128.6188889,
+        "grade": "A",
+        "score": 16,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "정보없음",
+        "length": 95.0,
+        "height": 6.0,
+        "slope": "89",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#00C73C"
+      },
+      {
+        "id": 5177000170,
+        "name": "강원 정선 임계 직원 N1지구",
+        "address": "강원특별자치도 정선군 임계면 직원리 산50",
+        "lat": 37.51055556,
+        "lon": 128.9094444,
+        "grade": "D",
+        "score": 61,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 200.0,
+        "height": 17.0,
+        "slope": "37",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 5177000171,
+        "name": "강원 정선 고한 고한 N21지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 159-25",
+        "lat": 37.22013889,
+        "lon": 128.8415278,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 232.0,
+        "height": 16.0,
+        "slope": "37",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000172,
+        "name": "강원 정선 남 문곡 N7지구",
+        "address": "강원특별자치도 정선군 남면 문곡리 100-1",
+        "lat": 37.26875,
+        "lon": 128.7413889,
+        "grade": "D",
+        "score": 68,
+        "status": "이상없음",
+        "type": "학교",
+        "structure": "암반",
+        "length": 74.0,
+        "height": 21.0,
+        "slope": "34",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#E31C3D"
+      },
+      {
+        "id": 5177000173,
+        "name": "강원 정선 정선 신월 N3지구",
+        "address": "강원특별자치도 정선군 정선읍 신월리 산6-1",
+        "lat": 37.37111111,
+        "lon": 128.7005556,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 165.0,
+        "height": 16.0,
+        "slope": "42",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000174,
+        "name": "강원 정선 북평 북평 N1지구",
+        "address": "강원특별자치도 정선군 북평면 북평리 394-12",
+        "lat": 37.46763889,
+        "lon": 128.6665278,
+        "grade": "B",
+        "score": 39,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 115.0,
+        "height": 21.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000175,
+        "name": "강원 정선 화암 화암 N8지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 산235-1",
+        "lat": 37.34236111,
+        "lon": 128.8076389,
+        "grade": "C",
+        "score": 46,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 90.0,
+        "height": 8.0,
+        "slope": "44",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000176,
+        "name": "강원 정선 정선 애산 N2지구",
+        "address": "강원특별자치도 정선군 정선읍 애산리 768",
+        "lat": 37.37722222,
+        "lon": 128.6768056,
+        "grade": "B",
+        "score": 29,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "정보없음",
+        "length": 300.0,
+        "height": 13.0,
+        "slope": "84",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000177,
+        "name": "강원 정선 정선 애산 N3지구",
+        "address": "강원특별자치도 정선군 정선읍 애산리 산191-18",
+        "lat": 37.36888889,
+        "lon": 128.6734722,
+        "grade": "B",
+        "score": 36,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 187.0,
+        "height": 23.0,
+        "slope": "52",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000178,
+        "name": "강원 정선 임계 덕암 N5지구",
+        "address": "강원특별자치도 정선군 임계면 덕암리 162-1",
+        "lat": 37.34375,
+        "lon": 128.84625,
+        "grade": "B",
+        "score": 38,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 130.0,
+        "height": 8.0,
+        "slope": "50",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000179,
+        "name": "강원 정선 임계 덕암 N6지구",
+        "address": "강원특별자치도 정선군 임계면 덕암리 394-6",
+        "lat": 37.34291667,
+        "lon": 128.8459722,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 70.0,
+        "height": 8.0,
+        "slope": "48",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000180,
+        "name": "강원 정선 정선 덕우 N3지구",
+        "address": "강원특별자치도 정선군 정선읍 덕우리 261-2",
+        "lat": 37.36597222,
+        "lon": 128.7244444,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 91.0,
+        "height": 11.0,
+        "slope": "44",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000182,
+        "name": "강원 정선 정선 용탄 N6지구",
+        "address": "강원특별자치도 정선군 정선읍 용탄리 산155-2",
+        "lat": 37.38625,
+        "lon": 128.61,
+        "grade": "C",
+        "score": 60,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 216.0,
+        "height": 12.0,
+        "slope": "48",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000183,
+        "name": "강원 정선 고한 고한 N22지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 산2-99",
+        "lat": 37.20555556,
+        "lon": 128.8516667,
+        "grade": "B",
+        "score": 28,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "정보없음",
+        "length": 74.0,
+        "height": 10.0,
+        "slope": "83",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000184,
+        "name": "강원 정선 고한 고한 N23지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 80-39",
+        "lat": 37.20541667,
+        "lon": 128.8520833,
+        "grade": "B",
+        "score": 21,
+        "status": "이상없음",
+        "type": "탐방로",
+        "structure": "정보없음",
+        "length": 32.0,
+        "height": 9.0,
+        "slope": "85",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000185,
+        "name": "강원 정선 신동 조동 N3지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 516",
+        "lat": 37.22083333,
+        "lon": 128.6809722,
+        "grade": "C",
+        "score": 52,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 200.0,
+        "height": 17.0,
+        "slope": "42",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000186,
+        "name": "강원 정선 사북 사북 N10지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 229-7",
+        "lat": 37.22722222,
+        "lon": 128.8395833,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "주택",
+        "structure": "암반",
+        "length": 85.0,
+        "height": 11.0,
+        "slope": "87",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000187,
+        "name": "강원 정선 정선 북실 N3지구",
+        "address": "강원특별자치도 정선군 정선읍 북실리 700-2",
+        "lat": 37.37555556,
+        "lon": 128.6506944,
+        "grade": "B",
+        "score": 34,
+        "status": "이상없음",
+        "type": "노인정",
+        "structure": "정보없음",
+        "length": 50.0,
+        "height": 6.0,
+        "slope": "80",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000188,
+        "name": "강원 정선 신동 조동 N4지구",
+        "address": "강원특별자치도 정선군 신동읍 조동리 516",
+        "lat": 37.22055556,
+        "lon": 128.6805556,
+        "grade": "C",
+        "score": 54,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 35.0,
+        "height": 8.0,
+        "slope": "46",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000189,
+        "name": "강원 정선 여량 고양 N1지구",
+        "address": "강원특별자치도 정선군 여량면 고양리 504",
+        "lat": 37.43361111,
+        "lon": 128.7375,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "복합",
+        "length": 95.0,
+        "height": 15.0,
+        "slope": "40",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000190,
+        "name": "강원 정선 신동 예미 N3지구",
+        "address": "강원특별자치도 정선군 신동읍 예미리 산25-4",
+        "lat": 37.22611111,
+        "lon": 128.6186111,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 126.0,
+        "height": 8.0,
+        "slope": "49",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000191,
+        "name": "강원 정선 고한 고한 N24지구",
+        "address": "강원특별자치도 정선군 고한읍 고한리 80-26",
+        "lat": 37.20541667,
+        "lon": 128.8530556,
+        "grade": "B",
+        "score": 32,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "토사",
+        "length": 90.0,
+        "height": 7.0,
+        "slope": "35",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000192,
+        "name": "강원 정선 사북 사북 N11지구",
+        "address": "강원특별자치도 정선군 사북읍 사북리 470",
+        "lat": 37.22777778,
+        "lon": 128.8375,
+        "grade": "C",
+        "score": 57,
+        "status": "이상없음",
+        "type": "다세대",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 10.0,
+        "slope": "51",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000193,
+        "name": "강원 정선 사북 직전 N3지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 591",
+        "lat": 37.23916667,
+        "lon": 128.8130556,
+        "grade": "C",
+        "score": 48,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 198.0,
+        "height": 16.0,
+        "slope": "39",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000194,
+        "name": "강원 정선 사북 직전 N4지구",
+        "address": "강원특별자치도 정선군 사북읍 직전리 406-2",
+        "lat": 37.25208333,
+        "lon": 128.8204167,
+        "grade": "C",
+        "score": 53,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 190.0,
+        "height": 18.0,
+        "slope": "39",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000195,
+        "name": "강원 정선 화암 화암 N5지구",
+        "address": "강원특별자치도 정선군 화암면 호촌리 산163",
+        "lat": 37.28833333,
+        "lon": 128.8398611,
+        "grade": "B",
+        "score": 34,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 24.0,
+        "height": 9.0,
+        "slope": "45",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FFA500"
+      },
+      {
+        "id": 5177000198,
+        "name": "강원 정선 화암 몰운 N5지구",
+        "address": "강원특별자치도 정선군 화암면 몰운리 산6-2",
+        "lat": 37.31291667,
+        "lon": 128.8245833,
+        "grade": "C",
+        "score": 47,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 225.0,
+        "height": 16.0,
+        "slope": "47",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000199,
+        "name": "강원 정선 화암 몰운 N6지구",
+        "address": "강원특별자치도 정선군 화암면 몰운리 산6-2",
+        "lat": 37.31361111,
+        "lon": 128.8256944,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 65.0,
+        "height": 11.0,
+        "slope": "44",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000200,
+        "name": "강원 정선 화암 몰운 N7지구",
+        "address": "강원특별자치도 정선군 화암면 몰운리 산6-5",
+        "lat": 37.31388889,
+        "lon": 128.8263889,
+        "grade": "C",
+        "score": 48,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 100.0,
+        "height": 12.0,
+        "slope": "48",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000201,
+        "name": "강원 정선 남 유평 N8지구",
+        "address": "강원특별자치도 정선군 남면 유평리 47-1",
+        "lat": 37.28597222,
+        "lon": 128.765,
+        "grade": "C",
+        "score": 55,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 80.0,
+        "height": 17.0,
+        "slope": "57",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000202,
+        "name": "강원 정선 남 유평 N9지구",
+        "address": "강원특별자치도 정선군 남면 유평리 46-1",
+        "lat": 37.28652778,
+        "lon": 128.7641667,
+        "grade": "C",
+        "score": 59,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 73.0,
+        "height": 16.0,
+        "slope": "42",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000203,
+        "name": "강원 정선 남 유평 N10지구",
+        "address": "강원특별자치도 정선군 남면 유평리 산148-1",
+        "lat": 37.30236111,
+        "lon": 128.7718056,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 223.0,
+        "height": 16.0,
+        "slope": "37",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000204,
+        "name": "강원 정선 남 유평 N11지구",
+        "address": "강원특별자치도 정선군 남면 유평리 1-4",
+        "lat": 37.30388889,
+        "lon": 128.7701389,
+        "grade": "C",
+        "score": 51,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 192.0,
+        "height": 10.0,
+        "slope": "39",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000205,
+        "name": "강원 정선 화암 화암 N9지구",
+        "address": "강원특별자치도 정선군 화암면 화암리 산460-1",
+        "lat": 37.30805556,
+        "lon": 128.7651389,
+        "grade": "C",
+        "score": 45,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 132.0,
+        "height": 8.0,
+        "slope": "51",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000206,
+        "name": "강원 정선 정선 신월 N4지구",
+        "address": "강원특별자치도 정선군 정선읍 신월리 산4",
+        "lat": 37.37125,
+        "lon": 128.7020833,
+        "grade": "C",
+        "score": 49,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 64.0,
+        "height": 14.0,
+        "slope": "44",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      },
+      {
+        "id": 5177000207,
+        "name": "강원 정선 임계 직원 N2지구",
+        "address": "강원특별자치도 정선군 임계면 직원리 산49",
+        "lat": 37.50944444,
+        "lon": 128.9093056,
+        "grade": "C",
+        "score": 56,
+        "status": "이상없음",
+        "type": "도로",
+        "structure": "암반",
+        "length": 57.0,
+        "height": 18.0,
+        "slope": "52",
+        "department": "건설과",
+        "history": "없음",
+        "color": "#FF6B00"
+      }
+    ];
+
+
+    let currentUserType = 'admin';
+    let dashboardMap, satelliteMap;
+    let currentMapType = 'satellite';
+    let isGoogleMapsLoaded = false;
+
+    // 구글 맵 로드 확인
+    window.addEventListener('load', function () {
+      if (typeof google !== 'undefined' && google.maps) {
+        isGoogleMapsLoaded = true;
+        console.log('Google Maps API loaded successfully');
+      } else {
+        console.error('Google Maps API failed to load');
+      }
+    });
+
+    // 사용자 타입 선택
+    function selectUserType(type) {
+      currentUserType = type;
+      document.querySelectorAll('.user-type-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.closest('.user-type-btn').classList.add('active');
+    }
+
+    // 로그인
+    function login(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+
+      // 즉시 화면 전환
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('appContainer').classList.add('active');
+      document.getElementById('userName').textContent = username || '관리자';
+
+      // 로딩 표시
+      document.getElementById('loadingOverlay').classList.add('active');
+
+      // 지도 초기화 시도
+      let attempts = 0;
+      const maxAttempts = 50;
+
+      function tryInitMap() {
+        attempts++;
+
+        if (typeof google !== 'undefined' && google.maps && google.maps.Map) {
+          document.getElementById('loadingOverlay').classList.remove('active');
+          setTimeout(() => {
+            initDashboardMap();
+          }, 100);
+        } else if (attempts < maxAttempts) {
+          setTimeout(tryInitMap, 200);
+        } else {
+          document.getElementById('loadingOverlay').classList.remove('active');
+          alert('지도 로딩에 실패했습니다. 페이지를 새로고침해주세요.');
+        }
+      }
+
+      setTimeout(tryInitMap, 500);
+    }
+
+    // 로그아웃
+    function logout() {
+      if (confirm('로그아웃 하시겠습니까?')) {
+        document.getElementById('appContainer').classList.remove('active');
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+      }
+    }
+
+    // 페이지 전환
+    function showPage(pageName) {
+      document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+      });
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+
+      document.getElementById(pageName + 'Page').classList.add('active');
+      event.target.classList.add('active');
+
+      if (pageName === 'satellite' && !satelliteMap) {
+        setTimeout(() => initSatelliteMap(), 100);
+      }
+    }
+
+    // 대시보드 구글 맵 초기화
+    function initDashboardMap() {
+      if (typeof google === 'undefined' || !google.maps) {
+        console.error('Google Maps not loaded');
+        return;
+      }
+
+      const jeongseonCenter = { lat: 37.3805, lng: 128.6689 };
+
+      // 대시보드 지도
+      dashboardMap = new google.maps.Map(document.getElementById('dashboardMap'), {
+        center: jeongseonCenter,
+        zoom: 11,
+        mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        zoomControl: true
+      });
+
+      // 정선군 경계선 좌표 (대략적인 경계)
+      const jeongseonBoundary = [
+        { lat: 37.5100, lng: 128.5500 },
+        { lat: 37.5200, lng: 128.7000 },
+        { lat: 37.5000, lng: 128.8500 },
+        { lat: 37.4500, lng: 128.9500 },
+        { lat: 37.3500, lng: 128.9800 },
+        { lat: 37.2500, lng: 128.9500 },
+        { lat: 37.1500, lng: 128.9000 },
+        { lat: 37.0800, lng: 128.8000 },
+        { lat: 37.0500, lng: 128.6500 },
+        { lat: 37.0800, lng: 128.5500 },
+        { lat: 37.1500, lng: 128.5000 },
+        { lat: 37.2500, lng: 128.4800 },
+        { lat: 37.3500, lng: 128.5000 },
+        { lat: 37.4500, lng: 128.5200 },
+        { lat: 37.5100, lng: 128.5500 }
+      ];
+
+      // 정선군 영역 하이라이팅
+      const jeongseonPolygon = new google.maps.Polygon({
+        paths: jeongseonBoundary,
+        strokeColor: '#BC0028',
+        strokeOpacity: 1,
+        strokeWeight: 3,
+        fillColor: '#BC0028',
+        fillOpacity: 0.15,
+        map: dashboardMap
+      });
+
+      // 정선군 라벨 추가
+      const jeongseonLabel = new google.maps.Marker({
+        position: jeongseonCenter,
+        map: dashboardMap,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 0
+        },
+        label: {
+          text: '정선군',
+          color: '#BC0028',
+          fontSize: '18px',
+          fontWeight: 'bold'
+        }
+      });
+
+      // 실제 정선군 급경사지 235개 마커 추가
+      realSitesData.forEach(site => {
+        const marker = new google.maps.Marker({
+          position: { lat: site.lat, lng: site.lon },
+          map: dashboardMap,
+          title: site.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: site.color,
+            fillOpacity: 0.9,
+            strokeColor: 'white',
+            strokeWeight: 2
+          }
+        });
+
+        const gradeText = {
+          'D': 'D등급 (매우위험)',
+          'C': 'C등급 (위험)',
+          'B': 'B등급 (주의)',
+          'A': 'A등급 (양호)'
+        };
+
+        const gradeBadgeColor = {
+          'D': '#E31C3D',
+          'C': '#FF6B00',
+          'B': '#FFA500',
+          'A': '#00C73C'
+        };
+
+        // 호버 시 간단한 정보만 표시
+        const hoverInfoWindow = new google.maps.InfoWindow({
+          content: `
+                        <div style="padding: 10px; min-width: 200px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h3 style="margin: 0; color: #BC0028; font-size: 14px; font-weight: 800;">
+                                    ${site.name}
+                                </h3>
+                                <span style="background: ${gradeBadgeColor[site.grade]}; color: white; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: 800;">
+                                    ${site.grade}등급
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; color: #333;">
+                                <p style="margin: 4px 0;"><strong>관리번호:</strong> ${site.id}</p>
+                                <div style="margin: 8px 0; padding: 8px; background: #f5f5f5; border-radius: 6px; border-left: 4px solid ${site.color};">
+                                    <p style="margin: 0;"><strong>등급:</strong> <span style="color: ${site.color}; font-weight: 800;">${gradeText[site.grade]}</span></p>
+                                    <p style="margin: 4px 0 0 0;"><strong>위험점수:</strong> <span style="color: ${site.color}; font-weight: 800; font-size: 16px;">${site.score}점</span></p>
+                                </div>
+                                <p style="margin: 4px 0; font-size: 11px; color: #999;">📌 클릭하면 상세 정보를 확인할 수 있습니다</p>
+                            </div>
+                        </div>
+                    `
+        });
+
+        // 클릭 시 상세 정보 + 3D 모델 버튼 표시
+        const clickInfoWindow = new google.maps.InfoWindow({
+          content: `
+                        <div style="padding: 12px; min-width: 280px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h3 style="margin: 0; color: #BC0028; font-size: 15px; font-weight: 800;">
+                                    ${site.name}
+                                </h3>
+                                <span style="background: ${gradeBadgeColor[site.grade]}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800;">
+                                    ${site.grade}등급
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; line-height: 1.8; color: #333;">
+                                <p style="margin: 5px 0;"><strong>관리번호:</strong> ${site.id}</p>
+                                <p style="margin: 5px 0;"><strong>주소:</strong> ${site.address}</p>
+                                <div style="margin: 8px 0; padding: 10px; background: #f5f5f5; border-radius: 6px; border-left: 4px solid ${site.color};">
+                                    <p style="margin: 3px 0;"><strong>등급:</strong> <span style="color: ${site.color}; font-weight: 800;">${gradeText[site.grade]}</span></p>
+                                    <p style="margin: 3px 0;"><strong>위험점수:</strong> <span style="color: ${site.color}; font-weight: 800; font-size: 16px;">${site.score}점</span></p>
+                                </div>
+                                <p style="margin: 5px 0;"><strong>상태:</strong> ${site.status}</p>
+                                <p style="margin: 5px 0;"><strong>종류:</strong> ${site.type}</p>
+                                <p style="margin: 5px 0;"><strong>구조:</strong> ${site.structure}</p>
+                                <p style="margin: 5px 0;"><strong>규모:</strong> ${site.length}m × ${site.height}m</p>
+                                <p style="margin: 5px 0;"><strong>경사:</strong> ${site.slope}°</p>
+                                <p style="margin: 5px 0;"><strong>과거사고:</strong> ${site.history}</p>
+                            </div>
+                            <button onclick="open3DViewer(realSitesData.find(s => s.id == ${site.id})); google.maps.event.clearInstanceListeners(window);" 
+                                    style="width: 100%; margin-top: 12px; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: transform 0.2s;"
+                                    onmouseover="this.style.transform='translateY(-2px)'"
+                                    onmouseout="this.style.transform='translateY(0)'">
+                                🏔️ 3D 디지털 트윈 모델 보기
+                            </button>
+                        </div>
+                    `
+        });
+
+        let hoverTimeout;
+
+        // 마우스 오버 시 간단한 정보창 표시
+        marker.addListener('mouseover', () => {
+          // 클릭으로 열린 상세 정보창이 없을 때만 호버 정보창 표시
+          hoverTimeout = setTimeout(() => {
+            hoverInfoWindow.open(dashboardMap, marker);
+          }, 200); // 0.2초 지연
+        });
+
+        // 마우스 아웃 시 호버 정보창 숨김
+        marker.addListener('mouseout', () => {
+          clearTimeout(hoverTimeout);
+          hoverInfoWindow.close();
+        });
+
+        // 클릭 시 상세 정보창 표시 (3D 버튼 포함)
+        marker.addListener('click', () => {
+          clearTimeout(hoverTimeout);
+          hoverInfoWindow.close();
+          clickInfoWindow.open(dashboardMap, marker);
+        });
+      });
+    }
+
+    // 위성 지도 초기화
+    function initSatelliteMap() {
+      if (typeof google === 'undefined' || !google.maps) {
+        console.error('Google Maps not loaded');
+        return;
+      }
+
+      const jeongseonCenter = { lat: 37.3805, lng: 128.6689 };
+
+      satelliteMap = new google.maps.Map(document.getElementById('satelliteMap'), {
+        center: jeongseonCenter,
+        zoom: 12,
+        mapTypeId: google.maps.MapTypeId.SATELLITE,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: true,
+        zoomControl: true
+      });
+
+      // 정선군 경계선 좌표
+      const jeongseonBoundary = [
+        { lat: 37.5100, lng: 128.5500 },
+        { lat: 37.5200, lng: 128.7000 },
+        { lat: 37.5000, lng: 128.8500 },
+        { lat: 37.4500, lng: 128.9500 },
+        { lat: 37.3500, lng: 128.9800 },
+        { lat: 37.2500, lng: 128.9500 },
+        { lat: 37.1500, lng: 128.9000 },
+        { lat: 37.0800, lng: 128.8000 },
+        { lat: 37.0500, lng: 128.6500 },
+        { lat: 37.0800, lng: 128.5500 },
+        { lat: 37.1500, lng: 128.5000 },
+        { lat: 37.2500, lng: 128.4800 },
+        { lat: 37.3500, lng: 128.5000 },
+        { lat: 37.4500, lng: 128.5200 },
+        { lat: 37.5100, lng: 128.5500 }
+      ];
+
+      // 정선군 영역 하이라이팅
+      const jeongseonPolygon = new google.maps.Polygon({
+        paths: jeongseonBoundary,
+        strokeColor: '#BC0028',
+        strokeOpacity: 1,
+        strokeWeight: 3,
+        fillColor: '#BC0028',
+        fillOpacity: 0.15,
+        map: satelliteMap
+      });
+
+      // 실제 급경사지 데이터로 마커 생성
+      realSitesData.forEach(site => {
+        const marker = new google.maps.Marker({
+          position: { lat: site.lat, lng: site.lon },
+          map: satelliteMap,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: site.color,
+            fillOpacity: 0.9,
+            strokeColor: 'white',
+            strokeWeight: 2
+          }
+        });
+
+        const gradeText = {
+          'D': 'D등급 (매우위험)',
+          'C': 'C등급 (위험)',
+          'B': 'B등급 (주의)',
+          'A': 'A등급 (양호)'
+        };
+
+        const gradeBadgeColor = {
+          'D': '#E31C3D',
+          'C': '#FF6B00',
+          'B': '#FFA500',
+          'A': '#00C73C'
+        };
+
+        // 호버 시 간단한 정보만 표시
+        const hoverInfoWindow = new google.maps.InfoWindow({
+          content: `
+                        <div style="padding: 10px; min-width: 200px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <h3 style="margin: 0; color: #BC0028; font-size: 14px; font-weight: 800;">
+                                    ${site.name}
+                                </h3>
+                                <span style="background: ${gradeBadgeColor[site.grade]}; color: white; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: 800;">
+                                    ${site.grade}등급
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; color: #333;">
+                                <p style="margin: 4px 0;"><strong>관리번호:</strong> ${site.id}</p>
+                                <div style="margin: 8px 0; padding: 8px; background: #f5f5f5; border-radius: 6px; border-left: 4px solid ${site.color};">
+                                    <p style="margin: 0;"><strong>등급:</strong> <span style="color: ${site.color}; font-weight: 800;">${gradeText[site.grade]}</span></p>
+                                    <p style="margin: 4px 0 0 0;"><strong>위험점수:</strong> <span style="color: ${site.color}; font-weight: 800; font-size: 16px;">${site.score}점</span></p>
+                                </div>
+                                <p style="margin: 4px 0; font-size: 11px; color: #999;">📌 클릭하면 상세 정보를 확인할 수 있습니다</p>
+                            </div>
+                        </div>
+                    `
+        });
+
+        // 클릭 시 상세 정보 + 3D 모델 버튼 표시
+        const clickInfoWindow = new google.maps.InfoWindow({
+          content: `
+                        <div style="padding: 12px; min-width: 300px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h3 style="margin: 0; color: #BC0028; font-size: 15px; font-weight: 800;">
+                                    ${site.name}
+                                </h3>
+                                <span style="background: ${gradeBadgeColor[site.grade]}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 800;">
+                                    ${site.grade}등급
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; line-height: 1.8;">
+                                <div style="margin: 8px 0; padding: 10px; background: #f5f5f5; border-radius: 6px; border-left: 4px solid ${site.color};">
+                                    <p style="margin: 3px 0;"><strong>등급:</strong> <span style="color: ${site.color}; font-weight: 800;">${gradeText[site.grade]}</span></p>
+                                    <p style="margin: 3px 0;"><strong>위험점수:</strong> <span style="color: ${site.color}; font-weight: 800; font-size: 16px;">${site.score}점</span></p>
+                                </div>
+                                <p style="margin: 5px 0;"><strong>주소:</strong> ${site.address}</p>
+                                <p style="margin: 5px 0;"><strong>종류:</strong> ${site.type} / ${site.structure}</p>
+                                <p style="margin: 5px 0;"><strong>규모:</strong> 길이 ${site.length}m, 높이 ${site.height}m</p>
+                                <p style="margin: 5px 0;"><strong>평균경사:</strong> ${site.slope}°</p>
+                                <p style="margin: 5px 0;"><strong>관리부서:</strong> ${site.department}</p>
+                                <p style="margin: 5px 0;"><strong>과거사고:</strong> ${site.history}</p>
+                            </div>
+                            <button onclick="open3DViewer(realSitesData.find(s => s.id == ${site.id})); google.maps.event.clearInstanceListeners(window);" 
+                                    style="width: 100%; margin-top: 12px; padding: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 13px; transition: transform 0.2s;"
+                                    onmouseover="this.style.transform='translateY(-2px)'"
+                                    onmouseout="this.style.transform='translateY(0)'">
+                                🏔️ 3D 디지털 트윈 모델 보기
+                            </button>
+                        </div>
+                    `
+        });
+
+        let hoverTimeout;
+
+        // 마우스 오버 시 간단한 정보창 표시
+        marker.addListener('mouseover', () => {
+          hoverTimeout = setTimeout(() => {
+            hoverInfoWindow.open(satelliteMap, marker);
+          }, 200);
+        });
+
+        // 마우스 아웃 시 호버 정보창 숨김
+        marker.addListener('mouseout', () => {
+          clearTimeout(hoverTimeout);
+          hoverInfoWindow.close();
+        });
+
+        // 클릭 시 상세 정보창 표시 (3D 버튼 포함)
+        marker.addListener('click', () => {
+          clearTimeout(hoverTimeout);
+          hoverInfoWindow.close();
+          clickInfoWindow.open(satelliteMap, marker);
+        });
+      });
+    }
+
+    // 지도 뷰 변경
+    function changeMapView(type) {
+      if (!dashboardMap) {
+        alert('지도가 아직 로드되지 않았습니다.');
+        return;
+      }
+
+      let mapTypeId;
+      switch (type) {
+        case 'satellite':
+          mapTypeId = google.maps.MapTypeId.SATELLITE;
+          break;
+        case 'roadmap':
+          mapTypeId = google.maps.MapTypeId.ROADMAP;
+          break;
+        case 'terrain':
+          mapTypeId = google.maps.MapTypeId.TERRAIN;
+          break;
+        default:
+          mapTypeId = google.maps.MapTypeId.SATELLITE;
+      }
+
+      dashboardMap.setMapTypeId(mapTypeId);
+
+      document.querySelectorAll('.map-control-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+    }
+
+    // 시뮬레이션
+    function simulateNormal() {
+      alert('정상 상태로 설정되었습니다.');
+    }
+
+    function simulateRain() {
+      alert('집중 호우 시나리오가 적용되었습니다.\n위험지수가 증가합니다.');
+    }
+
+    function simulateDanger() {
+      alert('위험 상태 시나리오가 적용되었습니다.\n긴급 경보가 발령됩니다.');
+    }
+
+    // 위성 데이터 업데이트
+    function updateSatelliteData(period) {
+      alert(`${period} 데이터로 업데이트되었습니다.`);
+    }
+
+    // 위험지역 상세 보기
+    function showRiskDetail(id) {
+      // 해당 급경사지 데이터 찾기
+      const site = realSitesData.find(s => s.id == id);
+      if (site) {
+        // 3D 뷰어 열기
+        open3DViewer(site);
+      } else {
+        alert('지역 정보를 찾을 수 없습니다.');
+      }
+    }
+
+    // ESC 키로 3D 뷰어 닫기
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        close3DViewer();
+      }
+    });
+
+    // 3D 뷰어 뷰 모드 전환
+    document.addEventListener('DOMContentLoaded', function () {
+      const viewModeBtns = document.querySelectorAll('.view-mode-btn');
+      viewModeBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+          viewModeBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    });
+
+    // Three.js 3D 뷰어 변수
+    let scene3D, camera3D, renderer3D, controls3D, pointCloud3D, currentSite3D;
+    let isWireframe = false;
+
+    // 3D 뷰어 초기화 (Three.js)
+    async function init3DViewer() {
+      const THREE = await import('https://unpkg.com/three@0.160.0/build/three.module.js');
+      const { OrbitControls } = await import('https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js');
+
+      const container = document.getElementById('threejs-container');
+
+      // 기존 렌더러 정리
+      if (renderer3D) {
+        container.removeChild(renderer3D.domElement);
+      }
+
+      // 씬 설정
+      scene3D = new THREE.Scene();
+      scene3D.background = new THREE.Color(0x0a0a0a);
+      scene3D.fog = new THREE.Fog(0x0a0a0a, 200, 1000);
+
+      // 카메라 설정
+      camera3D = new THREE.PerspectiveCamera(
+        45,
+        container.clientWidth / container.clientHeight,
+        1,
+        5000
+      );
+      camera3D.position.set(200, 150, 200);
+
+      // 렌더러 설정
+      renderer3D = new THREE.WebGLRenderer({ antialias: true });
+      renderer3D.setPixelRatio(window.devicePixelRatio);
+      renderer3D.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(renderer3D.domElement);
+
+      // 컨트롤 설정
+      controls3D = new OrbitControls(camera3D, renderer3D.domElement);
+      controls3D.minDistance = 50;
+      controls3D.maxDistance = 1000;
+      controls3D.enableDamping = true;
+      controls3D.dampingFactor = 0.05;
+
+      // 급경사지 3D 지형 생성
+      create3DTerrain(THREE);
+
+      // 조명 추가
+      const ambientLight = new THREE.AmbientLight(0x404040, 2);
+      scene3D.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(100, 200, 100);
+      scene3D.add(directionalLight);
+
+      // 애니메이션 루프 시작
+      animate3D();
+    }
+
+    // 급경사지 지형 생성 (LiDAR Point Cloud)
+    function create3DTerrain(THREE) {
+      const width = 200;
+      const depth = 200;
+      const geometry = new THREE.BufferGeometry();
+      const positions = [];
+      const colors = [];
+
+      // 위험도에 따른 색상
+      const colorHigh = new THREE.Color(0xff0000);  // 빨강 (위험)
+      const colorMid = new THREE.Color(0xffaa00);   // 주황 (주의)
+      const colorLow = new THREE.Color(0x00ff00);   // 초록 (안전)
+
+      // 지형 높이 계산 함수 (경사지 시뮬레이션)
+      // 지형 높이 계산 함수 (경사지 시뮬레이션 - 산 모양 개선)
+      function getHeight(x, z) {
+        const slope = currentSite3D ? parseFloat(currentSite3D.slope) || 45 : 45;
+        const height = currentSite3D ? parseFloat(currentSite3D.height) || 50 : 50;
+
+        // 중심에서 거리 계산 (가우시안 분포를 위한 거리)
+        const dist = Math.sqrt(x * x + z * z);
+
+        // 1. 기본 산 모양 (Gaussian Peak)
+        // spread: 산의 너비 (경사도에 따라 조절 가능)
+        const spread = 2000 / (slope * 0.5);
+        const peakHeight = height * 1.5; // 높이 스케일
+
+        const baseShape = peakHeight * Math.exp(-(dist * dist) / spread);
+
+        // 2. 디테일 노이즈 (Perlin-like noise simulation using sin/cos)
+        // 여러 주파수의 노이즈를 합쳐서 불규칙한 지형 생성
+        const noise1 = Math.sin(x * 0.1) * Math.cos(z * 0.1) * 2;
+        const noise2 = Math.sin(x * 0.3 + z * 0.2) * Math.cos(z * 0.3 - x * 0.2) * 1.5;
+        const noise3 = Math.sin(x * 0.8) * 0.5;
+
+        // 3. 바위 질감 (High frequency noise)
+        const rockDetail = (Math.random() - 0.5) * 1.5;
+
+        // 거리가 멀어질수록 노이즈 영향 감소 (산타는 느낌)
+        const noiseFactor = Math.max(0, 1 - dist / (width / 1.2));
+
+        return baseShape + (noise1 + noise2 + noise3 + rockDetail) * noiseFactor;
+      }
+
+      for (let x = 0; x < width; x++) {
+        for (let z = 0; z < depth; z++) {
+          const posX = (x - width / 2) * 2;
+          const posZ = (z - depth / 2) * 2;
+          const posY = getHeight(posX, posZ);
+
+          positions.push(posX, posY, posZ);
+
+          // 높이에 따른 색상 (히트맵)
+          const normalizedHeight = (posY + 30) / 60;
+          const color = new THREE.Color();
+
+          if (normalizedHeight < 0.5) {
+            color.lerpColors(colorLow, colorMid, normalizedHeight * 2);
+          } else {
+            color.lerpColors(colorMid, colorHigh, (normalizedHeight - 0.5) * 2);
+          }
+
+          colors.push(color.r, color.g, color.b);
+        }
+      }
+
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+      // 포인트 클라우드 머티리얼
+      const material = new THREE.PointsMaterial({
+        size: 1.5,
+        vertexColors: true,
+        sizeAttenuation: true
+      });
+
+      pointCloud3D = new THREE.Points(geometry, material);
+      scene3D.add(pointCloud3D);
+    }
+
+    // 3D 애니메이션 루프
+    function animate3D() {
+      if (!renderer3D) return;
+
+      requestAnimationFrame(animate3D);
+      controls3D.update();
+      renderer3D.render(scene3D, camera3D);
+    }
+
+    // 3D 뷰어 제어 함수
+    function zoom3D(factor) {
+      if (camera3D) {
+        const distance = camera3D.position.length();
+        camera3D.position.multiplyScalar(factor);
+      }
+    }
+
+    function reset3DView() {
+      if (camera3D && controls3D) {
+        camera3D.position.set(200, 150, 200);
+        controls3D.reset();
+      }
+    }
+
+    function toggle3DWireframe() {
+      if (pointCloud3D) {
+        isWireframe = !isWireframe;
+        pointCloud3D.material.wireframe = isWireframe;
+      }
+    }
+
+    function snapshot3D() {
+      if (renderer3D) {
+        const dataURL = renderer3D.domElement.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `3d_model_${Date.now()}.png`;
+        link.href = dataURL;
+        link.click();
+      }
+    }
+
+    function change3DViewMode(mode) {
+      console.log('View mode changed to:', mode);
+      // 추가 뷰 모드 구현 가능
+    }
+
+    // 3D 뷰어 열기 (수정)
+    async function open3DViewer(site) {
+      currentSite3D = site;
+      document.getElementById('viewer3D').classList.add('active');
+      document.getElementById('viewer3DInfo').textContent =
+        `${site.name} | LiDAR 스캔: 2024.01.15`;
+
+      // 측정 정보 업데이트
+      const dataPanel = document.getElementById('viewer3DData');
+      dataPanel.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 10px; color: #BC0028;">측정 정보</div>
+                <div class="info-row">
+                    <span class="info-label">경사각</span>
+                    <span class="info-value">${site.slope}°</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">높이</span>
+                    <span class="info-value">${site.height}m</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">길이</span>
+                    <span class="info-value">${site.length}m</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">구조</span>
+                    <span class="info-value">${site.structure}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">위험도</span>
+                    <span class="info-value" style="color: ${site.color};">${site.score}점 (${site.grade}등급)</span>
+                </div>
+            `;
+
+      // Three.js 초기화
+      setTimeout(() => {
+        init3DViewer();
+      }, 100);
+    }
+
+    // 3D 뷰어 닫기 (수정)
+    function close3DViewer() {
+      document.getElementById('viewer3D').classList.remove('active');
+
+      // Three.js 정리
+      if (renderer3D) {
+        const container = document.getElementById('threejs-container');
+        if (container && renderer3D.domElement.parentNode === container) {
+          container.removeChild(renderer3D.domElement);
+        }
+        renderer3D.dispose();
+        renderer3D = null;
+      }
+
+      if (scene3D) {
+        scene3D.clear();
+        scene3D = null;
+      }
+    }
+
+    // 보고서 유형 선택
+    function selectReportType(type) {
+      document.querySelectorAll('.report-type-option').forEach(opt => {
+        opt.classList.remove('selected');
+      });
+      event.target.closest('.report-type-option').classList.add('selected');
+    }
+
+    // 보고서 생성
+    function generateReport() {
+      const selected = document.querySelector('.report-type-option.selected');
+      if (!selected) {
+        alert('보고서 유형을 선택해주세요.');
+        return;
+      }
+
+      document.getElementById('loadingOverlay').classList.add('active');
+      document.querySelector('.loading-text').textContent = '보고서를 생성하는 중입니다...';
+
+      setTimeout(() => {
+        document.getElementById('loadingOverlay').classList.remove('active');
+        document.querySelector('.loading-text').textContent = '시스템을 로드하는 중입니다...';
+        alert('보고서가 생성되었습니다!\n다운로드 페이지로 이동합니다.');
+      }, 2000);
+    }
+  </script>
+</body>
+
+</html>

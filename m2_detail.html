@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>위성 분석 상세 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+
+            .grid-2 { @apply grid gap-6 lg:grid-cols-2; }
+            .grid-2 > .card { @apply mb-0; }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #2563EB;
+            text-decoration: none;
+        }
+
+        .heatmap-container {
+            height: 350px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .heatmap-overlay {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+        }
+
+        .displacement-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .displacement-label {
+            font-size: 0.9rem;
+            color: #64748B;
+        }
+
+        /* 상세 테이블: 스크롤 + 헤더 고정 */
+        .detail-table-wrap {
+            max-height: 420px;
+            overflow: auto;
+        }
+
+        .detail-table-wrap thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_logo.png" alt="Orbital" class="h-8 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="m2_satellite.html" class="nav-item active">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="m2_scenario.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2 id="page-title">위성 분석 상세</h2>
+                    <p>SAR 위성 데이터 기반 개소별 변위 분석</p>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Chart Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line text-slate-400"></i> 시계열 변위 추이</h3>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm" data-range="all">전체</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-range="6m">최근 6개월</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-range="3m">최근 3개월</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-range="1m">최근 1개월</button>
+                        <button id="btnDownloadSeries" class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> 다운로드</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="displacementChart" style="width: 100%; height: 350px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Table Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-table text-slate-400"></i> 상세 분석 데이터 (<span id="detailSiteLabel">-</span>)</h3>
+                    <button id="btnDownloadTable" class="btn btn-secondary btn-sm"><i class="fas fa-file-excel"></i> Excel 다운로드</button>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="detail-table-wrap">
+                        <table>
+                            <thead id="detailTableHead"></thead>
+                            <tbody id="detailTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Threshold / Rules Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-sliders text-slate-400"></i> 임계치 · 규칙 · 라벨 기준</h3>
+                </div>
+                <div class="card-body">
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <section class="rounded-none bg-slate-50 ring-1 ring-slate-200 p-5">
+                            <h4 class="text-sm font-semibold text-slate-900">규칙(Threshold)</h4>
+                            <p class="mt-1 text-xs text-slate-600">
+                                아래 규칙은 CSV의 <span class="font-semibold">R1~R3/ACCEL</span>, <span class="font-semibold">C1~C3/CREEP</span>, <span class="font-semibold">IF</span>
+                                컬럼에 반영되는 판정 로직입니다.
+                            </p>
+
+                            <div class="mt-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="badge badge-info">RULE</span>
+                                    <span class="text-sm font-semibold text-slate-900">ACCEL (가속 징후)</span>
+                                </div>
+                                <ul class="mt-2 space-y-1 text-sm text-slate-800">
+                                    <li><span class="font-semibold">R1</span> = <code>ratio4 ≥ R1_RATIO4_THR</code></li>
+                                    <li><span class="font-semibold">R2</span> = <code>|s_last4| ≥ R2_ABS_S_LAST4_THR</code></li>
+                                    <li><span class="font-semibold">R3</span> = <code>|net8| ≥ R3_ABS_NET8_THR</code></li>
+                                    <li class="text-slate-700"><span class="font-semibold">ACCEL</span> = <code>R1 ∧ R2 ∧ R3</code></li>
+                                </ul>
+                                <p class="mt-2 text-xs text-slate-600">운영 임계치(권장): ACCEL 관련 임계값은 상위 95 분위수(<span class="font-semibold">p95</span>) 기반.</p>
+                            </div>
+
+                            <div class="mt-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="badge badge-info">RULE</span>
+                                    <span class="text-sm font-semibold text-slate-900">CREEP (지속 변형)</span>
+                                </div>
+                                <ul class="mt-2 space-y-1 text-sm text-slate-800">
+                                    <li><span class="font-semibold">C1</span> = <code>|s_last4| ≥ R4_ABS_S_LAST4_THR</code></li>
+                                    <li><span class="font-semibold">C2</span> = <code>|net8| ≥ R4_ABS_NET8_THR</code></li>
+                                    <li><span class="font-semibold">C3</span> = <code>s_last4</code>와 <code>net8</code>가 동일 방향(부호 동일)</li>
+                                    <li class="text-slate-700"><span class="font-semibold">CREEP</span> = <code>C1 ∧ C2 ∧ C3</code></li>
+                                </ul>
+                                <p class="mt-2 text-xs text-slate-600">운영 임계치(권장): CREEP 관련 임계값은 상위 90 분위수(<span class="font-semibold">p90</span>) 기반.</p>
+                            </div>
+
+                            <div class="mt-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="badge badge-info">MODEL</span>
+                                    <span class="text-sm font-semibold text-slate-900">IF (Isolation Forest)</span>
+                                </div>
+                                <ul class="mt-2 space-y-1 text-sm text-slate-800">
+                                    <li><span class="font-semibold">IF</span> 임계치 = <code>if_score ≤ -0.574036</code> (하위 7 분위수, <span class="font-semibold">p7</span>)</li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <section class="rounded-none bg-white ring-1 ring-slate-200 p-5">
+                            <h4 class="text-sm font-semibold text-slate-900">지표 해석 · 라벨 정의</h4>
+
+                            <div class="mt-3">
+                                <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">지표(Features)</p>
+                                <ul class="mt-2 space-y-1 text-sm text-slate-800">
+                                    <li><code>cum_mm</code>: 해당 날짜의 누적 변위(mm) — 얼마나 움직였나(<span class="font-semibold">총량</span>)</li>
+                                    <li><code>s_prev4</code>, <code>s_last4</code> (mm/yr): 최근 8개 관측을 4+4로 분할한 구간별 속도(이전/최근)</li>
+                                    <li><code>ratio4</code> = <code>|s_last4| / |s_prev4|</code> — <span class="font-semibold">가속 지표</span>(추세 변화/가속 가능성)</li>
+                                    <li><code>net8</code> = <code>cum(t) - cum(t-7)</code> — 최근 8개 관측 동안의 실제 누적 변화량</li>
+                                </ul>
+                            </div>
+
+                            <div class="mt-5">
+                                <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">라벨(Label)</p>
+                                <ul class="mt-2 space-y-1 text-sm text-slate-800">
+                                    <li><span class="font-semibold">RED</span> = <code>ACCEL ∧ IF</code></li>
+                                    <li><span class="font-semibold">WATCH_A</span> = <code>ACCEL ∧ ¬IF</code> (CREEP 여부 무관)</li>
+                                    <li><span class="font-semibold">WATCH_B</span> = <code>CREEP ∧ ¬ACCEL</code> (IF 여부 무관)</li>
+                                    <li><span class="font-semibold">WATCH_C</span> = <code>¬ACCEL ∧ ¬CREEP ∧ IF</code></li>
+                                    <li><span class="font-semibold">NONE</span> = 그 외</li>
+                                </ul>
+                                <p class="mt-2 text-xs text-slate-600">
+                                    라벨 우선순위: <span class="font-semibold">RED &gt; WATCH_A &gt; WATCH_B &gt; WATCH_C &gt; NONE</span>
+                                </p>
+                            </div>
+
+                            <div class="mt-5 rounded-none bg-slate-50 ring-1 ring-slate-200 p-4">
+                                <p class="text-xs font-semibold tracking-wider text-slate-500 uppercase">임계값 설계 원칙(요약)</p>
+                                <ul class="mt-2 space-y-1 text-sm text-slate-800">
+                                    <li><span class="font-semibold">운영 가능한 알림량(FP 통제)</span>과 <span class="font-semibold">이벤트 전 선행 탐지(lead time)</span>의 균형을 목표</li>
+                                    <li>정답 라벨이 부족해 Xinmo 주변 <span class="font-semibold">Negative 샘플</span>로 정상 분포를 근사 → 분위수 기반 자동 튜닝</li>
+                                    <li><span class="font-semibold">FP_ANY_NONNONE</span>: 정상 구간에서 <code>RED/WATCH_*</code> 중 <span class="font-semibold">하나라도</span> 뜨는 전체 비율(= 운영자가 확인해야 하는 전체 알림 부담)</li>
+                                    <li><span class="font-semibold">WATCH_A(ACCEL)</span>: p95(보수적·신뢰도 우선) — Xinmo 기준 <span class="font-semibold">12일</span> 리드타임, FP_RED <span class="font-semibold">1.6%</span>, FP_ANY_NONNONE <span class="font-semibold">4.5%</span></li>
+                                    <li><span class="font-semibold">WATCH_B(CREEP)</span>: p90(조기 탐지) — Xinmo 기준 <span class="font-semibold">24일</span> 리드타임, FP_WATCH_B <span class="font-semibold">0.24%</span>, FP_ANY_NONNONE <span class="font-semibold">5.4%</span></li>
+                                </ul>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        (function () {
+            const DETAIL_SITE_META = {
+                a1: { name: '정선읍 A구간' },
+                a2: { name: '신동읍 B구간' },
+                a3: { name: '화암면 C구간' },
+            };
+
+            // 데이터 소스: xinmo CSV (프로젝트 폴더에 위치)
+            // 필요 시 여기 파일명만 바꾸면 됩니다.
+            const DATA_CSV = 'xinmo_3x3_table(수정).csv';
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const siteId = urlParams.get('site') || 'a1';
+            const siteName = (DETAIL_SITE_META[siteId] && DETAIL_SITE_META[siteId].name) || urlParams.get('name') || `지점 ${siteId}`;
+
+            const pageTitleEl = document.getElementById('page-title');
+            const detailSiteLabelEl = document.getElementById('detailSiteLabel');
+            const tableHeadEl = document.getElementById('detailTableHead');
+            const tableBodyEl = document.getElementById('detailTableBody');
+            const downloadSeriesBtn = document.getElementById('btnDownloadSeries');
+            const downloadTableBtn = document.getElementById('btnDownloadTable');
+            const rangeBtns = Array.from(document.querySelectorAll('[data-range]'));
+
+            if (pageTitleEl) pageTitleEl.textContent = `${siteName} 위성 변위 분석`;
+            if (detailSiteLabelEl) detailSiteLabelEl.textContent = siteName;
+
+            function toNumber(v) {
+                const n = Number.parseFloat(String(v ?? '').trim());
+                return Number.isFinite(n) ? n : null;
+            }
+
+            function parseIsoDate(dateStr) {
+                const s = String(dateStr ?? '').trim();
+                if (!s) return null;
+                const d = new Date(`${s}T00:00:00`);
+                return Number.isNaN(d.getTime()) ? null : d;
+            }
+
+            function parseCsvLine(line) {
+                const out = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                        continue;
+                    }
+                    if (ch === ',' && !inQuotes) {
+                        out.push(cur);
+                        cur = '';
+                        continue;
+                    }
+                    cur += ch;
+                }
+                out.push(cur);
+                return out;
+            }
+
+            function parseCsv(text) {
+                const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                const lines = normalized.split('\n').filter((l) => l.trim() !== '');
+                if (!lines.length) return { headers: [], rows: [] };
+                const headers = parseCsvLine(lines[0]).map((h) => h.trim());
+                const rows = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCsvLine(lines[i]);
+                    const obj = {};
+                    for (let j = 0; j < headers.length; j++) {
+                        obj[headers[j]] = (cols[j] ?? '').trim();
+                    }
+                    rows.push(obj);
+                }
+                return { headers, rows };
+            }
+
+            function isMeaningfulCellValue(v) {
+                const s = String(v ?? '').trim();
+                if (!s) return false;
+                const low = s.toLowerCase();
+                if (low === 'na' || low === 'n/a' || low === 'nan') return false;
+                return true;
+            }
+
+            // 상세(분석) 컬럼들이 비어있는 초반 구간은 표에서 제외
+            // - date/cum_mm 외 컬럼 중 하나라도 "의미 있는 값"이 처음 등장하는 시점부터 표시
+            function sliceRowsFromFirstDetailData(headers, rows) {
+                if (!rows || !rows.length) return [];
+                const cols = (headers && headers.length) ? headers : Object.keys(rows[0] || {});
+                const excluded = new Set(['date', 'cum_mm']);
+                const otherCols = cols.filter((h) => {
+                    const key = String(h ?? '').trim().toLowerCase();
+                    return key && !excluded.has(key);
+                });
+                if (!otherCols.length) return rows;
+
+                for (let i = 0; i < rows.length; i++) {
+                    const r = rows[i] || {};
+                    let hasAny = false;
+                    for (const c of otherCols) {
+                        if (isMeaningfulCellValue(r[c])) {
+                            hasAny = true;
+                            break;
+                        }
+                    }
+                    if (hasAny) return rows.slice(i);
+                }
+                return rows;
+            }
+
+            // fallback 샘플(이미지 형태를 맞추기 위한 더미)
+            function fallbackRowsForSite() {
+                return [
+                    { date: '2025-11-17', cum_mm: '67.536466', s_prev4: '183.016004', s_last4: '148.074512', ratio4: '0.809080', net8: '67.536466', R1: 'False', R2: 'False', R3: 'True', ACCEL: 'False', C1: 'False', C2: 'True', C3: 'True', CREEP: 'False', if_score: '-0.571633', if_pctl: '7.250', IF: 'False', label: 'NONE' },
+                    { date: '2025-11-23', cum_mm: '65.983053', s_prev4: '125.336905', s_last4: '-25.780498', ratio4: '0.205690', net8: '57.515669', R1: 'False', R2: 'False', R3: 'True', ACCEL: 'False', C1: 'False', C2: 'True', C3: 'False', CREEP: 'False', if_score: '-0.496949', if_pctl: '18.875', IF: 'False', label: 'NONE' },
+                    { date: '2025-11-29', cum_mm: '74.192814', s_prev4: '236.087547', s_last4: '65.897916', ratio4: '0.279125', net8: '53.789366', R1: 'False', R2: 'False', R3: 'True', ACCEL: 'False', C1: 'False', C2: 'True', C3: 'True', CREEP: 'False', if_score: '-0.490438', if_pctl: '20.125', IF: 'False', label: 'NONE' },
+                    { date: '2025-12-05', cum_mm: '64.514348', s_prev4: '177.917348', s_last4: '0.319709', ratio4: '0.001797', net8: '28.407395', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'True', CREEP: 'False', if_score: '-0.482275', if_pctl: '22.875', IF: 'False', label: 'NONE' },
+                    { date: '2025-12-11', cum_mm: '63.182240', s_prev4: '148.074512', s_last4: '-55.033752', ratio4: '0.371663', net8: '32.497058', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '-0.437513', if_pctl: '42.875', IF: 'False', label: 'NONE' },
+                    { date: '2025-12-17', cum_mm: '63.801160', s_prev4: '-25.780498', s_last4: '-98.943399', ratio4: '1.764947', net8: '-10.119343', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'True', CREEP: 'False', if_score: '-0.421314', if_pctl: '60.250', IF: 'False', label: 'NONE' },
+                    { date: '2025-12-23', cum_mm: '51.200000', s_prev4: '0', s_last4: '0', ratio4: '0', net8: '0', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '-0.380000', if_pctl: '65.000', IF: 'False', label: 'NONE' },
+                    { date: '2025-12-29', cum_mm: '77.800000', s_prev4: '0', s_last4: '0', ratio4: '0', net8: '0', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '-0.250000', if_pctl: '80.000', IF: 'False', label: 'NONE' },
+                    { date: '2026-01-04', cum_mm: '62.000000', s_prev4: '0', s_last4: '0', ratio4: '0', net8: '0', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '-0.200000', if_pctl: '82.000', IF: 'False', label: 'NONE' },
+                    { date: '2026-01-10', cum_mm: '46.500000', s_prev4: '0', s_last4: '0', ratio4: '0', net8: '0', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '-0.150000', if_pctl: '85.000', IF: 'False', label: 'NONE' },
+                    { date: '2026-01-16', cum_mm: '30.200000', s_prev4: '0', s_last4: '0', ratio4: '0', net8: '0', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '-0.050000', if_pctl: '92.000', IF: 'False', label: 'WARN' },
+                    { date: '2026-01-22', cum_mm: '10.100000', s_prev4: '0', s_last4: '0', ratio4: '0', net8: '0', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '0.120000', if_pctl: '98.000', IF: 'True', label: 'ALERT' },
+                    { date: '2026-01-28', cum_mm: '20.000000', s_prev4: '0', s_last4: '0', ratio4: '0', net8: '0', R1: 'False', R2: 'False', R3: 'False', ACCEL: 'False', C1: 'False', C2: 'False', C3: 'False', CREEP: 'False', if_score: '0.050000', if_pctl: '95.000', IF: 'True', label: 'ALERT' },
+                ];
+            }
+
+            async function tryFetchCsv(path) {
+                const res = await fetch(encodeURI(path), { cache: 'no-store' });
+                if (!res.ok) throw new Error(`CSV 로딩 실패 (HTTP ${res.status})`);
+                const text = await res.text();
+                return parseCsv(text);
+            }
+
+            async function loadRows() {
+                try {
+                    const parsed = await tryFetchCsv(DATA_CSV);
+                    if (!parsed.rows || !parsed.rows.length) throw new Error('empty');
+                    return parsed;
+                } catch {
+                    return { headers: [], rows: fallbackRowsForSite() };
+                }
+            }
+
+            function escapeHtml(str) {
+                return String(str ?? '').replace(/[&<>"']/g, (m) => {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    if (m === '"') return '&quot;';
+                    return '&#039;';
+                });
+            }
+
+            function toCsvValue(v) {
+                const s = String(v ?? '');
+                if (/[,"\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+                return s;
+            }
+
+            function downloadCsv(filename, headers, rows) {
+                const head = (headers && headers.length) ? headers : (rows && rows.length ? Object.keys(rows[0]) : []);
+                const lines = [];
+                lines.push(head.map(toCsvValue).join(','));
+                (rows || []).forEach((r) => {
+                    lines.push(head.map((h) => toCsvValue(r[h])).join(','));
+                });
+                const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(a.href);
+            }
+
+            function pickSeverity(row) {
+                const label = String(row.label ?? '').trim().toUpperCase();
+                const ifFlag = String(row.IF ?? '').trim().toLowerCase();
+                const pctl = toNumber(row.if_pctl);
+
+                if (label && label !== 'NONE') {
+                    if (/ALERT|RED|DANGER/.test(label)) return 'danger';
+                    if (/WARN|ORANGE|WARNING/.test(label)) return 'warn';
+                    if (/YELLOW|CAUTION/.test(label)) return 'caution';
+                }
+                if (ifFlag === 'true') return 'danger';
+                if (pctl != null && pctl >= 95) return 'danger';
+                if (pctl != null && pctl >= 85) return 'warn';
+                if (pctl != null && pctl >= 70) return 'caution';
+                return 'normal';
+            }
+
+            function severityColor(sev) {
+                if (sev === 'danger') return '#EF4444';
+                if (sev === 'warn') return '#F59E0B';
+                if (sev === 'caution') return '#F97316';
+                return '#2563EB';
+            }
+
+            function severityRadius(sev) {
+                if (sev === 'danger') return 5;
+                if (sev === 'warn') return 5;
+                if (sev === 'caution') return 4.5;
+                return 4.5;
+            }
+
+            function filterByRange(rows, range) {
+                if (!rows || !rows.length) return [];
+                if (range === 'all') return rows;
+
+                const dates = rows.map((r) => parseIsoDate(r.date)).filter(Boolean).sort((a, b) => a - b);
+                const latest = dates.length ? dates[dates.length - 1] : null;
+                if (!latest) return rows;
+
+                const cutoff = new Date(latest.getTime());
+                if (range === '6m') cutoff.setMonth(cutoff.getMonth() - 6);
+                if (range === '3m') cutoff.setMonth(cutoff.getMonth() - 3);
+                if (range === '1m') cutoff.setMonth(cutoff.getMonth() - 1);
+
+                return rows.filter((r) => {
+                    const d = parseIsoDate(r.date);
+                    return d ? d >= cutoff : true;
+                });
+            }
+
+            function renderTable(headers, rows) {
+                if (!tableHeadEl || !tableBodyEl) return;
+
+                const cols = (headers && headers.length) ? headers : (rows && rows.length ? Object.keys(rows[0]) : []);
+                tableHeadEl.innerHTML = `<tr>${cols.map((c) => `<th>${escapeHtml(c)}</th>`).join('')}</tr>`;
+                tableBodyEl.innerHTML = '';
+
+                rows.forEach((r) => {
+                    const tr = document.createElement('tr');
+                    cols.forEach((c) => {
+                        const td = document.createElement('td');
+                        const v = r[c];
+
+                        // date는 강조
+                        if (c === 'date') {
+                            td.style.fontWeight = '600';
+                            td.textContent = v ?? '';
+                            tr.appendChild(td);
+                            return;
+                        }
+
+                        // boolean 스타일
+                        if (String(v).toLowerCase() === 'true' || String(v).toLowerCase() === 'false') {
+                            const isTrue = String(v).toLowerCase() === 'true';
+                            td.textContent = isTrue ? 'True' : 'False';
+                            td.style.fontWeight = '600';
+                            if (!isTrue) {
+                                td.style.color = '#94A3B8';
+                            } else if (c.startsWith('R')) {
+                                td.style.color = '#EF4444';
+                            } else if (c.startsWith('C')) {
+                                td.style.color = '#2563EB';
+                            } else {
+                                td.style.color = '#0EA5E9';
+                            }
+                            tr.appendChild(td);
+                            return;
+                        }
+
+                        // label 배지
+                        if (c === 'label') {
+                            const span = document.createElement('span');
+                            span.className = 'badge badge-info';
+                            span.textContent = String(v ?? '').trim() || 'NONE';
+                            td.appendChild(span);
+                            tr.appendChild(td);
+                            return;
+                        }
+
+                        td.textContent = v ?? '';
+                        tr.appendChild(td);
+                    });
+                    tableBodyEl.appendChild(tr);
+                });
+            }
+
+            let activeRange = 'all';
+            let allHeaders = [];
+            let allRows = [];
+            let detailRows = [];
+            let chart = null;
+            let chartRows = [];
+
+            function setActiveRange(next) {
+                activeRange = next;
+                rangeBtns.forEach((b) => {
+                    const isActive = b.getAttribute('data-range') === activeRange;
+                    b.className = isActive ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm';
+                });
+
+                const seriesFiltered = filterByRange(allRows, activeRange);
+                const detailFiltered = filterByRange(detailRows, activeRange);
+                updateChart(seriesFiltered);
+                renderTable(allHeaders, detailFiltered);
+            }
+
+            function updateChart(rows) {
+                chartRows = rows || [];
+                const labels = chartRows.map((r) => String(r.date ?? ''));
+                const values = chartRows.map((r) => {
+                    const n = toNumber(r.cum_mm);
+                    return n == null ? null : n;
+                });
+
+                if (!chart) return;
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = values;
+                chart.update();
+            }
+
+            function initChart() {
+                const ctx = document.getElementById('displacementChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: '누적 변위량 (mm)',
+                            data: [],
+                            borderColor: '#2563EB',
+                            backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: (context) => {
+                                const row = chartRows[context.dataIndex];
+                                return row ? severityRadius(pickSeverity(row)) : 4.5;
+                            },
+                            pointBackgroundColor: (context) => {
+                                const row = chartRows[context.dataIndex];
+                                return row ? severityColor(pickSeverity(row)) : '#2563EB';
+                            },
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: { display: true, text: '변위량 (mm)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 이벤트
+            rangeBtns.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const r = btn.getAttribute('data-range') || 'all';
+                    setActiveRange(r);
+                });
+            });
+
+            if (downloadSeriesBtn) {
+                downloadSeriesBtn.addEventListener('click', () => {
+                    const filtered = filterByRange(allRows, activeRange);
+                    downloadCsv(`m2_timeseries_${siteId}_${activeRange}.csv`, ['date', 'cum_mm'], filtered);
+                });
+            }
+
+            if (downloadTableBtn) {
+                downloadTableBtn.addEventListener('click', () => {
+                    const filtered = filterByRange(detailRows, activeRange);
+                    downloadCsv(`m2_detail_${siteId}_${activeRange}.csv`, allHeaders, filtered);
+                });
+            }
+
+            // 초기 로딩
+            initChart();
+            loadRows().then(({ headers, rows }) => {
+                allHeaders = (headers && headers.length) ? headers : (rows && rows.length ? Object.keys(rows[0]) : []);
+                allRows = rows || [];
+                detailRows = sliceRowsFromFirstDetailData(allHeaders, allRows);
+                setActiveRange('all');
+            });
+        })();
+    </script>
+</body>
+
+</html>

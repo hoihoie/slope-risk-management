@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>보고서 생성 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+
+            .grid-2 { @apply grid gap-6 lg:grid-cols-2; }
+            .grid-2 > .card { @apply mb-0; }
+
+            .quick-links { @apply grid gap-4 sm:grid-cols-2; }
+            .quick-link { @apply flex items-center gap-4 rounded-none bg-white p-5 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-lg; }
+            .quick-link i { @apply text-lg text-slate-500; }
+
+            .report-type-option { @apply quick-link cursor-pointer select-none; }
+            .report-type-option .option-title { @apply block text-base font-semibold text-slate-900 transition-colors; }
+            .report-type-option .option-icon { @apply text-lg text-slate-400 transition-colors; }
+            .report-type-option.is-selected { @apply bg-sky-50 ring-2 ring-sky-500/40; }
+            .report-type-option.is-selected .option-title { @apply text-sky-800; }
+            .report-type-option.is-selected .option-icon { @apply text-sky-700; }
+            .report-type-option:focus-within { @apply ring-2 ring-sky-500/30; }
+
+            .modal-backdrop { @apply fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-4 opacity-0 pointer-events-none transition-opacity duration-200 ease-out sm:items-center; }
+            .modal-backdrop.is-open { @apply opacity-100 pointer-events-auto; }
+            .modal-panel { @apply w-full max-w-2xl rounded-xl bg-white shadow-soft ring-1 ring-slate-200/70 opacity-0 translate-y-2 scale-95 transition duration-200 ease-out sm:translate-y-0; }
+            .modal-backdrop.is-open .modal-panel { @apply opacity-100 translate-y-0 scale-100; }
+
+            .toast { @apply flex items-start gap-3 rounded-xl bg-white px-4 py-3 shadow-soft ring-1 ring-slate-200/70 opacity-0 translate-y-2 transition duration-200 ease-out; }
+            .toast.is-visible { @apply opacity-100 translate-y-0; }
+            .toast-info i { @apply text-sky-600; }
+            .toast-success i { @apply text-emerald-600; }
+            .toast-danger i { @apply text-rose-600; }
+            .toast-icon { @apply mt-0.5; }
+            .toast-content { @apply min-w-0 flex-1; }
+            .toast-title { @apply text-sm font-semibold text-slate-900; }
+            .toast-message { @apply mt-0.5 text-sm text-slate-600 break-words; }
+
+            .preview-include-item { @apply flex items-start gap-2; }
+            .preview-include-icon { @apply mt-0.5 text-emerald-600; }
+
+            .spinner {
+                width: 1rem;
+                height: 1rem;
+                border: 2px solid rgba(148, 163, 184, 0.6);
+                border-top-color: #0284c7;
+                border-radius: 9999px;
+                animation: spinner-spin 0.8s linear infinite;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .nav-item, .quick-link, .btn, .modal-backdrop, .modal-panel, .toast { transition: none !important; }
+            .quick-link, .modal-panel, .toast { transform: none !important; }
+            .spinner { animation: none !important; }
+        }
+
+        @keyframes spinner-spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_logo.png" alt="Orbital" class="h-8 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+            <div class="sidebar-nav">
+                <!-- Navigation items -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="m2_satellite.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="m2_scenario.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="r1_report.html" class="nav-item active">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-200">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2>보고서 생성</h2>
+                    <p>안전 관리 분석 결과 보고서 자동 생성 및 이력 관리</p>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid-2 mb-6">
+                <!-- Report Type Selection -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-file-lines text-slate-400"></i> 보고서 종류 선택</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="flex flex-col gap-4">
+                            <label class="report-type-option is-selected" data-report-type="monthly">
+                                <input type="radio" name="reportType" value="monthly" checked class="h-5 w-5 text-sky-600">
+                                <div class="flex-1">
+                                    <span class="option-title">월간 종합 보고서</span>
+                                    <small class="text-slate-500">전체 현황 및 통계 요약 (결재용)</small>
+                                </div>
+                                <i class="option-icon fas fa-calendar-days"></i>
+                            </label>
+
+                            <label class="report-type-option" data-report-type="satellite">
+                                <input type="radio" name="reportType" value="satellite" class="h-5 w-5 text-sky-600">
+                                <div class="flex-1">
+                                    <span class="option-title">위성 데이터 분석 보고서</span>
+                                    <small class="text-slate-500">변위 데이터 중심 기술 검토서</small>
+                                </div>
+                                <i class="option-icon fas fa-satellite"></i>
+                            </label>
+
+                            <label class="report-type-option" data-report-type="inspection">
+                                <input type="radio" name="reportType" value="inspection" class="h-5 w-5 text-sky-600">
+                                <div class="flex-1">
+                                    <span class="option-title">정기 안전점검 결과 보고서</span>
+                                    <small class="text-slate-500">연 2회 정기 점검용 (현장 사진 포함)</small>
+                                </div>
+                                <i class="option-icon fas fa-clipboard-check"></i>
+                            </label>
+
+                            <label class="report-type-option" data-report-type="emergency">
+                                <input type="radio" name="reportType" value="emergency" class="h-5 w-5 text-sky-600">
+                                <div class="flex-1">
+                                    <span class="option-title">긴급 상황 보고서</span>
+                                    <small class="text-slate-500">이상 징후 발생 시 즉시 생성</small>
+                                </div>
+                                <i class="option-icon fas fa-triangle-exclamation"></i>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Options -->
+                <div class="card flex flex-col">
+                    <div class="card-header">
+                        <h3><i class="fas fa-sliders text-slate-400"></i> 생성 옵션</h3>
+                    </div>
+                    <div class="card-body flex flex-1 flex-col">
+                        <div class="mb-6">
+                            <label class="mb-2 block text-sm font-semibold text-slate-700">대상 기간</label>
+                            <div class="flex items-center gap-3">
+                                <input id="reportStartDate" name="reportStartDate" type="date" value="2026-01-01"
+                                    class="flex-1 rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                <span class="text-slate-400">~</span>
+                                <input id="reportEndDate" name="reportEndDate" type="date" value="2026-01-31"
+                                    class="flex-1 rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="mb-2 block text-sm font-semibold text-slate-700">대상 지역</label>
+                            <select id="reportRegion" name="reportRegion" class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                <option>정선군 전체</option>
+                                <option>정선읍</option>
+                                <option>고한읍</option>
+                                <option>사북읍</option>
+                                <option>신동읍</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="mb-2 block text-sm font-semibold text-slate-700">포함 데이터</label>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <label class="flex items-center gap-2 text-sm text-slate-700">
+                                    <input id="includeSatellite" name="includeSatellite" type="checkbox" checked data-include="satellite" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500/20"> 위성 변위 분석값
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700">
+                                    <input id="includeIot" name="includeIot" type="checkbox" checked data-include="iot" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500/20"> IoT 센서 측정값
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700">
+                                    <input id="includeHeatmap" name="includeHeatmap" type="checkbox" checked data-include="heatmap" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500/20"> 위험도 히트맵
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-slate-700">
+                                    <input id="includePhotos" name="includePhotos" type="checkbox" checked data-include="photos" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500/20"> 현장 점검 사진
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="reportSummary" class="mb-6 rounded-lg bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <div class="font-semibold text-slate-900">현재 설정 요약</div>
+                                    <p id="reportSummaryText" class="mt-1 text-slate-600">-</p>
+                                </div>
+                                <span id="reportSummaryBadge" class="badge badge-info">월간</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto flex gap-3">
+                            <button id="previewBtn" type="button" class="btn btn-secondary flex-1">미리보기</button>
+                            <button id="generateBtn" type="button" class="btn btn-primary flex-[2]"><i class="fas fa-file-pdf"></i> 보고서 생성 및
+                                다운로드</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download History -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock-rotate-left text-slate-400"></i> 최근 생성 이력</h3>
+                    <div class="flex gap-2">
+                        <input id="historySearch" type="text" placeholder="검색..." aria-label="보고서 생성 이력 검색" class="h-9 w-56 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">No</th>
+                                    <th>보고서명</th>
+                                    <th>유형</th>
+                                    <th>생성자</th>
+                                    <th>생성일시</th>
+                                    <th>상태</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr data-report-type="monthly" data-report-start="2026-01-01" data-report-end="2026-01-31" data-report-region="정선군 전체" data-report-includes="satellite,iot,heatmap,photos">
+                                    <td>1</td>
+                                    <td style="font-weight: 600;">2026년 1월 월간 안전 종합보고서</td>
+                                    <td><span class="badge badge-info">월간</span></td>
+                                    <td>김담당</td>
+                                    <td>2026-01-20 14:30</td>
+                                    <td class="font-medium text-emerald-600">생성 완료</td>
+                                    <td><button type="button" class="btn btn-secondary btn-sm" data-download aria-label="보고서 다운로드"><i class="fas fa-download"></i></button></td>
+                                </tr>
+                                <tr data-report-type="emergency" data-report-start="2026-01-20" data-report-end="2026-01-20" data-report-region="정선읍" data-report-includes="satellite,iot,heatmap,photos">
+                                    <td>2</td>
+                                    <td style="font-weight: 600;">정선읍 A구간 긴급 변위 분석</td>
+                                    <td><span class="badge badge-danger">긴급</span></td>
+                                    <td>시스템(자동)</td>
+                                    <td>2026-01-20 09:16</td>
+                                    <td class="font-medium text-emerald-600">생성 완료</td>
+                                    <td><button type="button" class="btn btn-secondary btn-sm" data-download aria-label="보고서 다운로드"><i class="fas fa-download"></i></button></td>
+                                </tr>
+                                <tr data-report-type="inspection" data-report-start="2025-07-01" data-report-end="2025-12-31" data-report-region="정선군 전체" data-report-includes="iot,photos">
+                                    <td>3</td>
+                                    <td style="font-weight: 600;">2025년 하반기 정기점검 결과</td>
+                                    <td><span class="badge badge-success">정기</span></td>
+                                    <td>박안전</td>
+                                    <td>2025-12-30 11:20</td>
+                                    <td class="font-medium text-emerald-600">생성 완료</td>
+                                    <td><button type="button" class="btn btn-secondary btn-sm" data-download aria-label="보고서 다운로드"><i class="fas fa-download"></i></button></td>
+                                </tr>
+                                <tr id="historyEmptyRow" class="hidden">
+                                    <td colspan="7" class="py-10 text-center text-sm text-slate-500">검색 결과가 없습니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal-backdrop" hidden aria-hidden="true">
+        <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+            <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-4">
+                <div>
+                    <h3 id="previewTitle" class="text-base font-semibold tracking-tight text-slate-900">보고서 미리보기</h3>
+                    <p class="mt-1 text-sm text-slate-600">선택한 설정을 기반으로 생성될 내용을 요약합니다.</p>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" data-modal-close aria-label="미리보기 닫기">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200">
+                        <div class="text-xs font-semibold tracking-wider text-slate-500 uppercase">보고서 정보</div>
+                        <dl class="mt-3 space-y-2 text-sm">
+                            <div class="flex justify-between gap-3">
+                                <dt class="text-slate-600">유형</dt>
+                                <dd id="previewType" class="font-semibold text-slate-900">-</dd>
+                            </div>
+                            <div class="flex justify-between gap-3">
+                                <dt class="text-slate-600">대상 기간</dt>
+                                <dd id="previewPeriod" class="font-medium text-slate-900">-</dd>
+                            </div>
+                            <div class="flex justify-between gap-3">
+                                <dt class="text-slate-600">대상 지역</dt>
+                                <dd id="previewRegion" class="font-medium text-slate-900">-</dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200">
+                        <div class="text-xs font-semibold tracking-wider text-slate-500 uppercase">포함 데이터</div>
+                        <ul id="previewIncludes" class="mt-3 space-y-2 text-sm text-slate-700">
+                            <li class="text-slate-500">-</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4 rounded-lg border border-dashed border-slate-200 bg-white p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                            <i class="fas fa-file-pdf text-slate-400"></i>
+                            생성될 문서 미리보기(샘플)
+                        </div>
+                        <span class="badge badge-info">Prototype</span>
+                    </div>
+                    <p class="mt-2 text-sm text-slate-600">
+                        실제 MDMS/결재용 출력과 동일한 내용 구성을 목표로 한 <span class="font-medium text-slate-900">A4 인쇄용(프로토타입) 문서</span>로 다운로드됩니다.
+                    </p>
+                </div>
+            </div>
+            <div class="flex flex-col-reverse gap-3 border-t border-slate-100 px-6 py-4 sm:flex-row sm:justify-end">
+                <button type="button" class="btn btn-secondary" data-modal-close>닫기</button>
+                <button type="button" class="btn btn-primary" id="modalGenerateBtn"><i class="fas fa-file-pdf"></i> 이 설정으로 생성</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Region -->
+    <div id="toastRegion" class="fixed bottom-6 right-6 z-[60] flex max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="true"></div>
+
+    <script>
+        (() => {
+            const $ = (selector, root = document) => root.querySelector(selector);
+            const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+            const elements = {
+                reportTypeOptions: $$('.report-type-option'),
+                reportTypeRadios: $$('input[name="reportType"]'),
+                startDate: $('#reportStartDate'),
+                endDate: $('#reportEndDate'),
+                region: $('#reportRegion'),
+                includeChecks: $$('input[data-include]'),
+                summaryText: $('#reportSummaryText'),
+                summaryBadge: $('#reportSummaryBadge'),
+                previewBtn: $('#previewBtn'),
+                generateBtn: $('#generateBtn'),
+                modal: $('#previewModal'),
+                modalGenerateBtn: $('#modalGenerateBtn'),
+                modalCloseButtons: $$('[data-modal-close]'),
+                toastRegion: $('#toastRegion'),
+                historySearch: $('#historySearch'),
+                historyBody: $('#historyTableBody'),
+                historyEmptyRow: $('#historyEmptyRow'),
+                previewType: $('#previewType'),
+                previewPeriod: $('#previewPeriod'),
+                previewRegion: $('#previewRegion'),
+                previewIncludes: $('#previewIncludes'),
+            };
+
+            // Guard: if key elements aren't found, don't run.
+            if (!elements.startDate || !elements.endDate || !elements.region || !elements.historyBody) return;
+
+            const REPORT_TYPE_LABELS = {
+                monthly: '월간 종합 보고서',
+                satellite: '위성 데이터 분석 보고서',
+                inspection: '정기 안전점검 결과 보고서',
+                emergency: '긴급 상황 보고서',
+            };
+
+            const TYPE_BADGE_META = {
+                monthly: { text: '월간', className: 'badge-info' },
+                satellite: { text: '위성', className: 'badge-warning' },
+                inspection: { text: '정기', className: 'badge-success' },
+                emergency: { text: '긴급', className: 'badge-danger' },
+            };
+
+            const INCLUDE_LABELS = {
+                satellite: '위성 변위 분석값',
+                iot: 'IoT 센서 측정값',
+                heatmap: '위험도 히트맵',
+                photos: '현장 점검 사진',
+            };
+
+            const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+            function pad2(n) {
+                return String(n).padStart(2, '0');
+            }
+
+            function formatNow() {
+                const d = new Date();
+                return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+            }
+
+            function formatDateRange(start, end) {
+                if (!start && !end) return '-';
+                if (start && !end) return `${start} ~`;
+                if (!start && end) return `~ ${end}`;
+                return `${start} ~ ${end}`;
+            }
+
+            function getSelectedReportType() {
+                return $('input[name="reportType"]:checked')?.value || 'monthly';
+            }
+
+            function getSelectedIncludes() {
+                return elements.includeChecks
+                    .filter((el) => el.checked)
+                    .map((el) => el.dataset.include)
+                    .filter(Boolean);
+            }
+
+            function getConfig() {
+                const type = getSelectedReportType();
+                return {
+                    type,
+                    typeLabel: REPORT_TYPE_LABELS[type] || '보고서',
+                    startDate: elements.startDate.value || '',
+                    endDate: elements.endDate.value || '',
+                    region: elements.region.value || '',
+                    includes: getSelectedIncludes(),
+                };
+            }
+
+            function setSelectedReportTypeUI() {
+                const selectedValue = getSelectedReportType();
+                elements.reportTypeOptions.forEach((label) => {
+                    const input = $('input[name="reportType"]', label);
+                    const isSelected = input?.value === selectedValue;
+                    label.classList.toggle('is-selected', Boolean(isSelected));
+                });
+            }
+
+            function normalizeDates({ announce = false } = {}) {
+                const start = elements.startDate.value;
+                const end = elements.endDate.value;
+
+                if (start) elements.endDate.min = start;
+                else elements.endDate.removeAttribute('min');
+
+                if (end) elements.startDate.max = end;
+                else elements.startDate.removeAttribute('max');
+
+                if (start && end && start > end) {
+                    elements.endDate.value = start;
+                    if (announce) showToast('종료일이 시작일보다 빠를 수 없어 종료일을 조정했습니다.', 'info');
+                }
+            }
+
+            function updateSummary() {
+                const cfg = getConfig();
+                const badge = TYPE_BADGE_META[cfg.type] || TYPE_BADGE_META.monthly;
+                const includeLabels = cfg.includes.length
+                    ? cfg.includes.map((k) => INCLUDE_LABELS[k] || k).join(', ')
+                    : '선택 없음';
+
+                if (elements.summaryText) {
+                    elements.summaryText.textContent = `${cfg.typeLabel} · ${formatDateRange(cfg.startDate, cfg.endDate)} · ${cfg.region} · 포함: ${includeLabels}`;
+                }
+
+                if (elements.summaryBadge) {
+                    elements.summaryBadge.className = `badge ${badge.className}`;
+                    elements.summaryBadge.textContent = badge.text;
+                }
+            }
+
+            function debounce(fn, wait = 120) {
+                let t = 0;
+                return (...args) => {
+                    window.clearTimeout(t);
+                    t = window.setTimeout(() => fn(...args), wait);
+                };
+            }
+
+            function showToast(message, variant = 'info') {
+                if (!elements.toastRegion) return;
+
+                const icon = variant === 'success'
+                    ? 'fa-circle-check'
+                    : variant === 'danger'
+                        ? 'fa-circle-xmark'
+                        : 'fa-circle-info';
+
+                const toast = document.createElement('div');
+                toast.className = `toast toast-${variant}`;
+                toast.innerHTML = `
+                    <i class="fas ${icon} toast-icon"></i>
+                    <div class="toast-content">
+                        <div class="toast-title">알림</div>
+                        <div class="toast-message"></div>
+                    </div>
+                `;
+                const msgEl = toast.querySelector('.toast-message');
+                if (msgEl) msgEl.textContent = String(message);
+
+                elements.toastRegion.appendChild(toast);
+                requestAnimationFrame(() => toast.classList.add('is-visible'));
+
+                window.setTimeout(() => {
+                    toast.classList.remove('is-visible');
+                    toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+                    window.setTimeout(() => toast.remove(), 350);
+                }, 2600);
+            }
+
+            let lastFocusedElement = null;
+            let previousBodyOverflow = '';
+            function getFocusableElements(container) {
+                return $$(
+                    'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+                    container
+                ).filter((el) => !el.hasAttribute('disabled') && !el.getAttribute('aria-hidden'));
+            }
+
+            function openModal() {
+                if (!elements.modal) return;
+                lastFocusedElement = document.activeElement;
+                previousBodyOverflow = document.body.style.overflow;
+                document.body.style.overflow = 'hidden';
+                elements.modal.setAttribute('aria-hidden', 'false');
+                elements.modal.hidden = false;
+                requestAnimationFrame(() => elements.modal.classList.add('is-open'));
+
+                // Focus the first close button for accessibility.
+                const firstClose = elements.modal.querySelector('[data-modal-close]');
+                if (firstClose) firstClose.focus({ preventScroll: true });
+            }
+
+            function closeModal() {
+                if (!elements.modal) return;
+                elements.modal.classList.remove('is-open');
+                window.setTimeout(() => {
+                    elements.modal.hidden = true;
+                    elements.modal.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = previousBodyOverflow;
+                    if (lastFocusedElement && typeof lastFocusedElement.focus === 'function') {
+                        lastFocusedElement.focus({ preventScroll: true });
+                    }
+                }, 200);
+            }
+
+            function updatePreview() {
+                const cfg = getConfig();
+                if (elements.previewType) elements.previewType.textContent = cfg.typeLabel;
+                if (elements.previewPeriod) elements.previewPeriod.textContent = formatDateRange(cfg.startDate, cfg.endDate);
+                if (elements.previewRegion) elements.previewRegion.textContent = cfg.region || '-';
+
+                if (elements.previewIncludes) {
+                    const items = cfg.includes.length ? cfg.includes : [];
+                    elements.previewIncludes.innerHTML = '';
+
+                    if (!items.length) {
+                        const li = document.createElement('li');
+                        li.className = 'text-slate-500';
+                        li.textContent = '선택 없음';
+                        elements.previewIncludes.appendChild(li);
+                        return;
+                    }
+
+                    items.forEach((key) => {
+                        const li = document.createElement('li');
+                        li.className = 'preview-include-item';
+                        li.innerHTML = `<i class="fas fa-check preview-include-icon"></i><span></span>`;
+                        const text = li.querySelector('span');
+                        if (text) text.textContent = INCLUDE_LABELS[key] || key;
+                        elements.previewIncludes.appendChild(li);
+                    });
+                }
+            }
+
+            function buildReportTitle(cfg) {
+                const region = cfg.region || '대상 지역';
+                const period = formatDateRange(cfg.startDate, cfg.endDate);
+                // MDMS 스타일 제목(문서 상단에 들어갈 제목)
+                const typeShort = TYPE_BADGE_META[cfg.type]?.text || '보고';
+                return `${typeShort} 보고서 (${region}, ${period})`;
+            }
+
+            function buildReportHtml(cfg, title) {
+                const escapeHtml = (value) => String(value)
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#39;');
+
+                const docNo = `MDMS-${new Date().getFullYear()}${pad2(new Date().getMonth() + 1)}${pad2(new Date().getDate())}-${pad2(new Date().getHours())}${pad2(new Date().getMinutes())}`;
+                const typeMeta = TYPE_BADGE_META[cfg.type] || TYPE_BADGE_META.monthly;
+                const reportClass = cfg.type === 'emergency' ? '긴급' : (cfg.type === 'monthly' ? '정기' : '분석');
+
+                const includesList = cfg.includes.length
+                    ? cfg.includes.map((k) => `• ${INCLUDE_LABELS[k] || k}`).join('\n')
+                    : '• 선택 없음';
+
+                const isEmergency = cfg.type === 'emergency';
+                const titleText = escapeHtml(title || buildReportTitle(cfg));
+                const periodText = escapeHtml(formatDateRange(cfg.startDate, cfg.endDate));
+                const regionText = escapeHtml(cfg.region || '-');
+                const createdAtText = escapeHtml(formatNow());
+
+                const summaryBullets = isEmergency
+                    ? [
+                        '관측 데이터에서 이상 징후가 감지되어 긴급 보고 대상으로 분류되었습니다.',
+                        '관계기관 통보 및 현장 점검(또는 추가 관측) 필요 여부를 검토합니다.',
+                        '본 문서는 시스템 자동 생성 요약본이며, MDMS 입력/결재용 자료로 활용할 수 있도록 구성되었습니다.',
+                    ]
+                    : [
+                        '선택한 기간/지역 기준으로 관측·분석 요약을 자동 생성합니다.',
+                        '본 문서는 시스템 자동 생성 요약본이며, MDMS 입력/결재용 자료로 활용할 수 있도록 구성되었습니다.',
+                        '수치/그래프/사진 등 상세 증빙은 추후 서버 연동(첨부) 단계에서 자동 포함됩니다.',
+                    ];
+
+                const actionBullets = isEmergency
+                    ? [
+                        '관측 데이터 재확인(결측/이상치 점검) 및 위험도 재산정',
+                        '현장 점검 일정 수립 및 통제/예방 조치 검토',
+                        '추가 관측(센서/위성) 알림 기준 강화 및 모니터링 강화',
+                    ]
+                    : [
+                        '정기 모니터링 유지 및 임계치 초과 구간 상시 관제',
+                        '취약 구간 우선순위 재정렬 및 점검 계획 반영',
+                        '관측 데이터 품질 점검(결측/이상치/드리프트) 정례화',
+                    ];
+
+                const toLi = (arr) => arr.map((t) => `<li>${escapeHtml(t)}</li>`).join('');
+
+                return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${titleText}</title>
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #0f172a;
+      --thin: #94a3b8;
+      --bg: #ffffff;
+    }
+
+    @page { size: A4; margin: 12mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f1f5f9;
+      color: var(--ink);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Malgun Gothic", sans-serif;
+      line-height: 1.45;
+    }
+    .sheet {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 16px auto;
+      background: var(--bg);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08);
+      padding: 12mm;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin: 0 auto 10px;
+      width: 210mm;
+    }
+    .btn {
+      appearance: none;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary { border-color: #7dd3fc; background: #e0f2fe; }
+
+    .doc-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px 14px;
+      align-items: end;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--line);
+    }
+    .doc-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    .doc-sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .doc-meta {
+      text-align: right;
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .doc-meta strong { color: var(--ink); }
+
+    .meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 12.5px;
+    }
+    .meta-table th, .meta-table td {
+      border: 1px solid var(--line);
+      padding: 6px 8px;
+      vertical-align: middle;
+    }
+    .meta-table th {
+      width: 18%;
+      background: #f8fafc;
+      text-align: center;
+      font-weight: 700;
+    }
+    .meta-table td { width: 32%; }
+
+    .section {
+      margin-top: 14px;
+    }
+    .section-title {
+      margin: 0 0 6px;
+      font-size: 13.5px;
+      font-weight: 800;
+    }
+    .box {
+      border: 1px solid var(--line);
+      padding: 10px 10px;
+      font-size: 12.5px;
+    }
+    .box ul { margin: 0; padding-left: 18px; }
+    .box li { margin: 4px 0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .sign {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .sign-box {
+      border: 1px solid var(--line);
+      padding: 10px;
+      min-height: 54px;
+      font-size: 12.5px;
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      align-items: center;
+      gap: 10px;
+    }
+    .stamp {
+      border: 1px dashed var(--thin);
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footer {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 11.5px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    @media print {
+      body { background: #ffffff; }
+      .toolbar { display: none !important; }
+      .sheet { margin: 0; border: none; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar no-print">
+    <button class="btn btn-primary" onclick="window.print()">인쇄 / PDF 저장</button>
+    <button class="btn" onclick="window.close()">닫기</button>
+  </div>
+
+  <div class="sheet">
+    <div class="doc-header">
+      <div>
+        <h1 class="doc-title">${titleText}</h1>
+        <p class="doc-sub">행정안전부 MDMS 양식 스타일(프로토타입) · 급경사지 안전관리 통합시스템 자동 생성</p>
+      </div>
+      <div class="doc-meta">
+        <div><strong>문서번호</strong> <span class="mono">${escapeHtml(docNo)}</span></div>
+        <div><strong>작성일시</strong> ${createdAtText}</div>
+      </div>
+    </div>
+
+    <table class="meta-table" aria-label="보고서 기본 정보">
+      <tbody>
+        <tr>
+          <th>보고구분</th><td>${escapeHtml(reportClass)}</td>
+          <th>보고유형</th><td>${escapeHtml(typeMeta.text)}</td>
+        </tr>
+        <tr>
+          <th>대상지역</th><td>${regionText}</td>
+          <th>대상기간</th><td>${periodText}</td>
+        </tr>
+        <tr>
+          <th>작성자</th><td>${escapeHtml('김담당 주무관')}</td>
+          <th>연락처</th><td>${escapeHtml('내선/연락처(추후 연동)')}</td>
+        </tr>
+        <tr>
+          <th>포함데이터</th><td colspan="3"><pre style="margin:0; white-space:pre-wrap; font-family:inherit;">${escapeHtml(includesList)}</pre></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section">
+      <h2 class="section-title">1. 상황개요</h2>
+      <div class="box">
+        <ul>${toLi(summaryBullets)}</ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">2. 관측/분석 요약</h2>
+      <div class="grid2">
+        <div class="box">
+          <div style="font-weight:800; margin-bottom:6px;">주요 지표(예시)</div>
+          <ul>
+            <li>관측 대상 구간 수: (연동 예정)</li>
+            <li>주의/경계 이상 징후: (연동 예정)</li>
+            <li>최근 갱신 시각: ${createdAtText}</li>
+          </ul>
+        </div>
+        <div class="box">
+          <div style="font-weight:800; margin-bottom:6px;">특이사항(요약)</div>
+          <ul>
+            <li>${escapeHtml(isEmergency ? '긴급 보고 대상 구간 발생 가능성 검토 필요' : '특이사항 없음(또는 연동 예정)')}</li>
+            <li>${escapeHtml(cfg.includes.includes('satellite') ? '위성 변위 추세 포함' : '위성 변위 미포함')}</li>
+            <li>${escapeHtml(cfg.includes.includes('iot') ? 'IoT 센서 측정 요약 포함' : 'IoT 센서 요약 미포함')}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">3. 조치사항</h2>
+      <div class="box">
+        <ul>${toLi(actionBullets)}</ul>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">4. 향후계획</h2>
+      <div class="box">
+        <ul>
+          <li>데이터 연동(그래프/표/사진 첨부) 및 PDF 템플릿 출력 연계</li>
+          <li>기관별 보고 항목(필수/선택) 커스터마이징 지원</li>
+          <li>MDMS 입력 필드 매핑 및 자동 기입 기능 추가</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sign">
+      <div class="sign-box">
+        <div style="font-weight:800;">보고자</div>
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div>${escapeHtml('김담당')}</div>
+            <div class="stamp">서명/직인</div>
+          </div>
+        </div>
+      </div>
+      <div class="sign-box">
+        <div style="font-weight:800;">확인자</div>
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <div>${escapeHtml('결재 라인(추후 연동)')}</div>
+            <div class="stamp">서명/직인</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>※ 본 문서는 프로토타입이며, 실제 MDMS 서식/필수 항목은 기관 운영 기준에 따라 조정될 수 있습니다.</div>
+      <div class="mono">${escapeHtml(docNo)}</div>
+    </div>
+  </div>
+</body>
+</html>`;
+            }
+
+            function downloadTextFile(filename, content, mime = 'text/plain;charset=utf-8') {
+                const blob = new Blob([content], { type: mime });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+
+            function downloadHtmlReport(cfg, title) {
+                const safe = title
+                    .replace(/[\\/:*?"<>|]/g, '-')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .slice(0, 120);
+                const filename = `${safe || 'report'}.html`;
+                downloadTextFile(filename, buildReportHtml(cfg, title), 'text/html;charset=utf-8');
+            }
+
+            function getHistoryRows() {
+                return $$('tr', elements.historyBody).filter((tr) => tr.id !== 'historyEmptyRow');
+            }
+
+            function renumberHistoryRows() {
+                getHistoryRows().forEach((tr, idx) => {
+                    const first = tr.querySelector('td');
+                    if (first) first.textContent = String(idx + 1);
+                });
+            }
+
+            function addHistoryRow(cfg) {
+                const badge = TYPE_BADGE_META[cfg.type] || TYPE_BADGE_META.monthly;
+                const title = buildReportTitle(cfg);
+
+                const tr = document.createElement('tr');
+                tr.dataset.reportType = cfg.type;
+                tr.dataset.reportStart = cfg.startDate || '';
+                tr.dataset.reportEnd = cfg.endDate || '';
+                tr.dataset.reportRegion = cfg.region || '';
+                tr.dataset.reportIncludes = (cfg.includes || []).join(',');
+                tr.innerHTML = `
+                    <td>0</td>
+                    <td style="font-weight: 600;">${title}</td>
+                    <td><span class="badge ${badge.className}">${badge.text}</span></td>
+                    <td>김담당</td>
+                    <td>${formatNow()}</td>
+                    <td class="font-medium text-emerald-600">생성 완료</td>
+                    <td><button type="button" class="btn btn-secondary btn-sm" data-download aria-label="보고서 다운로드"><i class="fas fa-download"></i></button></td>
+                `;
+
+                const firstRow = getHistoryRows()[0];
+                if (firstRow) elements.historyBody.insertBefore(tr, firstRow);
+                else elements.historyBody.appendChild(tr);
+                renumberHistoryRows();
+            }
+
+            const filterHistory = debounce(() => {
+                const q = (elements.historySearch?.value || '').trim().toLowerCase();
+                const rows = getHistoryRows();
+
+                let visibleCount = 0;
+                rows.forEach((tr) => {
+                    const text = tr.textContent?.toLowerCase() || '';
+                    const match = !q || text.includes(q);
+                    tr.classList.toggle('hidden', !match);
+                    if (match) visibleCount += 1;
+                });
+
+                if (elements.historyEmptyRow) {
+                    elements.historyEmptyRow.classList.toggle('hidden', visibleCount !== 0);
+                }
+            }, 100);
+
+            let isGenerating = false;
+            const originalGenerateHtml = elements.generateBtn?.innerHTML || '';
+            const originalModalGenerateHtml = elements.modalGenerateBtn?.innerHTML || '';
+
+            function setGeneratingUI(loading) {
+                const disabled = Boolean(loading);
+                if (elements.previewBtn) elements.previewBtn.disabled = disabled;
+                if (elements.generateBtn) elements.generateBtn.disabled = disabled;
+                if (elements.modalGenerateBtn) elements.modalGenerateBtn.disabled = disabled;
+
+                const spinner = `<span class="spinner" aria-hidden="true"></span>`;
+                if (elements.generateBtn) {
+                    elements.generateBtn.innerHTML = disabled ? `${spinner}<span>생성 중...</span>` : originalGenerateHtml;
+                }
+                if (elements.modalGenerateBtn) {
+                    elements.modalGenerateBtn.innerHTML = disabled ? `${spinner}<span>생성 중...</span>` : originalModalGenerateHtml;
+                }
+            }
+
+            async function generateReport() {
+                if (isGenerating) return;
+                isGenerating = true;
+                setGeneratingUI(true);
+
+                const cfg = getConfig();
+                const title = buildReportTitle(cfg);
+
+                // NOTE: 다운로드는 사용자 제스처(클릭) 흐름 안에서 실행돼야 브라우저 차단을 피할 수 있습니다.
+                downloadHtmlReport(cfg, title);
+                showToast('보고서를 생성하고 있습니다. 잠시만 기다려주세요.', 'info');
+
+                await sleep(900);
+                addHistoryRow(cfg);
+                filterHistory();
+                showToast('보고서 생성 완료. 다운로드를 시작합니다(샘플 HTML).', 'success');
+
+                isGenerating = false;
+                setGeneratingUI(false);
+            }
+
+            // Event bindings
+            elements.reportTypeRadios.forEach((radio) => {
+                radio.addEventListener('change', () => {
+                    setSelectedReportTypeUI();
+                    updateSummary();
+                });
+            });
+
+            elements.includeChecks.forEach((chk) => chk.addEventListener('change', updateSummary));
+            elements.region.addEventListener('change', updateSummary);
+            elements.startDate.addEventListener('change', () => {
+                normalizeDates({ announce: true });
+                updateSummary();
+            });
+            elements.endDate.addEventListener('change', () => {
+                normalizeDates({ announce: true });
+                updateSummary();
+            });
+
+            if (elements.previewBtn) {
+                elements.previewBtn.addEventListener('click', () => {
+                    updatePreview();
+                    openModal();
+                });
+            }
+
+            if (elements.generateBtn) {
+                elements.generateBtn.addEventListener('click', generateReport);
+            }
+
+            if (elements.modalGenerateBtn) {
+                elements.modalGenerateBtn.addEventListener('click', async () => {
+                    await generateReport();
+                    closeModal();
+                });
+            }
+
+            elements.modalCloseButtons.forEach((btn) => btn.addEventListener('click', closeModal));
+
+            if (elements.modal) {
+                elements.modal.addEventListener('click', (e) => {
+                    if (e.target === elements.modal) closeModal();
+                });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (!elements.modal || elements.modal.hidden) return;
+
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeModal();
+                    return;
+                }
+
+                if (e.key !== 'Tab') return;
+                const panel = elements.modal.querySelector('.modal-panel');
+                if (!panel) return;
+
+                const focusables = getFocusableElements(panel);
+                if (!focusables.length) return;
+
+                const first = focusables[0];
+                const last = focusables[focusables.length - 1];
+                const active = document.activeElement;
+
+                if (e.shiftKey && active === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && active === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            });
+
+            if (elements.historySearch) {
+                elements.historySearch.addEventListener('input', filterHistory);
+            }
+
+            elements.historyBody.addEventListener('click', (e) => {
+                const btn = e.target?.closest?.('[data-download]');
+                if (!btn) return;
+
+                const tr = btn.closest('tr');
+                if (!tr) return;
+
+                const name = tr.querySelector('td:nth-child(2)')?.textContent?.trim() || '보고서';
+                const typeText = tr.querySelector('td:nth-child(3)')?.textContent?.trim() || '';
+                const createdAt = tr.querySelector('td:nth-child(5)')?.textContent?.trim() || '';
+
+                const rowCfg = {
+                    type: tr.dataset.reportType || getSelectedReportType(),
+                    typeLabel: REPORT_TYPE_LABELS[tr.dataset.reportType] || REPORT_TYPE_LABELS[getSelectedReportType()] || '보고서',
+                    startDate: tr.dataset.reportStart || elements.startDate.value || '',
+                    endDate: tr.dataset.reportEnd || elements.endDate.value || '',
+                    region: tr.dataset.reportRegion || elements.region.value || '',
+                    includes: (tr.dataset.reportIncludes || '')
+                        .split(',')
+                        .map((v) => v.trim())
+                        .filter(Boolean),
+                };
+
+                showToast(`다운로드를 준비합니다(MDMS 양식): ${name}`, 'info');
+                downloadHtmlReport(rowCfg, name);
+            });
+
+            // Init
+            normalizeDates();
+            setSelectedReportTypeUI();
+            updateSummary();
+            filterHistory();
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개소 상세 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+
+            .grid-2 { @apply grid gap-6 lg:grid-cols-2; }
+            .grid-2 > .card { @apply mb-0; }
+        }
+    </style>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            color: #2563EB;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .site-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .site-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #FEF2F2;
+            color: #DC2626;
+            border-radius: 0;
+            font-weight: 600;
+        }
+
+        .site-status.warning {
+            background: #FFF7ED;
+            color: #EA580C;
+        }
+
+        .site-status.normal {
+            background: #F0FDF4;
+            color: #16A34A;
+        }
+
+        #detail-map {
+            height: 400px;
+            width: 100%;
+            border-radius: 0;
+            z-index: 1;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: #64748B;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_logo.png" alt="Orbital" class="h-8 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="m1_integrated.html" class="nav-item active">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="m2_satellite.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="m2_scenario.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2 id="page-title">개소 상세 정보</h2>
+                    <p id="page-subtitle">통합 관제 개소별 상세 현황</p>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Breadcrumb -->
+            <div class="breadcrumb">
+                <a href="m1_integrated.html"><i class="fas fa-arrow-left"></i> M1 통합 관제 맵</a>
+                <span>/</span>
+                <strong id="breadcrumb-site">개소명</strong>
+            </div>
+
+            <!-- Site Header -->
+            <div class="site-header">
+                <div>
+                    <h3 id="site-name" style="font-size: 1.5rem; margin-bottom: 8px;">정선읍 A구간</h3>
+                    <p id="site-location" class="text-slate-600">정선읍 봉양리 산 12-3</p>
+                </div>
+                <div id="site-status" class="site-status">
+                    <i class="fas fa-circle-exclamation"></i>
+                    <span>E등급 (심각)</span>
+                </div>
+            </div>
+
+            <!-- 관련 페이지 이동 -->
+            <div class="mt-4 flex flex-wrap gap-2">
+                <a href="#" id="link-m2" class="btn btn-secondary btn-sm"><i class="fas fa-satellite-dish"></i> 위성 분석 보기</a>
+                <a href="#" id="link-m3" class="btn btn-secondary btn-sm"><i class="fas fa-cube"></i> 3D 모델 보기</a>
+                <a href="#" id="link-report" class="btn btn-secondary btn-sm"><i class="fas fa-file-invoice"></i> 보고서 생성</a>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="grid-2" style="grid-template-columns: 1fr 1fr; margin-top: 24px; gap: 24px;">
+                <!-- Map Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-map-location-dot text-slate-400"></i> 위치 정보</h3>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div id="detail-map"></div>
+                    </div>
+                </div>
+
+                <!-- Info Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle text-slate-400"></i> 기본 정보</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">개소 코드</span>
+                                <span class="info-value" id="info-code">a1</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">위험 등급</span>
+                                <span class="info-value text-rose-600" id="info-grade">E등급</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">경사도</span>
+                                <span class="info-value" id="info-slope">45°</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">사면 높이</span>
+                                <span class="info-value" id="info-height">32m</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">설치 센서</span>
+                                <span class="info-value" id="info-sensors">5개</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">최종 점검일</span>
+                                <span class="info-value" id="info-lastcheck">2026-01-15</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">담당자</span>
+                                <span class="info-value" id="info-manager">박안전 주무관</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">관리 기관</span>
+                                <span class="info-value" id="info-org">정선군청 건설과</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensor Data Card -->
+            <div class="card" style="margin-top: 24px;">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line text-slate-400"></i> 최근 센서 데이터</h3>
+                    <button class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> 데이터 다운로드</button>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>센서 유형</th>
+                                    <th>위치</th>
+                                    <th>현재값</th>
+                                    <th>임계치</th>
+                                    <th>상태</th>
+                                    <th>측정 시간</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge badge-info">지표변위계</span></td>
+                                    <td>상부 사면 No.1</td>
+                                    <td class="font-bold text-rose-600">+15mm/일</td>
+                                    <td>> 10mm/일</td>
+                                    <td><span class="badge badge-danger">초과</span></td>
+                                    <td>2026-01-21 10:30</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-info">경사계</span></td>
+                                    <td>중부 옹벽</td>
+                                    <td style="font-weight: 600;">+0.3°</td>
+                                    <td>> 0.5°</td>
+                                    <td><span class="badge badge-success">정상</span></td>
+                                    <td>2026-01-21 10:30</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge badge-info">강우량계</span></td>
+                                    <td>정선읍 관측소</td>
+                                    <td style="font-weight: 600;">12mm/시</td>
+                                    <td>> 30mm/시</td>
+                                    <td><span class="badge badge-success">정상</span></td>
+                                    <td>2026-01-21 10:00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 개소 데이터 (실제로는 서버에서 가져옴)
+        const siteData = {
+            'a1': {
+                name: '정선읍 A구간',
+                location: '정선읍 봉양리 산 12-3',
+                lat: 37.3805, lng: 128.6608,
+                grade: 'E', gradeText: 'E등급 (심각)', gradeColor: 'danger',
+                slope: '45°', height: '32m', sensors: '5개',
+                lastCheck: '2026-01-15', manager: '박안전 주무관'
+            },
+            'a2': {
+                name: '신동읍 B구간',
+                location: '신동읍 예미리 456-7',
+                lat: 37.3505, lng: 128.6808,
+                grade: 'D', gradeText: 'D등급 (경계)', gradeColor: 'warning',
+                slope: '38°', height: '25m', sensors: '4개',
+                lastCheck: '2026-01-10', manager: '이점검 주무관'
+            },
+            'a3': {
+                name: '화암면 C구간',
+                location: '화암면 화암리 789-1',
+                lat: 37.4005, lng: 128.6408,
+                grade: 'C', gradeText: 'C등급 (주의)', gradeColor: 'caution',
+                slope: '30°', height: '18m', sensors: '3개',
+                lastCheck: '2026-01-05', manager: '김모니터 주무관'
+            }
+        };
+
+        // 통합관제(m1_integrated.html)에서 생성된 "추정 좌표" 지점도 상세에서 열 수 있도록 localStorage 캐시를 지원합니다.
+        function fnv1a32(str) {
+            let h = 0x811c9dc5;
+            const s = String(str ?? '');
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193);
+            }
+            return h >>> 0;
+        }
+
+        function hash01(str) {
+            return (fnv1a32(str) % 1000000) / 1000000;
+        }
+
+        function gradeFromGrade5(grade5) {
+            const g = Number.parseInt(String(grade5 ?? ''), 10);
+            if (g === 5) return { grade: 'E', gradeText: 'E등급 (심각)', gradeColor: 'danger' };
+            if (g === 4) return { grade: 'D', gradeText: 'D등급 (경계)', gradeColor: 'warning' };
+            if (g === 3) return { grade: 'C', gradeText: 'C등급 (주의)', gradeColor: 'caution' };
+            if (g === 2) return { grade: 'B', gradeText: 'B등급 (관심)', gradeColor: 'normal' };
+            if (g === 1) return { grade: 'A', gradeText: 'A등급 (안전)', gradeColor: 'normal' };
+            return { grade: '-', gradeText: '등급 미상', gradeColor: 'normal' };
+        }
+
+        function deriveMetrics(seed) {
+            const slope = Math.round(25 + hash01(seed + '|slope') * 35); // 25~60°
+            const height = Math.round(6 + hash01(seed + '|height') * 28); // 6~34m
+            const sensors = Math.round(2 + hash01(seed + '|sensors') * 5); // 2~7개
+            return { slope: `${slope}°`, height: `${height}m`, sensors: `${sensors}개` };
+        }
+
+        function loadIntegratedSitesCache() {
+            try {
+                const raw = localStorage.getItem('m1_integrated_sites_cache_v1');
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : null;
+            } catch {
+                return null;
+            }
+        }
+
+        function loadIntegratedSelectedSite() {
+            try {
+                const raw = localStorage.getItem('m1_integrated_selected_site_v1');
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : null;
+            } catch {
+                return null;
+            }
+        }
+
+        function pickIntegratedSite(siteId) {
+            const id = String(siteId || '').trim();
+            if (!id || id.startsWith('a')) return null;
+
+            const cache = loadIntegratedSitesCache();
+            let found = null;
+            if (Array.isArray(cache)) {
+                found = cache.find((s) => s && s.id === id) || null;
+            }
+            if (!found) {
+                const sel = loadIntegratedSelectedSite();
+                if (sel && sel.id === id) found = sel;
+            }
+            if (!found) return null;
+
+            const seed = found.id || found.address || id;
+            const grade5 = found.grade5 != null ? found.grade5 : null;
+            const g = gradeFromGrade5(grade5);
+            const m = deriveMetrics(seed);
+
+            return {
+                name: found.name || '급경사지',
+                location: found.address || '-',
+                lat: Number(found.lat) || 37.3805,
+                lng: Number(found.lng) || 128.6608,
+                grade: g.grade,
+                gradeText: g.gradeText,
+                gradeColor: g.gradeColor,
+                slope: m.slope,
+                height: m.height,
+                sensors: m.sensors,
+                lastCheck: found.lastCheck || '-',
+                manager: '김담당 주무관'
+            };
+        }
+
+        // URL 파라미터에서 site 가져오기
+        const urlParams = new URLSearchParams(window.location.search);
+        const requestedSiteId = urlParams.get('site') || 'a1';
+        const integratedSite = pickIntegratedSite(requestedSiteId);
+        const site = integratedSite || siteData[requestedSiteId] || siteData['a1'];
+        const resolvedSiteId = integratedSite ? requestedSiteId : (siteData[requestedSiteId] ? requestedSiteId : 'a1');
+
+        // 페이지 데이터 업데이트
+        document.getElementById('page-title').textContent = site.name + ' 상세';
+        document.getElementById('breadcrumb-site').textContent = site.name + ' (' + resolvedSiteId + ')';
+        document.getElementById('site-name').textContent = site.name;
+        document.getElementById('site-location').textContent = site.location;
+        document.getElementById('info-code').textContent = resolvedSiteId;
+        document.getElementById('info-grade').textContent = site.grade + '등급';
+        document.getElementById('info-slope').textContent = site.slope;
+        document.getElementById('info-height').textContent = site.height;
+        document.getElementById('info-sensors').textContent = site.sensors;
+        document.getElementById('info-lastcheck').textContent = site.lastCheck;
+        document.getElementById('info-manager').textContent = site.manager;
+
+        // 등급에 따른 상태 표시
+        const statusEl = document.getElementById('site-status');
+        statusEl.innerHTML = `<i class="fas fa-circle-exclamation"></i><span>${site.gradeText}</span>`;
+        if (site.gradeColor === 'warning') {
+            statusEl.className = 'site-status warning';
+        } else if (site.gradeColor === 'caution' || site.gradeColor === 'normal') {
+            statusEl.className = 'site-status normal';
+        }
+
+        // 관련 페이지 링크 업데이트
+        document.getElementById('link-m2').href = 'm2_detail.html?site=' + resolvedSiteId;
+        document.getElementById('link-m3').href = 'm3_detail.html?site=' + resolvedSiteId;
+
+        // 지도 초기화
+        const map = L.map('detail-map').setView([site.lat, site.lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // 마커 추가
+        let markerColor = '#EF4444';
+        if (site.gradeColor === 'warning') markerColor = '#F59E0B';
+        if (site.gradeColor === 'caution') markerColor = '#FCD34D';
+        if (site.gradeColor === 'normal') markerColor = '#10B981';
+
+        L.circleMarker([site.lat, site.lng], {
+            radius: 15,
+            fillColor: markerColor,
+            color: '#fff',
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map).bindPopup(`<b>${site.name}</b><br>${site.gradeText}`).openPopup();
+    </script>
+</body>
+
+</html>
