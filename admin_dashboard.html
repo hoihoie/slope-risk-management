@@ -1622,7 +1622,7 @@
 
                 <div class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-xs text-slate-500">
                     <div>Prototype: 변경 사항은 브라우저 저장소(localStorage)에 임시 저장됩니다.</div>
-                    <button class="btn btn-secondary btn-sm" id="resetDemoBtn"><i class="fas fa-rotate-left"></i> 데모 데이터 초기화</button>
+                    <button class="btn btn-secondary btn-sm" id="resetDemoBtn"><i class="fas fa-rotate-left"></i> 데이터 초기화</button>
                 </div>
             </section>
 
@@ -3968,7 +3968,7 @@
                             target: '전체',
                             change: '기본값 복원',
                             actor: '운영관리자',
-                            note: '데모 초기화(부분)',
+                            note: '데이터 초기화(부분)',
                         });
                         addSecurityLog({ category: 'CONFIG', message: '임계치 기본값 복원', result: 'OK' });
                         addOpsLog('WARN', '임계치 기본값 복원');
@@ -4108,8 +4108,8 @@
             // Reset demo
             elements.resetDemoBtn?.addEventListener('click', () => {
                 confirmModal({
-                    title: '데모 데이터 초기화',
-                    message: '브라우저 저장소(localStorage)에 저장된 데모 데이터를 삭제하고 초기 상태로 되돌립니다. 진행할까요?',
+                    title: '데이터 초기화',
+                    message: '브라우저 저장소(localStorage)에 저장된 데이터를 삭제하고 초기 상태로 되돌립니다. 진행할까요?',
                     confirmText: '초기화',
                     confirmVariant: 'danger',
                     onConfirm: () => {

@@ -277,6 +277,10 @@
                         <i class="fas fa-grid-2"></i>
                         <span>대시보드</span>
                     </a>
+                    <a href="ndms_linkage.html" class="nav-item">
+                        <i class="fas fa-link"></i>
+                        <span>NDMS 연계</span>
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Monitoring</div>
@@ -329,6 +333,7 @@
                 </div>
                 <!-- Header actions -->
                 <div class="header-actions">
+                    <span class="badge badge-success">NDMS 연계 정상</span>
                     <div class="user-profile">
                         <div class="user-avatar">김</div>
                         <span class="user-name">김담당 주무관</span>
@@ -364,6 +369,8 @@
             </div>
         </main>
     </div>
+
+    <script src="assets/js/ndms_mock.js?v=20260204"></script>
 
     <!-- 분석 기준 요약(Info 버튼) -->
     <div id="analysisInfoModal"
@@ -453,6 +460,14 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+        (function () {
+            if (!window.NDMSMock) return;
+            window.NDMSMock.ensureInit();
+            window.NDMSMock.bootstrapIfEmpty(null, '기본 마스터');
+            window.NDMSMock.startAuto({ intervalMs: 15000 });
+        })();
+    </script>
     <script>
         (function () {
             const MAP_CSV_PATH = 'm2_satellite_points.csv'; // TODO: 추후 프로젝트 폴더에 CSV를 넣고 파일명만 바꾸면 됩니다.
