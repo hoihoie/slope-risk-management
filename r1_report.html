@@ -152,6 +152,10 @@
                         <i class="fas fa-grid-2"></i>
                         <span>대시보드</span>
                     </a>
+                    <a href="ndms_linkage.html" class="nav-item">
+                        <i class="fas fa-link"></i>
+                        <span>NDMS 연계</span>
+                    </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Monitoring</div>
@@ -313,10 +317,24 @@
                             </div>
                         </div>
 
-                        <div class="mt-auto flex gap-3">
-                            <button id="previewBtn" type="button" class="btn btn-secondary flex-1">미리보기</button>
-                            <button id="generateBtn" type="button" class="btn btn-primary flex-[2]"><i class="fas fa-file-pdf"></i> 보고서 생성 및
-                                다운로드</button>
+                        <div class="mt-auto flex flex-col gap-3">
+                            <div class="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900">다운로드 형식</div>
+                                </div>
+                                <select id="downloadFormat" name="downloadFormat" class="h-10 w-44 rounded-lg border-slate-200 bg-white px-3 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                    <option value="html">HTML (.html)</option>
+                                    <option value="pdf">PDF (.pdf)</option>
+                                    <option value="docx">DOCX (.docx)</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-3">
+                                <button id="previewBtn" type="button" class="btn btn-secondary flex-1">미리보기</button>
+                                <button id="generateBtn" type="button" class="btn btn-primary flex-[2]"><i class="fas fa-download"></i> 생성 및 다운로드</button>
+                                <button id="ndmsSendBtn" type="button" class="btn btn-secondary flex-1" title="NDMS 시스템으로 분석 내용을 공유(동기화)">
+                                    <i class="fas fa-paper-plane"></i> NDMS 전송
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -426,12 +444,12 @@
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-2 text-sm font-semibold text-slate-900">
                             <i class="fas fa-file-pdf text-slate-400"></i>
-                            생성될 문서 미리보기(샘플)
+                            생성될 문서 미리보기
                         </div>
                         <span class="badge badge-info">Prototype</span>
                     </div>
                     <p class="mt-2 text-sm text-slate-600">
-                        실제 MDMS/결재용 출력과 동일한 내용 구성을 목표로 한 <span class="font-medium text-slate-900">A4 인쇄용(프로토타입) 문서</span>로 다운로드됩니다.
+                        실제 MDMS/결재용 출력과 동일한 내용 구성을 목표로 한 <span class="font-medium text-slate-900">A4 인쇄용 문서</span>로 다운로드됩니다.
                     </p>
                 </div>
             </div>
@@ -441,6 +459,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Export Libraries (PDF/DOCX) -->
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js/dist/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx/build/index.umd.js"></script>
+    <script src="assets/js/ndms_mock.js?v=20260204"></script>
 
     <!-- Toast Region -->
     <div id="toastRegion" class="fixed bottom-6 right-6 z-[60] flex max-w-sm flex-col gap-2" aria-live="polite" aria-atomic="true"></div>
@@ -459,8 +482,10 @@
                 includeChecks: $$('input[data-include]'),
                 summaryText: $('#reportSummaryText'),
                 summaryBadge: $('#reportSummaryBadge'),
+                downloadFormat: $('#downloadFormat'),
                 previewBtn: $('#previewBtn'),
                 generateBtn: $('#generateBtn'),
+                ndmsSendBtn: $('#ndmsSendBtn'),
                 modal: $('#previewModal'),
                 modalGenerateBtn: $('#modalGenerateBtn'),
                 modalCloseButtons: $$('[data-modal-close]'),
@@ -687,10 +712,554 @@
 
             function buildReportTitle(cfg) {
                 const region = cfg.region || '대상 지역';
-                const period = formatDateRange(cfg.startDate, cfg.endDate);
-                // MDMS 스타일 제목(문서 상단에 들어갈 제목)
+                const start = cfg.startDate || '';
+                const end = cfg.endDate || '';
+
+                const toYm = (d) => {
+                    if (!d || typeof d !== 'string') return null;
+                    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d.trim());
+                    if (!m) return null;
+                    return { yyyy: m[1], mm: String(Number.parseInt(m[2], 10)) };
+                };
+                const sYm = toYm(start);
+                const eYm = toYm(end);
+                const sameMonth = sYm && eYm && sYm.yyyy === eYm.yyyy && sYm.mm === eYm.mm;
+
+                if (cfg.type === 'monthly') {
+                    const ym = sameMonth ? `${sYm.yyyy}년 ${sYm.mm}월` : formatDateRange(start, end);
+                    return `${ym} ${region} 월간 안전 종합보고서`;
+                }
+                if (cfg.type === 'satellite') {
+                    return `${region} 위성(SAR) 변위 분석 보고서 (${formatDateRange(start, end)})`;
+                }
+                if (cfg.type === 'inspection') {
+                    return `${region} 정기 안전점검 결과 보고서 (${formatDateRange(start, end)})`;
+                }
+                if (cfg.type === 'emergency') {
+                    return `${region} 급경사지 긴급 상황 보고서 (${formatDateRange(start, end)})`;
+                }
+
                 const typeShort = TYPE_BADGE_META[cfg.type]?.text || '보고';
-                return `${typeShort} 보고서 (${region}, ${period})`;
+                return `${typeShort} 보고서 (${region}, ${formatDateRange(start, end)})`;
+            }
+
+            // ===== 데이터 소스(프로젝트 내 CSV) 로딩 =====
+            const RISK_CSV_PATH = 'risk_scored_정선_v2(라벨없음).csv';
+            const XINMO_CSV_PATH = 'xinmo_3x3_table(수정).csv';
+
+            // file:// 등에서 fetch가 막히는 환경을 위한 최소 fallback(일부 샘플)
+            const FALLBACK_RISK_ROWS = [
+                {
+                    '관리번호': '10',
+                    '급경사지명': '북실지구',
+                    '소재지': '정선읍 북실리 산3-14 도',
+                    '비고(Note)': '실측값',
+                    '경사도(Slope)': '14.79',
+                    '곡률(Curvature)': '-0.11',
+                    '거칠기(Roughness)': '51.63',
+                    'RiskScore': '75.417821',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '7',
+                    '급경사지명': '봉양5지구',
+                    '소재지': '정선읍 봉양리 821-2전',
+                    '비고(Note)': '실측값',
+                    '경사도(Slope)': '10.0',
+                    '곡률(Curvature)': '-0.93',
+                    '거칠기(Roughness)': '57.03',
+                    'RiskScore': '61.442969',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '47',
+                    '급경사지명': '강원 정선 정선 용탄 N2지구',
+                    '소재지': '정선읍 용탄리 산1임',
+                    '비고(Note)': '실측값',
+                    '경사도(Slope)': '8.98',
+                    '곡률(Curvature)': '-0.83',
+                    '거칠기(Roughness)': '66.08',
+                    'RiskScore': '66.6205',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '2',
+                    '급경사지명': '관음동지구',
+                    '소재지': '정선읍 봉양리 510-2 전',
+                    '비고(Note)': '실측값',
+                    '경사도(Slope)': '20.8',
+                    '곡률(Curvature)': '-0.8',
+                    '거칠기(Roughness)': '87.61',
+                    'RiskScore': '54.173816',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '1',
+                    '급경사지명': '정선병원지구',
+                    '소재지': '정선읍 봉양리 430대',
+                    '비고(Note)': '실측값',
+                    '경사도(Slope)': '11.41',
+                    '곡률(Curvature)': '-0.27',
+                    '거칠기(Roughness)': '39.99',
+                    'RiskScore': '16.936389',
+                    'risk_grade5_by_region': '2'
+                }
+            ];
+
+            const FALLBACK_XINMO_ROWS = [
+                { date: '2026-01-16', cum_mm: '29.89441999', label: 'WATCH_B' },
+                { date: '2026-01-22', cum_mm: '9.398800744', label: 'RED' },
+                { date: '2026-01-28', cum_mm: '20.58197763', label: 'RED' }
+            ];
+
+            let riskRowsCache = null;
+            let riskRowsSourceLabel = null;
+            let xinmoRowsCache = null;
+            let xinmoRowsSourceLabel = null;
+
+            function parseCsvLine(line) {
+                const out = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                        continue;
+                    }
+                    if (ch === ',' && !inQuotes) {
+                        out.push(cur);
+                        cur = '';
+                        continue;
+                    }
+                    cur += ch;
+                }
+                out.push(cur);
+                return out;
+            }
+
+            function parseCsv(text) {
+                const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                const lines = normalized.split('\n').filter((l) => l.trim() !== '');
+                if (!lines.length) return [];
+                const header = parseCsvLine(lines[0]).map((h) => h.trim());
+                const rows = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCsvLine(lines[i]);
+                    const obj = {};
+                    for (let j = 0; j < header.length; j++) {
+                        obj[header[j]] = (cols[j] ?? '').trim();
+                    }
+                    rows.push(obj);
+                }
+                return rows;
+            }
+
+            function preloadDatasets() {
+                loadRiskRows();
+                loadXinmoRows();
+            }
+
+            async function loadRiskRows(options = {}) {
+                const force = options && options.force === true;
+                if (riskRowsCache && !force) return { rows: riskRowsCache, sourceLabel: riskRowsSourceLabel || 'CSV 캐시' };
+                try {
+                    const res = await fetch(encodeURI(RISK_CSV_PATH), { cache: 'no-store' });
+                    if (!res.ok) throw new Error(`CSV 로딩 실패 (HTTP ${res.status})`);
+                    const text = await res.text();
+                    const rows = parseCsv(text);
+                    if (!rows.length) throw new Error('CSV가 비어있습니다.');
+                    riskRowsCache = rows;
+                    riskRowsSourceLabel = `CSV 파일 (${RISK_CSV_PATH})`;
+                    return { rows, sourceLabel: riskRowsSourceLabel };
+                } catch (e) {
+                    riskRowsCache = null;
+                    riskRowsSourceLabel = null;
+                    return { rows: FALLBACK_RISK_ROWS, sourceLabel: '내장 샘플(오프라인 fallback)', error: e };
+                }
+            }
+
+            async function loadXinmoRows(options = {}) {
+                const force = options && options.force === true;
+                if (xinmoRowsCache && !force) return { rows: xinmoRowsCache, sourceLabel: xinmoRowsSourceLabel || 'CSV 캐시' };
+                try {
+                    const res = await fetch(encodeURI(XINMO_CSV_PATH), { cache: 'no-store' });
+                    if (!res.ok) throw new Error(`CSV 로딩 실패 (HTTP ${res.status})`);
+                    const text = await res.text();
+                    const rows = parseCsv(text);
+                    if (!rows.length) throw new Error('CSV가 비어있습니다.');
+                    xinmoRowsCache = rows;
+                    xinmoRowsSourceLabel = `CSV 파일 (${XINMO_CSV_PATH})`;
+                    return { rows, sourceLabel: xinmoRowsSourceLabel };
+                } catch (e) {
+                    xinmoRowsCache = null;
+                    xinmoRowsSourceLabel = null;
+                    return { rows: FALLBACK_XINMO_ROWS, sourceLabel: '내장 샘플(오프라인 fallback)', error: e };
+                }
+            }
+
+            function getRiskRowsSnapshot() {
+                if (Array.isArray(riskRowsCache) && riskRowsCache.length) {
+                    return { rows: riskRowsCache, sourceLabel: riskRowsSourceLabel || 'CSV 캐시' };
+                }
+                return { rows: FALLBACK_RISK_ROWS, sourceLabel: '내장 샘플(오프라인 fallback)' };
+            }
+
+            function getXinmoRowsSnapshot() {
+                if (Array.isArray(xinmoRowsCache) && xinmoRowsCache.length) {
+                    return { rows: xinmoRowsCache, sourceLabel: xinmoRowsSourceLabel || 'CSV 캐시' };
+                }
+                return { rows: FALLBACK_XINMO_ROWS, sourceLabel: '내장 샘플(오프라인 fallback)' };
+            }
+
+            // ===== 시드 기반 난수(옵션 변경 시 내용이 달라지도록) =====
+            function clamp(v, a, b) {
+                return Math.min(b, Math.max(a, v));
+            }
+
+            function toNumber(value) {
+                const n = Number.parseFloat(value);
+                return Number.isFinite(n) ? n : null;
+            }
+
+            function hashStringToSeed(str) {
+                let h = 2166136261;
+                const s = String(str ?? '');
+                for (let i = 0; i < s.length; i++) {
+                    h ^= s.charCodeAt(i);
+                    h = Math.imul(h, 16777619);
+                }
+                return (h >>> 0);
+            }
+
+            function mulberry32(seed) {
+                let t = (seed >>> 0) || 1;
+                return () => {
+                    t += 0x6D2B79F5;
+                    let x = Math.imul(t ^ (t >>> 15), 1 | t);
+                    x ^= x + Math.imul(x ^ (x >>> 7), 61 | x);
+                    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+                };
+            }
+
+            function pick(rng, arr, fallback = null) {
+                if (!Array.isArray(arr) || !arr.length) return fallback;
+                return arr[Math.floor(rng() * arr.length)];
+            }
+
+            function lerp(a, b, t) {
+                return a + (b - a) * t;
+            }
+
+            function fmt(n, digits = 2) {
+                const x = typeof n === 'number' ? n : toNumber(n);
+                if (x == null) return '--';
+                return x.toFixed(digits);
+            }
+
+            function matchesRegion(row, regionSelection) {
+                if (!regionSelection || String(regionSelection).includes('전체')) return true;
+                const addr = String(row?.['소재지'] || '');
+                return addr.includes(String(regionSelection).trim());
+            }
+
+            function gradeLetterFrom5(grade5) {
+                const g = Number.parseInt(String(grade5 ?? ''), 10);
+                if (g === 5) return 'E';
+                if (g === 4) return 'D';
+                if (g === 3) return 'C';
+                if (g === 2) return 'B';
+                if (g === 1) return 'A';
+                return '?';
+            }
+
+            function gradeLabelFrom5(grade5) {
+                const L = gradeLetterFrom5(grade5);
+                if (L === 'E') return 'E (매우 높음)';
+                if (L === 'D') return 'D (높음)';
+                if (L === 'C') return 'C (보통)';
+                if (L === 'B') return 'B (낮음)';
+                if (L === 'A') return 'A (매우 낮음)';
+                return '미상';
+            }
+
+            function weightedPick(rng, items, fallback = null) {
+                // items: [{ value, w }]
+                if (!Array.isArray(items) || !items.length) return fallback;
+                let sum = 0;
+                for (const it of items) sum += Math.max(0, Number(it?.w) || 0);
+                if (sum <= 0) return items[0]?.value ?? fallback;
+                let t = rng() * sum;
+                for (const it of items) {
+                    t -= Math.max(0, Number(it?.w) || 0);
+                    if (t <= 0) return it?.value ?? fallback;
+                }
+                return items[items.length - 1]?.value ?? fallback;
+            }
+
+            // ===== 급경사지 평가 기준 지표(요청 항목) 생성/점수화 =====
+            function scoreSlopeAngleDeg(angle) {
+                const a = Number(angle);
+                if (!Number.isFinite(a)) return { score: null, band: '미상' };
+                if (a < 20) return { score: 2, band: '20° 미만' };
+                if (a <= 33) return { score: 4, band: '20~33°' };
+                if (a <= 43) return { score: 6, band: '34~43°' };
+                if (a <= 53) return { score: 8, band: '44~53°' };
+                return { score: 10, band: '54° 이상' };
+            }
+
+            function scoreHeightM(h) {
+                const v = Number(h);
+                if (!Number.isFinite(v)) return { score: null, band: '미상' };
+                if (v < 25) return { score: 1, band: '25m 미만' };
+                if (v <= 49) return { score: 2, band: '25~49m' };
+                if (v <= 59) return { score: 3, band: '50~59m' };
+                if (v <= 69) return { score: 4, band: '60~69m' };
+                return { score: 5, band: '70m 이상' };
+            }
+
+            function scoreLongitudinalShape(v) {
+                const map = { '철형': 1, '직선형': 2, '요형': 3, '복합형': 4 };
+                return { score: map[v] ?? null, band: v || '미상' };
+            }
+
+            function scoreTransverseShape(v) {
+                const map = { '하강형': 1, '평행형': 2, '상승형': 3, '복합형': 4 };
+                return { score: map[v] ?? null, band: v || '미상' };
+            }
+
+            function scoreCrack(has) {
+                if (has === true) return { score: 5, band: '있음' };
+                if (has === false) return { score: 0, band: '없음' };
+                return { score: null, band: '미상' };
+            }
+
+            function scoreSoilDepthCm(cm) {
+                const v = Number(cm);
+                if (!Number.isFinite(v)) return { score: null, band: '미상' };
+                if (v <= 20) return { score: 1, band: '0~20cm' };
+                if (v <= 50) return { score: 2, band: '21~50cm' };
+                if (v <= 70) return { score: 3, band: '51~70cm' };
+                if (v <= 90) return { score: 4, band: '71~90cm' };
+                return { score: 5, band: '91cm 이상' };
+            }
+
+            function scoreUpperForce(v) {
+                const map = {
+                    '없음': 0,
+                    '전/답': 2,
+                    '묘지/송전탑': 4,
+                    '주택/철도': 6,
+                    '도로/임도': 8,
+                    '인위적 개발·훼손': 10,
+                };
+                return { score: map[v] ?? null, band: v || '미상' };
+            }
+
+            function scoreCollapseHistory(v) {
+                const map = {
+                    '없음': 0,
+                    '낙석': 2,
+                    '유실 10% 미만': 4,
+                    '유실 10~20%': 6,
+                    '유실 20% 이상': 8,
+                };
+                return { score: map[v] ?? null, band: v || '미상' };
+            }
+
+            function scoreProtectionFacility(v) {
+                const map = { '양호': 0, '불량': 2, '매우 불량': 4, '없음': 5 };
+                return { score: map[v] ?? null, band: v || '미상' };
+            }
+
+            function scoreValleyLengthM(v) {
+                const x = Number(v);
+                if (!Number.isFinite(x)) return { score: null, band: '미상' };
+                if (x <= 10) return { score: 1, band: '0~10m' };
+                if (x <= 30) return { score: 2, band: '11~30m' };
+                if (x <= 50) return { score: 3, band: '31~50m' };
+                return { score: 4, band: '51m 이상' };
+            }
+
+            function scoreValleyWidthM(v) {
+                const x = Number(v);
+                if (!Number.isFinite(x)) return { score: null, band: '미상' };
+                if (x >= 3) return { score: 1, band: '3m 이상' };
+                if (x >= 2) return { score: 2, band: '2~3m' };
+                if (x >= 1) return { score: 3, band: '1~2m' };
+                return { score: 4, band: '1m 미만' };
+            }
+
+            function scoreWaterState(v) {
+                const map = { '건조': 0, '습윤': 2, '표면수': 4, '용수': 6 };
+                return { score: map[v] ?? null, band: v || '미상' };
+            }
+
+            function generateAssessmentForSite(site, baseSeed) {
+                const siteKey = String(site?.['관리번호'] || site?.['급경사지명'] || site?.['소재지'] || 'site');
+                const rs = toNumber(site?.['RiskScore']) ?? 40;
+                const riskNorm = clamp(rs / 100, 0, 1);
+                const rng = mulberry32(hashStringToSeed(`${baseSeed}|ASSESS|${siteKey}`));
+
+                const slopeAngle = Math.round(clamp(lerp(16, 62, clamp(riskNorm * 0.92 + (rng() - 0.5) * 0.28, 0, 1)), 10, 70) * 10) / 10;
+                const heightM = Math.round(clamp(lerp(18, 75, clamp(riskNorm * 0.85 + (rng() - 0.5) * 0.35, 0, 1)), 10, 90) * 10) / 10;
+
+                const longitudinalShape = weightedPick(rng, [
+                    { value: '철형', w: lerp(1.2, 0.2, riskNorm) },
+                    { value: '직선형', w: lerp(1.1, 0.6, riskNorm) },
+                    { value: '요형', w: lerp(0.7, 1.2, riskNorm) },
+                    { value: '복합형', w: lerp(0.3, 1.6, riskNorm) },
+                ], '직선형');
+
+                const transverseShape = weightedPick(rng, [
+                    { value: '하강형', w: lerp(1.1, 0.5, riskNorm) },
+                    { value: '평행형', w: lerp(1.1, 0.7, riskNorm) },
+                    { value: '상승형', w: lerp(0.6, 1.0, riskNorm) },
+                    { value: '복합형', w: lerp(0.3, 1.4, riskNorm) },
+                ], '평행형');
+
+                const crack = rng() < (0.15 + 0.65 * riskNorm);
+                const soilDepthCm = Math.round(clamp(lerp(18, 115, clamp(riskNorm * 0.75 + (rng() - 0.5) * 0.35, 0, 1)), 5, 140));
+
+                const upperForce = weightedPick(rng, [
+                    { value: '없음', w: lerp(1.4, 0.2, riskNorm) },
+                    { value: '전/답', w: lerp(1.1, 0.5, riskNorm) },
+                    { value: '묘지/송전탑', w: lerp(0.8, 0.7, riskNorm) },
+                    { value: '주택/철도', w: lerp(0.5, 0.9, riskNorm) },
+                    { value: '도로/임도', w: lerp(0.4, 1.2, riskNorm) },
+                    { value: '인위적 개발·훼손', w: lerp(0.2, 1.4, riskNorm) },
+                ], '전/답');
+
+                const collapseHistory = weightedPick(rng, [
+                    { value: '없음', w: lerp(1.6, 0.2, riskNorm) },
+                    { value: '낙석', w: lerp(0.9, 0.9, riskNorm) },
+                    { value: '유실 10% 미만', w: lerp(0.6, 1.0, riskNorm) },
+                    { value: '유실 10~20%', w: lerp(0.3, 1.1, riskNorm) },
+                    { value: '유실 20% 이상', w: lerp(0.1, 1.2, riskNorm) },
+                ], '낙석');
+
+                const protectionFacility = weightedPick(rng, [
+                    { value: '양호', w: lerp(1.4, 0.3, riskNorm) },
+                    { value: '불량', w: lerp(0.8, 0.9, riskNorm) },
+                    { value: '매우 불량', w: lerp(0.3, 1.0, riskNorm) },
+                    { value: '없음', w: lerp(0.2, 0.8, riskNorm) },
+                ], '불량');
+
+                const valleyLengthM = Math.round(clamp(lerp(8, 72, clamp(riskNorm * 0.55 + (rng() - 0.5) * 0.5, 0, 1)), 0, 120));
+                const valleyWidthM = Math.round(clamp(lerp(3.6, 0.7, clamp(riskNorm * 0.7 + (rng() - 0.5) * 0.45, 0, 1)), 0.5, 5) * 10) / 10;
+                const waterState = weightedPick(rng, [
+                    { value: '건조', w: lerp(1.5, 0.2, riskNorm) },
+                    { value: '습윤', w: lerp(1.0, 0.7, riskNorm) },
+                    { value: '표면수', w: lerp(0.4, 1.0, riskNorm) },
+                    { value: '용수', w: lerp(0.2, 1.2, riskNorm) },
+                ], '습윤');
+
+                const items = [
+                    // 1) 지형·형상
+                    { group: '1) 지형·형상', name: '경사각(°)', value: `${fmt(slopeAngle, 1)}°`, ...scoreSlopeAngleDeg(slopeAngle) },
+                    { group: '1) 지형·형상', name: '높이(m)', value: `${fmt(heightM, 1)}m`, ...scoreHeightM(heightM) },
+                    { group: '1) 지형·형상', name: '급경사지 종단형상', value: longitudinalShape, ...scoreLongitudinalShape(longitudinalShape) },
+                    { group: '1) 지형·형상', name: '자연비탈면 횡단형상', value: transverseShape, ...scoreTransverseShape(transverseShape) },
+                    // 2) 지반·지질
+                    { group: '2) 지반·지질', name: '지반 변형·균열', value: crack ? '있음' : '없음', ...scoreCrack(crack) },
+                    { group: '2) 지반·지질', name: '토층심도(㎝)', value: `${soilDepthCm}cm`, ...scoreSoilDepthCm(soilDepthCm) },
+                    { group: '2) 지반·지질', name: '상부 외력(상부 영향요인)', value: upperForce, ...scoreUpperForce(upperForce) },
+                    { group: '2) 지반·지질', name: '붕괴·유실 이력', value: collapseHistory, ...scoreCollapseHistory(collapseHistory) },
+                    // 3) 시설(보호시설)
+                    { group: '3) 시설(보호시설)', name: '보호시설 상태', value: protectionFacility, ...scoreProtectionFacility(protectionFacility) },
+                    // 4) 강우·배수·계곡(수리 조건)
+                    { group: '4) 강우·배수·계곡(수리 조건)', name: '계곡 연장(m)', value: `${valleyLengthM}m`, ...scoreValleyLengthM(valleyLengthM) },
+                    { group: '4) 강우·배수·계곡(수리 조건)', name: '계곡 폭(m)', value: `${fmt(valleyWidthM, 1)}m`, ...scoreValleyWidthM(valleyWidthM) },
+                    { group: '4) 강우·배수·계곡(수리 조건)', name: '지하수/표면수 상태', value: waterState, ...scoreWaterState(waterState) },
+                ];
+
+                const subtotals = {};
+                let total = 0;
+                for (const it of items) {
+                    const s = Number.isFinite(Number(it.score)) ? Number(it.score) : 0;
+                    subtotals[it.group] = (subtotals[it.group] || 0) + s;
+                    total += s;
+                }
+
+                return { items, subtotals, total };
+            }
+
+            function buildReportModel(cfg) {
+                const includeKey = [...(cfg.includes || [])].sort().join(',');
+                const seed = hashStringToSeed(`${cfg.type}|${cfg.region}|${cfg.startDate}|${cfg.endDate}|${includeKey}`);
+                const rng = mulberry32(seed);
+
+                const riskSnap = getRiskRowsSnapshot();
+                const allRows = Array.isArray(riskSnap.rows) ? riskSnap.rows : [];
+                const rows = allRows.filter((r) => matchesRegion(r, cfg.region));
+                const sorted = rows
+                    .slice()
+                    .sort((a, b) => (toNumber(b['RiskScore']) ?? -Infinity) - (toNumber(a['RiskScore']) ?? -Infinity));
+
+                const topSites = sorted.slice(0, clamp(cfg.type === 'monthly' ? 10 : 7, 5, 12));
+                const gradeCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, unknown: 0 };
+                let sumRisk = 0;
+                let sumSlope = 0;
+                let sumRough = 0;
+                let nRisk = 0;
+                let nSlope = 0;
+                let nRough = 0;
+
+                sorted.forEach((r) => {
+                    const g = Number.parseInt(String(r['risk_grade5_by_region'] ?? ''), 10);
+                    if (g >= 1 && g <= 5) gradeCounts[g] += 1;
+                    else gradeCounts.unknown += 1;
+                    const rs = toNumber(r['RiskScore']);
+                    if (rs != null) { sumRisk += rs; nRisk += 1; }
+                    const sl = toNumber(r['경사도(Slope)']);
+                    if (sl != null) { sumSlope += sl; nSlope += 1; }
+                    const ro = toNumber(r['거칠기(Roughness)']);
+                    if (ro != null) { sumRough += ro; nRough += 1; }
+                });
+
+                const avgRisk = nRisk ? (sumRisk / nRisk) : null;
+                const avgSlope = nSlope ? (sumSlope / nSlope) : null;
+                const avgRough = nRough ? (sumRough / nRough) : null;
+
+                const xinmoSnap = getXinmoRowsSnapshot();
+                const xinmoRows = Array.isArray(xinmoSnap.rows) ? xinmoSnap.rows : [];
+                const lastXinmo = xinmoRows.length ? xinmoRows[xinmoRows.length - 1] : null;
+                const lastLabel = String(lastXinmo?.label || lastXinmo?.LABEL || lastXinmo?.Label || lastXinmo?.['label'] || '').trim();
+
+                const focusSite = topSites.length ? pick(rng, topSites.slice(0, Math.min(3, topSites.length)), topSites[0]) : null;
+                const focusRisk = toNumber(focusSite?.['RiskScore']) ?? (avgRisk ?? 40);
+                const riskNorm = clamp(focusRisk / 100, 0, 1);
+
+                const scenario = cfg.type === 'emergency'
+                    ? pick(rng, ['집중강우 후 사면 배수 불량 징후', '위성 변위 가속 추정 및 현장 균열 신고', '도로 절개사면 낙석 흔적 증가'], '이상징후 감지')
+                    : pick(rng, ['정기 모니터링 요약', '데이터 품질 점검 포함', '취약 구간 우선순위 갱신'], '정기 모니터링 요약');
+
+                const kpi = {
+                    riskSource: riskSnap.sourceLabel,
+                    xinmoSource: xinmoSnap.sourceLabel,
+                    siteCount: rows.length,
+                    gradeCounts,
+                    avgRisk,
+                    avgSlope,
+                    avgRough,
+                    focusSite,
+                    scenario,
+                    seed,
+                    lastLabel,
+                    satVelMmPerWeek: lerp(0.3, 8.0, riskNorm) * lerp(0.8, 1.2, rng()),
+                    satAcc: lerp(-0.4, 1.6, riskNorm) * (rng() - 0.35),
+                    iotDispMmPerDay: lerp(0.1, 6.0, riskNorm) * lerp(0.8, 1.3, rng()),
+                    iotTiltDegPerDay: lerp(0.01, 0.9, riskNorm) * lerp(0.8, 1.4, rng()),
+                    rainMmPerHour: lerp(2, 65, riskNorm) * lerp(0.6, 1.2, rng()),
+                    rainMmPerDay: lerp(5, 180, riskNorm) * lerp(0.6, 1.2, rng()),
+                };
+
+                return { rng, kpi, topSites, sorted, cfg };
             }
 
             function buildReportHtml(cfg, title) {
@@ -701,6 +1270,9 @@
                     .replaceAll('"', '&quot;')
                     .replaceAll("'", '&#39;');
 
+                const model = buildReportModel(cfg);
+                const { kpi } = model;
+
                 const docNo = `MDMS-${new Date().getFullYear()}${pad2(new Date().getMonth() + 1)}${pad2(new Date().getDate())}-${pad2(new Date().getHours())}${pad2(new Date().getMinutes())}`;
                 const typeMeta = TYPE_BADGE_META[cfg.type] || TYPE_BADGE_META.monthly;
                 const reportClass = cfg.type === 'emergency' ? '긴급' : (cfg.type === 'monthly' ? '정기' : '분석');
@@ -709,37 +1281,357 @@
                     ? cfg.includes.map((k) => `• ${INCLUDE_LABELS[k] || k}`).join('\n')
                     : '• 선택 없음';
 
-                const isEmergency = cfg.type === 'emergency';
                 const titleText = escapeHtml(title || buildReportTitle(cfg));
                 const periodText = escapeHtml(formatDateRange(cfg.startDate, cfg.endDate));
                 const regionText = escapeHtml(cfg.region || '-');
                 const createdAtText = escapeHtml(formatNow());
 
-                const summaryBullets = isEmergency
-                    ? [
-                        '관측 데이터에서 이상 징후가 감지되어 긴급 보고 대상으로 분류되었습니다.',
-                        '관계기관 통보 및 현장 점검(또는 추가 관측) 필요 여부를 검토합니다.',
-                        '본 문서는 시스템 자동 생성 요약본이며, MDMS 입력/결재용 자료로 활용할 수 있도록 구성되었습니다.',
-                    ]
-                    : [
-                        '선택한 기간/지역 기준으로 관측·분석 요약을 자동 생성합니다.',
-                        '본 문서는 시스템 자동 생성 요약본이며, MDMS 입력/결재용 자료로 활용할 수 있도록 구성되었습니다.',
-                        '수치/그래프/사진 등 상세 증빙은 추후 서버 연동(첨부) 단계에서 자동 포함됩니다.',
+                const toLi = (arr) => (arr || []).map((t) => `<li>${escapeHtml(t)}</li>`).join('');
+
+                function renderTable(headers, rows) {
+                    const th = headers.map((h) => `<th style="border:1px solid var(--line); padding:6px 8px; text-align:center; background:#f8fafc; font-weight:700;">${escapeHtml(h)}</th>`).join('');
+                    const trs = rows.map((r) => {
+                        const tds = r.map((c) => `<td style="border:1px solid var(--line); padding:6px 8px; font-size:12.5px; vertical-align:top; word-break:break-word; overflow-wrap:anywhere;">${c}</td>`).join('');
+                        return `<tr>${tds}</tr>`;
+                    }).join('');
+                    return `
+                      <table style="width:100%; border-collapse:collapse; font-size:12.5px; table-layout:fixed;">
+                        <thead><tr>${th}</tr></thead>
+                        <tbody>${trs}</tbody>
+                      </table>
+                    `;
+                }
+
+                function renderIncludesNote() {
+                    const inc = new Set(cfg.includes || []);
+                    const rows = [
+                        ['위성 변위 분석값', inc.has('satellite') ? '포함' : '미포함', inc.has('satellite') ? 'LOS 변위/속도/가속도 요약' : '요약만 또는 제외'],
+                        ['IoT 센서 측정값', inc.has('iot') ? '포함' : '미포함', inc.has('iot') ? '변위/경사/강우(추정) 지표 포함' : '요약만 또는 제외'],
+                        ['위험도 히트맵', inc.has('heatmap') ? '포함' : '미포함', inc.has('heatmap') ? '위험도 공간 분포(설명) 포함' : '제외'],
+                        ['현장 점검 사진', inc.has('photos') ? '포함' : '미포함', inc.has('photos') ? '점검 항목별 사진/캡션(연동 예정)' : '제외'],
+                    ];
+                    return `
+                      <div class="section">
+                        <h2 class="section-title">1. 보고서 구성(옵션 반영)</h2>
+                        <div class="box">
+                          ${renderTable(['항목', '선택', '반영 방식'], rows.map((r) => r.map(escapeHtml)))}
+                          <div style="margin-top:8px; color:var(--muted); font-size:11.5px;">
+                            ※ 본 문서는 “옵션/유형/기간/지역” 조합을 시드로 사용해 문구·수치·선정 구간이 달라집니다(동일 설정이면 동일 결과).
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                }
+
+                function renderKpiGrid() {
+                    const gc = kpi.gradeCounts || {};
+                    const gradeText = `A:${gc[1] ?? 0} · B:${gc[2] ?? 0} · C:${gc[3] ?? 0} · D:${gc[4] ?? 0} · E:${gc[5] ?? 0}`;
+                    const focus = kpi.focusSite;
+                    const focusName = focus ? `${focus['급경사지명'] || '-'} (관리번호 ${focus['관리번호'] || '-'})` : '-';
+                    const focusAddr = focus ? (focus['소재지'] || '-') : '-';
+                    const focusRisk = focus ? fmt(focus['RiskScore'], 2) : '--';
+                    const focusGrade = focus ? gradeLabelFrom5(focus['risk_grade5_by_region']) : '미상';
+                    const source = escapeHtml(`${kpi.riskSource} / ${kpi.xinmoSource}`);
+
+                    return `
+                      <div class="grid2">
+                        <div class="box">
+                          <div style="font-weight:800; margin-bottom:6px;">핵심 요약(KPI)</div>
+                          <ul>
+                            <li>대상 구간 수: ${escapeHtml(String(kpi.siteCount ?? 0))}건</li>
+                            <li>등급 분포(요약): ${escapeHtml(gradeText)}</li>
+                            <li>평균 위험점수(RiskScore): ${escapeHtml(fmt(kpi.avgRisk, 2))}</li>
+                            <li>평균 경사도(°): ${escapeHtml(fmt(kpi.avgSlope, 2))} / 평균 거칠기: ${escapeHtml(fmt(kpi.avgRough, 2))}</li> 
+                          </ul>
+                        </div>
+                        <div class="box">
+                          <div style="font-weight:800; margin-bottom:6px;">이번 보고서 중점 구간(자동 선정)</div>
+                          <ul>
+                            <li>구간: ${escapeHtml(focusName)}</li>
+                            <li>소재지: ${escapeHtml(focusAddr)}</li>
+                            <li>위험점수/등급: ${escapeHtml(focusRisk)} / ${escapeHtml(focusGrade)}</li>
+                            <li>상황 키워드: ${escapeHtml(kpi.scenario || '-')}</li>
+                            <li>추정 분류(신호): ${escapeHtml(kpi.lastLabel || 'NONE')}</li>
+                          </ul>
+                        </div>
+                      </div>
+                    `;
+                }
+
+                function renderTopSitesSection() {
+                    const rows = (model.topSites || []).slice(0, 10).map((r, idx) => {
+                        const name = escapeHtml(r['급경사지명'] || '-');
+                        const addr = escapeHtml(r['소재지'] || '-');
+                        const no = escapeHtml(r['관리번호'] || '-');
+                        const score = escapeHtml(fmt(r['RiskScore'], 2));
+                        const grade = escapeHtml(gradeLabelFrom5(r['risk_grade5_by_region']));
+                        const slope = escapeHtml(fmt(r['경사도(Slope)'], 2));
+                        const rough = escapeHtml(fmt(r['거칠기(Roughness)'], 2));
+
+                        const assess = generateAssessmentForSite(r, kpi.seed);
+                        const a = Object.fromEntries(assess.items.map((it) => [it.name, it]));
+                        const summaryLines = [
+                            `경사각 ${a['경사각(°)']?.value ?? '--'}(${a['경사각(°)']?.score ?? '-'}) · 높이 ${a['높이(m)']?.value ?? '--'}(${a['높이(m)']?.score ?? '-'})`,
+                            `종단 ${a['급경사지 종단형상']?.value ?? '--'}(${a['급경사지 종단형상']?.score ?? '-'}) · 횡단 ${a['자연비탈면 횡단형상']?.value ?? '--'}(${a['자연비탈면 횡단형상']?.score ?? '-'})`,
+                            `균열 ${a['지반 변형·균열']?.value ?? '--'}(${a['지반 변형·균열']?.score ?? '-'}) · 토층 ${a['토층심도(㎝)']?.value ?? '--'}(${a['토층심도(㎝)']?.score ?? '-'})`,
+                            `상부외력 ${a['상부 외력(상부 영향요인)']?.value ?? '--'}(${a['상부 외력(상부 영향요인)']?.score ?? '-'}) · 이력 ${a['붕괴·유실 이력']?.value ?? '--'}(${a['붕괴·유실 이력']?.score ?? '-'})`,
+                            `보호시설 ${a['보호시설 상태']?.value ?? '--'}(${a['보호시설 상태']?.score ?? '-'})`,
+                            `계곡 ${a['계곡 연장(m)']?.value ?? '--'}(${a['계곡 연장(m)']?.score ?? '-'}) / ${a['계곡 폭(m)']?.value ?? '--'}(${a['계곡 폭(m)']?.score ?? '-'}) · 수분 ${a['지하수/표면수 상태']?.value ?? '--'}(${a['지하수/표면수 상태']?.score ?? '-'})`,
+                            `지표 합계: ${assess.total}점`,
+                        ];
+                        const summaryHtml = `<div style="font-size:11.5px; line-height:1.35; white-space:normal;">${summaryLines.map((s) => escapeHtml(s)).join('<br>')}</div>`;
+
+                        return [
+                            escapeHtml(String(idx + 1)),
+                            `<div style="font-weight:800;">${name}</div><div style="color:var(--muted); font-size:11.5px;">관리번호 ${no} · ${addr}</div><div style="color:var(--muted); font-size:11.5px;">(지형데이터) 경사 ${slope}° · 거칠기 ${rough}</div>`,
+                            `<div style="font-weight:800;">${score}</div><div style="color:var(--muted); font-size:11.5px;">${grade}</div>`,
+                            summaryHtml
+                        ];
+                    });
+                    return `
+                      <div class="section">
+                        <h2 class="section-title">2. 대상 구간 위험도 요약(상위 구간)</h2>
+                        <div class="box">
+                          ${renderTable(['No', '구간/소재지', '위험도', '평가 기준 지표(요약)'], rows.length ? rows : [[ '-', '해당 지역 데이터가 없습니다.', '-', '-' ]])}
+                          <div style="margin-top:8px; color:var(--muted); font-size:11.5px;">
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                }
+
+                function renderLegalBasisSection() {
+                    const gradeRows = [
+                        ['A', '0~20', '재해위험 매우 낮음', '정기적 안전점검'],
+                        ['B', '21~40', '재해위험 낮음', '정기적 안전점검'],
+                        ['C', '41~60', '재해위험 보통', '정기적 안전점검 + (필요 시) 붕괴위험지역 지정·관리'],
+                        ['D', '61~80', '재해위험 높음', '정기적 안전점검 + 붕괴위험지역 지정·관리'],
+                        ['E', '81 이상', '재해위험 매우 높음', '정기적 안전점검 + 붕괴위험지역 지정·관리 + (필요 시) 응급조치'],
                     ];
 
-                const actionBullets = isEmergency
-                    ? [
-                        '관측 데이터 재확인(결측/이상치 점검) 및 위험도 재산정',
-                        '현장 점검 일정 수립 및 통제/예방 조치 검토',
-                        '추가 관측(센서/위성) 알림 기준 강화 및 모니터링 강화',
-                    ]
-                    : [
+                    return `
+                      <div class="section">
+                        <h2 class="section-title">3. 기준/근거(요약)</h2>
+                        <div class="box">
+                          <div style="font-weight:800; margin-bottom:6px;">등급별 평가점수 및 관리방안(요약)</div>
+                          ${renderTable(['등급', '평가점수', '의미', '관리방안(요약)'], gradeRows.map((r) => r.map(escapeHtml)))}
+                          <div style="margin-top:10px;">
+                            
+                          <div style="margin-top:8px; color:var(--muted); font-size:11.5px;">
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                }
+
+                function renderFocusAssessmentSection() {
+                    const focus = kpi.focusSite;
+                    if (!focus) {
+                        return `
+                          <div class="section">
+                            <h2 class="section-title">4. 평가 기준 지표(중점 구간)</h2>
+                            <div class="box">중점 구간을 선정할 수 없어 평가 지표를 생성하지 못했습니다.</div>
+                          </div>
+                        `;
+                    }
+
+                    const assess = generateAssessmentForSite(focus, kpi.seed);
+                    const siteName = escapeHtml(`${focus['급경사지명'] || '-'} (관리번호 ${focus['관리번호'] || '-'})`);
+                    const addr = escapeHtml(focus['소재지'] || '-');
+
+                    const rows = assess.items.map((it) => ([
+                        escapeHtml(it.group),
+                        escapeHtml(it.name),
+                        escapeHtml(it.value),
+                        escapeHtml(String(it.band ?? '')),
+                        escapeHtml(Number.isFinite(Number(it.score)) ? String(it.score) : '-'),
+                    ]));
+
+                    const subtotalRows = Object.entries(assess.subtotals || {}).map(([g, s]) => ([
+                        escapeHtml(g),
+                        '<strong>소계</strong>',
+                        '',
+                        '',
+                        `<strong>${escapeHtml(String(s))}</strong>`,
+                    ]));
+
+                    return `
+                      <div class="section">
+                        <h2 class="section-title">4. 평가 기준 지표(중점 구간)</h2>
+                        <div class="box">
+                          <div style="font-weight:800; margin-bottom:6px;">대상: ${siteName}</div>
+                          <div style="color:var(--muted); font-size:11.5px; margin-bottom:8px;">소재지: ${addr}</div>
+                          ${renderTable(['구분', '지표', '값(예시)', '구간/판정', '배점'], rows.concat(subtotalRows).concat([[ '', '<strong>총점(지표 합)</strong>', '', '', `<strong>${escapeHtml(String(assess.total))}</strong>` ]]))}
+                          <div style="margin-top:8px; color:var(--muted); font-size:11.5px;">
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                }
+
+                function renderTypeSpecificSections() {
+                    const type = cfg.type;
+                    const includes = new Set(cfg.includes || []);
+                    const focus = kpi.focusSite || null;
+                    const focusName = focus ? escapeHtml(`${focus['급경사지명'] || '-'} (관리번호 ${focus['관리번호'] || '-'})`) : '-';
+                    const focusAddr = focus ? escapeHtml(focus['소재지'] || '-') : '-';
+
+                    if (type === 'satellite') {
+                        const siteRows = (model.topSites || []).slice(0, 6).map((r) => {
+                            const rs = toNumber(r['RiskScore']) ?? 40;
+                            const rn = clamp(rs / 100, 0, 1);
+                            const vel = lerp(0.2, 8.5, rn) * lerp(0.85, 1.25, model.rng());
+                            const losMonth = vel * 4.2 * lerp(0.9, 1.2, model.rng());
+                            const acc = lerp(-0.4, 1.7, rn) * (model.rng() - 0.3);
+                            const note = vel > 6.5 ? '가속 추정(추가 관측 권고)' : vel > 3.0 ? '완만한 변위(추세 관찰)' : '안정 범위(정상 모니터링)';
+                            return [
+                                escapeHtml(r['급경사지명'] || '-'),
+                                escapeHtml(r['소재지'] || '-'),
+                                `<div style="font-weight:800;">${escapeHtml(fmt(losMonth, 1))}</div><div style="color:var(--muted); font-size:11.5px;">mm/월(LOS)</div>`,
+                                `${escapeHtml(fmt(vel, 2))} mm/주`,
+                                `${escapeHtml(fmt(acc, 2))}`,
+                                escapeHtml(note)
+                            ];
+                        });
+
+                        const includedText = includes.has('satellite')
+                            ? '위성 변위(LOS) 시계열을 기반으로, 구간별 변위 속도/가속도를 요약합니다.'
+                            : '현재 설정에서 위성 데이터가 제외되어, 위성 변위 분석 섹션은 “요약 수준”으로만 작성됩니다.';
+
+                        return `
+                          <div class="section">
+                            <h2 class="section-title">5. 위성(SAR) 변위 분석 요약</h2>
+                            <div class="box">
+                              <ul>
+                                <li>${escapeHtml(includedText)}</li>
+                                <li>해석 메모: 변위량은 관측 기하(LOS) 특성상 지상 변위와 차이가 있을 수 있어, 현장 계측(IoT) 및 강우와 함께 종합 판단합니다.</li>
+                              </ul>
+                              <div style="margin-top:10px;">
+                                ${renderTable(['구간', '소재지', '변위량', '속도', '가속도', '해석'], siteRows.length ? siteRows : [[ '-', '-', '-', '-', '-', '-' ]])}
+                              </div>
+                            </div>
+                          </div>
+                        `;
+                    }
+
+                    if (type === 'inspection') {
+                        const itemTemplates = [
+                            { item: '배수시설(측구/배수로) 상태', ok: '퇴적/파손 없음', warn: '부분 퇴적', bad: '배수 불량(정비 필요)' },
+                            { item: '사면 균열/침하', ok: '이상 없음', warn: '미세 균열 관찰', bad: '균열 확대(추가 조사)' },
+                            { item: '낙석/유실 흔적', ok: '이상 없음', warn: '소규모 낙석 흔적', bad: '낙석 다발(통제 검토)' },
+                            { item: '보호시설(옹벽/축대) 상태', ok: '양호', warn: '경미 손상', bad: '보수 필요(구조 검토)' },
+                            { item: '상부 외력(개발/벌채/시설물)', ok: '영향 경미', warn: '일부 영향', bad: '영향 큼(관리 필요)' },
+                            { item: '지하수/습윤 흔적', ok: '건조', warn: '습윤', bad: '용수/표면수 흐름' },
+                        ];
+
+                        const rows = itemTemplates.map((t) => {
+                            const p = model.rng();
+                            const level = p < 0.68 ? '양호' : p < 0.88 ? '관찰' : '조치';
+                            const result = level === '양호' ? t.ok : level === '관찰' ? t.warn : t.bad;
+                            const action = level === '조치'
+                                ? pick(model.rng, ['정비·보수 후 재점검', '정밀점검(계측 포함) 검토', '구간 통제(임시) 및 경고표지 설치'], '정비 후 재점검')
+                                : level === '관찰'
+                                    ? pick(model.rng, ['추세 관찰 및 다음 점검 시 재확인', '강우 시 특별점검 권고'], '추세 관찰')
+                                    : '정기 점검 유지';
+                            const photo = (cfg.includes || []).includes('photos') ? pick(model.rng, ['O', 'O', 'O', '△', 'X'], 'O') : '미포함';
+                            return [escapeHtml(t.item), escapeHtml(level), escapeHtml(result), escapeHtml(action), escapeHtml(photo)];
+                        });
+
+                        return `
+                          <div class="section">
+                            <h2 class="section-title">5. 정기 안전점검 결과(체크리스트)</h2>
+                            <div class="box">
+                              <ul>
+                                <li>점검 수준: 육안점검(간단 장비 활용) 기반 요약(프로토타입)</li>
+                                <li>중점 구간: ${focusName} / ${focusAddr}</li>
+                              </ul>
+                              <div style="margin-top:10px;">
+                                ${renderTable(['점검 항목', '판정', '관찰 내용', '권고 조치', '사진'], rows)}
+                              </div>
+                            </div>
+                          </div>
+                        `;
+                    }
+
+                    if (type === 'emergency') {
+                        const bullets = [
+                            `이상 징후 유형: ${escapeHtml(kpi.scenario || '-')}`,
+                            `중점 구간: ${focusName} / ${focusAddr}`,
+                            `예상 변위 속도(위성 추정): ${escapeHtml(fmt(kpi.satVelMmPerWeek, 2))} mm/주`,
+                            `예상 변위(센서 추정): ${escapeHtml(fmt(kpi.iotDispMmPerDay, 2))} mm/일, 경사 ${escapeHtml(fmt(kpi.iotTiltDegPerDay, 2))} °/일`,
+                            `강우(추정): ${escapeHtml(fmt(kpi.rainMmPerHour, 0))} mm/시, ${escapeHtml(fmt(kpi.rainMmPerDay, 0))} mm/일`,
+                        ];
+
+                        const timeline = [
+                            ['T-24h', '강우 전조(누적 증가), 배수 취약 구간 우선 모니터링'],
+                            ['T-6h', '센서 변위 상승 / 위성 추세(최근) 대비 가속 의심'],
+                            ['T0', '긴급 보고 자동 생성 및 담당자 알림(관제)'],
+                            ['T+6h', '현장 점검/통제 여부 결정 및 관계기관 공유'],
+                        ];
+
+                        const actions = [
+                            '관측 데이터 재확인(결측/이상치 점검) 및 위험도 재산정',
+                            '현장 점검 일정 수립 및 통제/예방 조치(펜스, 낙석 방지망, 우수 배제) 검토',
+                            '추가 관측(센서 샘플링 상향/위성·드론 정밀 관측) 및 알림 기준 강화',
+                            '필요 시 응급조치(임시 보강, 통행 제한, 주민 안내) 시행',
+                        ];
+
+                        const notes = [
+                            includes.has('satellite') ? '위성 변위(LOS) 데이터 포함' : '위성 데이터 미포함(요약만)',
+                            includes.has('iot') ? 'IoT 센서 데이터 포함' : 'IoT 데이터 미포함',
+                            includes.has('heatmap') ? '위험도 히트맵 포함' : '히트맵 미포함',
+                            includes.has('photos') ? '현장 사진(또는 캡션) 포함' : '현장 사진 미포함',
+                        ];
+
+                        return `
+                          <div class="section">
+                            <h2 class="section-title">5. 긴급 상황 요약</h2>
+                            <div class="box">
+                              <ul>${toLi(bullets)}</ul>
+                              <div style="margin-top:10px;">
+                                <div style="font-weight:800; margin-bottom:6px;">시간대별 경과(요약)</div>
+                                ${renderTable(['시간', '내용'], timeline.map((r) => [escapeHtml(r[0]), escapeHtml(r[1])]))}
+                              </div>
+                              <div style="margin-top:10px;">
+                                <div style="font-weight:800; margin-bottom:6px;">권고 조치</div>
+                                <ul>${toLi(actions)}</ul>
+                              </div>
+                              <div style="margin-top:10px; color:var(--muted); font-size:11.5px;">
+                                포함 데이터: ${escapeHtml(notes.join(' · '))}
+                              </div>
+                            </div>
+                          </div>
+                        `;
+                    }
+
+                    // monthly + 기타
+                    const deltaSign = model.rng() < 0.55 ? '+' : '-';
+                    const delta = lerp(0.5, 6.5, model.rng());
+                    const trendText = `${deltaSign}${fmt(delta, 1)}% (전월 대비, 추정)`;
+                    const actions = [
                         '정기 모니터링 유지 및 임계치 초과 구간 상시 관제',
-                        '취약 구간 우선순위 재정렬 및 점검 계획 반영',
+                        '취약 구간 우선순위 재정렬 및 점검 계획 반영(정기점검/정밀점검)',
+                        '강우 집중 시(호우특보 등) 특별점검 및 경보 체계 점검',
                         '관측 데이터 품질 점검(결측/이상치/드리프트) 정례화',
                     ];
 
-                const toLi = (arr) => arr.map((t) => `<li>${escapeHtml(t)}</li>`).join('');
+                    return `
+                      <div class="section">
+                        <h2 class="section-title">5. 월간 종합 요약</h2>
+                        <div class="box">
+                          <ul>
+                            <li>월간 위험도 변화(요약): ${escapeHtml(trendText)}</li>
+                            <li>주요 이슈: ${escapeHtml(kpi.scenario || '-')}</li>
+                            <li>중점 구간: ${focusName} / ${focusAddr}</li>
+                          </ul>
+                          <div style="margin-top:10px;">
+                            <div style="font-weight:800; margin-bottom:6px;">권고 사항</div>
+                            <ul>${toLi(actions)}</ul>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                }
 
                 return `<!DOCTYPE html>
 <html lang="ko">
@@ -940,49 +1832,39 @@
     </table>
 
     <div class="section">
-      <h2 class="section-title">1. 상황개요</h2>
-      <div class="box">
-        <ul>${toLi(summaryBullets)}</ul>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">2. 관측/분석 요약</h2>
-      <div class="grid2">
-        <div class="box">
-          <div style="font-weight:800; margin-bottom:6px;">주요 지표(예시)</div>
-          <ul>
-            <li>관측 대상 구간 수: (연동 예정)</li>
-            <li>주의/경계 이상 징후: (연동 예정)</li>
-            <li>최근 갱신 시각: ${createdAtText}</li>
-          </ul>
-        </div>
-        <div class="box">
-          <div style="font-weight:800; margin-bottom:6px;">특이사항(요약)</div>
-          <ul>
-            <li>${escapeHtml(isEmergency ? '긴급 보고 대상 구간 발생 가능성 검토 필요' : '특이사항 없음(또는 연동 예정)')}</li>
-            <li>${escapeHtml(cfg.includes.includes('satellite') ? '위성 변위 추세 포함' : '위성 변위 미포함')}</li>
-            <li>${escapeHtml(cfg.includes.includes('iot') ? 'IoT 센서 측정 요약 포함' : 'IoT 센서 요약 미포함')}</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">3. 조치사항</h2>
-      <div class="box">
-        <ul>${toLi(actionBullets)}</ul>
-      </div>
-    </div>
-
-    <div class="section">
-      <h2 class="section-title">4. 향후계획</h2>
+      <h2 class="section-title">0. 개요</h2>
       <div class="box">
         <ul>
-          <li>데이터 연동(그래프/표/사진 첨부) 및 PDF 템플릿 출력 연계</li>
-          <li>기관별 보고 항목(필수/선택) 커스터마이징 지원</li>
-          <li>MDMS 입력 필드 매핑 및 자동 기입 기능 추가</li>
+          <li>본 보고서는 선택한 기간/지역/유형/포함 데이터 설정에 따라 자동 생성됩니다.</li>
+          <li>실제 현장 운영을 가정해, 위험도 상위 구간과 근거(고시 요약), 조치안을 포함합니다.</li>
         </ul>
+      </div>
+    </div>
+
+    ${renderIncludesNote()}
+    <div class="section">
+      <h2 class="section-title">1. 관측/분석 핵심 요약</h2>
+      <div class="box">
+        ${renderKpiGrid()}
+      </div>
+    </div>
+
+    ${renderTopSitesSection()}
+    ${renderLegalBasisSection()}
+    ${renderFocusAssessmentSection()}
+    ${renderTypeSpecificSections()}
+
+    <div class="section">
+      <h2 class="section-title">6. 향후 계획</h2>
+      <div class="box">
+        <ul>
+          <li>데이터 연동 강화: 그래프/표/사진(첨부) 자동 포함 및 문서형 PDF 출력 연계</li>
+          <li>기관별 보고 항목(필수/선택) 커스터마이징 및 결재 라인/문서번호 체계 연결</li>
+          <li>고시 기반 점검 항목/평가표(별표) 상세 매핑 및 “정밀점검” 템플릿 추가</li>
+        </ul>
+        <div style="margin-top:10px; color:var(--muted); font-size:11.5px;">
+          생성 시드: <span class="mono">${escapeHtml(String(kpi.seed))}</span>
+        </div>
       </div>
     </div>
 
@@ -1008,7 +1890,7 @@
     </div>
 
     <div class="footer">
-      <div>※ 본 문서는 프로토타입이며, 실제 MDMS 서식/필수 항목은 기관 운영 기준에 따라 조정될 수 있습니다.</div>
+      <div>※ 본 문서는 프로토타입이며, 실제 MDMS 서식/필수 항목은 기관 운영 기준 및 고시 세부 조항에 따라 조정될 수 있습니다.</div>
       <div class="mono">${escapeHtml(docNo)}</div>
     </div>
   </div>
@@ -1028,6 +1910,17 @@
                 URL.revokeObjectURL(url);
             }
 
+            function downloadBlobFile(filename, blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+
             function downloadHtmlReport(cfg, title) {
                 const safe = title
                     .replace(/[\\/:*?"<>|]/g, '-')
@@ -1036,6 +1929,347 @@
                     .slice(0, 120);
                 const filename = `${safe || 'report'}.html`;
                 downloadTextFile(filename, buildReportHtml(cfg, title), 'text/html;charset=utf-8');
+            }
+
+            function getSelectedDownloadFormat() {
+                const v = elements.downloadFormat?.value;
+                if (v === 'pdf' || v === 'docx' || v === 'html') return v;
+                return 'pdf';
+            }
+
+            function buildSafeFilenameBase(title) {
+                return String(title || 'report')
+                    .replace(/[\\/:*?"<>|]/g, '-')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .slice(0, 120) || 'report';
+            }
+
+            function buildExportDom(cfg, title, options = {}) {
+                const html = buildReportHtml(cfg, title);
+                const parsed = new DOMParser().parseFromString(html, 'text/html');
+                const sheet = parsed.querySelector('.sheet');
+                const styleText = Array.from(parsed.querySelectorAll('style'))
+                    .map((s) => s.textContent || '')
+                    .join('\n');
+
+                const widthMm = Number.isFinite(Number(options.widthMm)) ? Number(options.widthMm) : 190;
+                const extraCss = String(options.extraCss || '');
+
+                const container = document.createElement('div');
+                container.style.position = 'fixed';
+                container.style.left = '-100000px';
+                container.style.top = '0';
+                container.style.width = `${widthMm}mm`;
+                container.style.background = '#ffffff';
+                container.style.color = '#0f172a';
+                container.innerHTML = `<style>${styleText}\n${extraCss}</style>`;
+
+                const host = document.createElement('div');
+                host.style.width = `${widthMm}mm`;
+                host.style.background = '#ffffff';
+                if (sheet) host.appendChild(sheet);
+                else host.innerHTML += parsed.body?.innerHTML || '';
+                container.appendChild(host);
+
+                document.body.appendChild(container);
+                return {
+                    container,
+                    rootEl: host,
+                    dispose: () => {
+                        try { container.remove(); } catch { }
+                    }
+                };
+            }
+
+            async function downloadPdfReport(cfg, title) {
+                const base = buildSafeFilenameBase(title);
+                if (!window.html2pdf) {
+                    showToast('PDF 변환 라이브러리를 불러오지 못했습니다. (네트워크/차단 확인)', 'danger');
+                    return;
+                }
+
+                // A4(210mm) - 여백(10mm*2) = 190mm
+                const PDF_MARGIN_MM = 10;
+                const PDF_WIDTH_MM = 210 - (PDF_MARGIN_MM * 2);
+                const exportDom = buildExportDom(cfg, title, {
+                    widthMm: PDF_WIDTH_MM,
+                    extraCss: `
+                      /* PDF 내보내기 전용: 폭 맞춤 + 불필요한 테두리/그림자 제거 */
+                      .sheet { width: ${PDF_WIDTH_MM}mm !important; margin: 0 !important; border: none !important; box-shadow: none !important; }
+                      .toolbar { display: none !important; }
+                      table { page-break-inside: auto; }
+                      tr { page-break-inside: avoid; page-break-after: auto; }
+                      .section, .box, .grid2 { break-inside: avoid; page-break-inside: avoid; }
+                    `
+                });
+                try {
+                    const opt = {
+                        margin: [PDF_MARGIN_MM, PDF_MARGIN_MM, PDF_MARGIN_MM, PDF_MARGIN_MM], // mm
+                        filename: `${base}.pdf`,
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+                    };
+                    await window.html2pdf().set(opt).from(exportDom.rootEl).save();
+                } finally {
+                    exportDom.dispose();
+                }
+            }
+
+            function docxParagraph(text, options = {}) {
+                const d = window.docx;
+                return new d.Paragraph({
+                    text: String(text ?? ''),
+                    ...options,
+                });
+            }
+
+            function docxRun(text, options = {}) {
+                const d = window.docx;
+                return new d.TextRun({ text: String(text ?? ''), ...options });
+            }
+
+            function docxHeading(text, level = 2) {
+                const d = window.docx;
+                const map = {
+                    1: d.HeadingLevel.HEADING_1,
+                    2: d.HeadingLevel.HEADING_2,
+                    3: d.HeadingLevel.HEADING_3,
+                };
+                return new d.Paragraph({
+                    children: [docxRun(text, { bold: true })],
+                    heading: map[level] || d.HeadingLevel.HEADING_2,
+                    spacing: { before: 220, after: 120 },
+                });
+            }
+
+            function docxTable(headers, rows) {
+                const d = window.docx;
+                const headerRow = new d.TableRow({
+                    children: headers.map((h) =>
+                        new d.TableCell({
+                            shading: { type: d.ShadingType.SOLID, color: 'F8FAFC' },
+                            children: [new d.Paragraph({ children: [docxRun(h, { bold: true })] })],
+                        })
+                    ),
+                });
+                const bodyRows = (rows || []).map((r) =>
+                    new d.TableRow({
+                        children: r.map((c) =>
+                            new d.TableCell({
+                                children: [new d.Paragraph({ text: String(c ?? '') })],
+                            })
+                        ),
+                    })
+                );
+                return new d.Table({
+                    width: { size: 100, type: d.WidthType.PERCENTAGE },
+                    rows: [headerRow, ...bodyRows],
+                });
+            }
+
+            async function downloadDocxReport(cfg, title) {
+                const base = buildSafeFilenameBase(title);
+                if (!window.docx) {
+                    showToast('DOCX 라이브러리를 불러오지 못했습니다. (네트워크/차단 확인)', 'danger');
+                    return;
+                }
+
+                const d = window.docx;
+                const model = buildReportModel(cfg);
+                const { kpi } = model;
+
+                const typeShort = TYPE_BADGE_META[cfg.type]?.text || '보고';
+                const reportClass = cfg.type === 'emergency' ? '긴급' : (cfg.type === 'monthly' ? '정기' : '분석');
+                const period = formatDateRange(cfg.startDate, cfg.endDate);
+                const region = cfg.region || '-';
+                const includes = (cfg.includes || []).map((k) => INCLUDE_LABELS[k] || k).join(', ') || '선택 없음';
+                const focus = kpi.focusSite;
+                const focusName = focus ? `${focus['급경사지명'] || '-'} (관리번호 ${focus['관리번호'] || '-'})` : '-';
+                const focusAddr = focus ? (focus['소재지'] || '-') : '-';
+                const focusScore = focus ? fmt(focus['RiskScore'], 2) : '--';
+                const focusGrade = focus ? gradeLabelFrom5(focus['risk_grade5_by_region']) : '미상';
+
+                const children = [];
+
+                // Title
+                children.push(new d.Paragraph({
+                    children: [docxRun(title, { bold: true, size: 36 })],
+                    spacing: { after: 160 },
+                }));
+                children.push(new d.Paragraph({
+                    children: [docxRun(`문서 분류: ${reportClass} / 유형: ${typeShort}`, { color: '475569' })],
+                    spacing: { after: 80 },
+                }));
+
+                // Meta table
+                children.push(docxTable(
+                    ['항목', '내용'],
+                    [
+                        ['대상지역', region],
+                        ['대상기간', period],
+                        ['작성일시', formatNow()],
+                        ['포함데이터', includes],
+                    ]
+                ));
+
+                children.push(docxHeading('1. 관측/분석 핵심 요약', 2));
+                children.push(new d.Paragraph({ children: [docxRun(`대상 구간 수: ${String(kpi.siteCount ?? 0)}건`, { bold: true })] }));
+                children.push(new d.Paragraph({ text: `평균 위험점수(RiskScore): ${fmt(kpi.avgRisk, 2)}` }));
+                children.push(new d.Paragraph({ text: `평균 경사도(°): ${fmt(kpi.avgSlope, 2)} / 평균 거칠기: ${fmt(kpi.avgRough, 2)}` }));
+                children.push(new d.Paragraph({ text: `중점 구간: ${focusName}` }));
+                children.push(new d.Paragraph({ text: `소재지: ${focusAddr}` }));
+                children.push(new d.Paragraph({ text: `위험점수/등급: ${focusScore} / ${focusGrade}` }));
+                children.push(new d.Paragraph({ text: `상황 키워드: ${kpi.scenario || '-'}` }));
+                children.push(new d.Paragraph({ text: `추정 분류(신호): ${kpi.lastLabel || 'NONE'}` }));
+
+                children.push(docxHeading('2. 대상 구간 위험도 요약(상위 구간)', 2));
+                const topRows = (model.topSites || []).slice(0, 10).map((r, idx) => [
+                    String(idx + 1),
+                    `${r['급경사지명'] || '-'}`,
+                    `${r['소재지'] || '-'}`,
+                    `${fmt(r['RiskScore'], 2)} / ${gradeLabelFrom5(r['risk_grade5_by_region'])}`,
+                ]);
+                children.push(docxTable(['No', '구간', '소재지', '위험도'], topRows.length ? topRows : [['-', '-', '-', '-']]));
+
+                children.push(docxHeading('3. 기준/근거(요약)', 2));
+                children.push(docxTable(
+                    ['등급', '평가점수', '의미', '관리방안(요약)'],
+                    [
+                        ['A', '0~20', '재해위험 매우 낮음', '정기적 안전점검'],
+                        ['B', '21~40', '재해위험 낮음', '정기적 안전점검'],
+                        ['C', '41~60', '재해위험 보통', '정기적 안전점검 + (필요 시) 붕괴위험지역 지정·관리'],
+                        ['D', '61~80', '재해위험 높음', '정기적 안전점검 + 붕괴위험지역 지정·관리'],
+                        ['E', '81 이상', '재해위험 매우 높음', '정기적 안전점검 + 붕괴위험지역 지정·관리 + (필요 시) 응급조치'],
+                    ]
+                ));
+                children.push(new d.Paragraph({
+                    children: [
+                        docxRun('정기적 안전점검: ', { bold: true }),
+                        docxRun('육안검사 수준 점검(카메라·줄자·망치 등 간단 장비 활용)'),
+                    ],
+                    spacing: { before: 120, after: 60 },
+                }));
+            
+
+                children.push(docxHeading('4. 평가 기준 지표(중점 구간)', 2));
+                if (kpi.focusSite) {
+                    const focus = kpi.focusSite;
+                    const assess = generateAssessmentForSite(focus, kpi.seed);
+                    children.push(new d.Paragraph({ text: `대상: ${focus['급경사지명'] || '-'} (관리번호 ${focus['관리번호'] || '-'})` }));
+                    children.push(new d.Paragraph({ text: `소재지: ${focus['소재지'] || '-'}`, spacing: { after: 80 } }));
+
+                    const assessRows = assess.items.map((it) => [
+                        it.group,
+                        it.name,
+                        it.value,
+                        String(it.band ?? ''),
+                        Number.isFinite(Number(it.score)) ? String(it.score) : '-',
+                    ]);
+                    children.push(docxTable(['구분', '지표', '값(예시)', '구간/판정', '배점'], assessRows));
+                    children.push(new d.Paragraph({ text: `총점(지표 합): ${String(assess.total)}`, spacing: { before: 120, after: 120 } }));
+                } else {
+                    children.push(new d.Paragraph({ text: '중점 구간을 선정할 수 없어 평가 지표를 생성하지 못했습니다.', spacing: { after: 120 } }));
+                }
+
+                // Type-specific
+                if (cfg.type === 'satellite') {
+                    children.push(docxHeading('5. 위성(SAR) 변위 분석 요약', 2));
+                    const rows = (model.topSites || []).slice(0, 6).map((r) => {
+                        const rs = toNumber(r['RiskScore']) ?? 40;
+                        const rn = clamp(rs / 100, 0, 1);
+                        const vel = lerp(0.2, 8.5, rn) * lerp(0.85, 1.25, model.rng());
+                        const losMonth = vel * 4.2 * lerp(0.9, 1.2, model.rng());
+                        const acc = lerp(-0.4, 1.7, rn) * (model.rng() - 0.3);
+                        const note = vel > 6.5 ? '가속 추정(추가 관측 권고)' : vel > 3.0 ? '완만한 변위(추세 관찰)' : '안정 범위(정상 모니터링)';
+                        return [
+                            r['급경사지명'] || '-',
+                            r['소재지'] || '-',
+                            `${fmt(losMonth, 1)} mm/월(LOS)`,
+                            `${fmt(vel, 2)} mm/주`,
+                            `${fmt(acc, 2)}`,
+                            note,
+                        ];
+                    });
+                    children.push(docxTable(['구간', '소재지', '변위량', '속도', '가속도', '해석'], rows.length ? rows : [['-', '-', '-', '-', '-', '-']]));
+                } else if (cfg.type === 'inspection') {
+                    children.push(docxHeading('5. 정기 안전점검 결과(체크리스트)', 2));
+                    const itemTemplates = [
+                        { item: '배수시설(측구/배수로) 상태', ok: '퇴적/파손 없음', warn: '부분 퇴적', bad: '배수 불량(정비 필요)' },
+                        { item: '사면 균열/침하', ok: '이상 없음', warn: '미세 균열 관찰', bad: '균열 확대(추가 조사)' },
+                        { item: '낙석/유실 흔적', ok: '이상 없음', warn: '소규모 낙석 흔적', bad: '낙석 다발(통제 검토)' },
+                        { item: '보호시설(옹벽/축대) 상태', ok: '양호', warn: '경미 손상', bad: '보수 필요(구조 검토)' },
+                        { item: '상부 외력(개발/벌채/시설물)', ok: '영향 경미', warn: '일부 영향', bad: '영향 큼(관리 필요)' },
+                        { item: '지하수/습윤 흔적', ok: '건조', warn: '습윤', bad: '용수/표면수 흐름' },
+                    ];
+                    const rows = itemTemplates.map((t) => {
+                        const p = model.rng();
+                        const level = p < 0.68 ? '양호' : p < 0.88 ? '관찰' : '조치';
+                        const result = level === '양호' ? t.ok : level === '관찰' ? t.warn : t.bad;
+                        const action = level === '조치'
+                            ? pick(model.rng, ['정비·보수 후 재점검', '정밀점검(계측 포함) 검토', '구간 통제(임시) 및 경고표지 설치'], '정비 후 재점검')
+                            : level === '관찰'
+                                ? pick(model.rng, ['추세 관찰 및 다음 점검 시 재확인', '강우 시 특별점검 권고'], '추세 관찰')
+                                : '정기 점검 유지';
+                        return [t.item, level, result, action];
+                    });
+                    children.push(docxTable(['점검 항목', '판정', '관찰 내용', '권고 조치'], rows));
+                } else if (cfg.type === 'emergency') {
+                    children.push(docxHeading('5. 긴급 상황 요약', 2));
+                    children.push(new d.Paragraph({ text: `이상 징후 유형: ${kpi.scenario || '-'}` }));
+                    children.push(new d.Paragraph({ text: `중점 구간: ${focusName} / ${focusAddr}` }));
+                    children.push(new d.Paragraph({ text: `예상 변위 속도(위성 추정): ${fmt(kpi.satVelMmPerWeek, 2)} mm/주` }));
+                    children.push(new d.Paragraph({ text: `예상 변위(센서 추정): ${fmt(kpi.iotDispMmPerDay, 2)} mm/일, 경사 ${fmt(kpi.iotTiltDegPerDay, 2)} °/일` }));
+                    children.push(new d.Paragraph({ text: `강우(추정): ${fmt(kpi.rainMmPerHour, 0)} mm/시, ${fmt(kpi.rainMmPerDay, 0)} mm/일` }));
+                    children.push(docxTable(
+                        ['시간', '내용'],
+                        [
+                            ['T-24h', '강우 전조(누적 증가), 배수 취약 구간 우선 모니터링'],
+                            ['T-6h', '센서 변위 상승 / 위성 추세(최근) 대비 가속 의심'],
+                            ['T0', '긴급 보고 자동 생성 및 담당자 알림(관제)'],
+                            ['T+6h', '현장 점검/통제 여부 결정 및 관계기관 공유'],
+                        ]
+                    ));
+                } else {
+                    children.push(docxHeading('5. 월간 종합 요약', 2));
+                    const deltaSign = model.rng() < 0.55 ? '+' : '-';
+                    const delta = lerp(0.5, 6.5, model.rng());
+                    children.push(new d.Paragraph({ text: `월간 위험도 변화(요약): ${deltaSign}${fmt(delta, 1)}% (전월 대비, 추정)` }));
+                    children.push(new d.Paragraph({ text: `주요 이슈: ${kpi.scenario || '-'}` }));
+                    children.push(new d.Paragraph({ text: `중점 구간: ${focusName} / ${focusAddr}` }));
+                }
+
+                children.push(docxHeading('6. 향후 계획', 2));
+                children.push(new d.Paragraph({ text: '데이터 연동 강화: 그래프/표/사진(첨부) 자동 포함 및 문서형 PDF 출력 연계' }));
+                children.push(new d.Paragraph({ text: '기관별 보고 항목(필수/선택) 커스터마이징 및 결재 라인/문서번호 체계 연결' }));
+                children.push(new d.Paragraph({ text: '고시 기반 점검 항목/평가표(별표) 상세 매핑 및 “정밀점검” 템플릿 추가' }));
+                children.push(new d.Paragraph({ text: `생성 시드: ${String(kpi.seed)}`, spacing: { before: 120 } }));
+
+                const doc = new d.Document({
+                    sections: [{ properties: {}, children }],
+                });
+
+                const blob = await d.Packer.toBlob(doc);
+                downloadBlobFile(`${base}.docx`, blob);
+            }
+
+            async function downloadReportByFormat(cfg, title, format) {
+                const fmt = format || getSelectedDownloadFormat();
+                if (fmt === 'html') {
+                    downloadHtmlReport(cfg, title);
+                    return;
+                }
+                if (fmt === 'pdf') {
+                    await downloadPdfReport(cfg, title);
+                    return;
+                }
+                if (fmt === 'docx') {
+                    await downloadDocxReport(cfg, title);
+                    return;
+                }
+                downloadHtmlReport(cfg, title);
             }
 
             function getHistoryRows() {
@@ -1059,13 +2293,17 @@
                 tr.dataset.reportEnd = cfg.endDate || '';
                 tr.dataset.reportRegion = cfg.region || '';
                 tr.dataset.reportIncludes = (cfg.includes || []).join(',');
+                tr.dataset.ndmsSent = '0';
                 tr.innerHTML = `
                     <td>0</td>
                     <td style="font-weight: 600;">${title}</td>
                     <td><span class="badge ${badge.className}">${badge.text}</span></td>
                     <td>김담당</td>
                     <td>${formatNow()}</td>
-                    <td class="font-medium text-emerald-600">생성 완료</td>
+                    <td>
+                        <div class="font-medium text-emerald-600">생성 완료</div>
+                        <div class="mt-1 text-xs text-slate-500" data-ndms-status>NDMS 미전송</div>
+                    </td>
                     <td><button type="button" class="btn btn-secondary btn-sm" data-download aria-label="보고서 다운로드"><i class="fas fa-download"></i></button></td>
                 `;
 
@@ -1073,6 +2311,7 @@
                 if (firstRow) elements.historyBody.insertBefore(tr, firstRow);
                 else elements.historyBody.appendChild(tr);
                 renumberHistoryRows();
+                lastHistoryRowEl = tr;
             }
 
             const filterHistory = debounce(() => {
@@ -1093,6 +2332,8 @@
             }, 100);
 
             let isGenerating = false;
+            let isNdmsSending = false;
+            let lastHistoryRowEl = null;
             const originalGenerateHtml = elements.generateBtn?.innerHTML || '';
             const originalModalGenerateHtml = elements.modalGenerateBtn?.innerHTML || '';
 
@@ -1101,6 +2342,8 @@
                 if (elements.previewBtn) elements.previewBtn.disabled = disabled;
                 if (elements.generateBtn) elements.generateBtn.disabled = disabled;
                 if (elements.modalGenerateBtn) elements.modalGenerateBtn.disabled = disabled;
+                if (elements.downloadFormat) elements.downloadFormat.disabled = disabled;
+                if (elements.ndmsSendBtn) elements.ndmsSendBtn.disabled = disabled;
 
                 const spinner = `<span class="spinner" aria-hidden="true"></span>`;
                 if (elements.generateBtn) {
@@ -1118,18 +2361,112 @@
 
                 const cfg = getConfig();
                 const title = buildReportTitle(cfg);
+                const fmt = getSelectedDownloadFormat();
 
                 // NOTE: 다운로드는 사용자 제스처(클릭) 흐름 안에서 실행돼야 브라우저 차단을 피할 수 있습니다.
-                downloadHtmlReport(cfg, title);
-                showToast('보고서를 생성하고 있습니다. 잠시만 기다려주세요.', 'info');
+                showToast(`보고서를 생성하고 있습니다. (${fmt.toUpperCase()})`, 'info');
+                await downloadReportByFormat(cfg, title, fmt);
 
                 await sleep(900);
                 addHistoryRow(cfg);
                 filterHistory();
-                showToast('보고서 생성 완료. 다운로드를 시작합니다(샘플 HTML).', 'success');
+                showToast('보고서 생성 완료. 다운로드를 시작합니다.', 'success');
 
                 isGenerating = false;
                 setGeneratingUI(false);
+            }
+
+            function ensureNdmsMockReady() {
+                if (!window.NDMSMock) return false;
+                try {
+                    window.NDMSMock.ensureInit();
+                    // 마스터가 비어 있으면 최소 부팅(페이지 간 이동 시에도 "가동 중"처럼)
+                    window.NDMSMock.bootstrapIfEmpty(() => [], '보고서 페이지(빈 마스터)');
+                    return true;
+                } catch {
+                    return false;
+                }
+            }
+
+            function markHistoryRowNdmsSent(tr, sentAt) {
+                if (!tr) return;
+                tr.dataset.ndmsSent = '1';
+                const el = tr.querySelector('[data-ndms-status]');
+                if (el) el.textContent = `NDMS 전송 완료 (${sentAt || formatNow()})`;
+            }
+
+            function ensureHistoryNdmsCells() {
+                const rows = getHistoryRows();
+                rows.forEach((tr) => {
+                    if (!tr.dataset.ndmsSent) tr.dataset.ndmsSent = '0';
+                    const statusTd = tr.querySelector('td:nth-child(6)');
+                    if (!statusTd) return;
+                    if (statusTd.querySelector('[data-ndms-status]')) return;
+
+                    // 기존 정적 행: "생성 완료" 텍스트를 유지하면서 NDMS 라인만 추가
+                    const curText = statusTd.textContent?.trim() || '생성 완료';
+                    statusTd.innerHTML = `
+                        <div class="font-medium text-emerald-600">${curText}</div>
+                        <div class="mt-1 text-xs text-slate-500" data-ndms-status>NDMS 미전송</div>
+                    `;
+                });
+            }
+
+            async function sendReportToNdmsMock(cfg, title) {
+                if (isNdmsSending) return;
+                isNdmsSending = true;
+                setGeneratingUI(true);
+                const sentAt = formatNow();
+
+                try {
+                    const ok = ensureNdmsMockReady();
+                    // NDMSMock가 없어도 "전송됨" 연출은 해야 함
+                    const model = buildReportModel(cfg);
+                    const focus = model.kpi.focusSite;
+                    const assess = focus ? generateAssessmentForSite(focus, model.kpi.seed) : null;
+
+                    if (ok) {
+                        window.NDMSMock.pushEvent({
+                            source: 'ORBITAL',
+                            type: '보고서',
+                            level: cfg.type === 'emergency' ? '긴급' : '정보',
+                            message: `보고서 전송(동기화): ${title}`,
+                            payload: {
+                                title,
+                                sentAt,
+                                region: cfg.region,
+                                period: formatDateRange(cfg.startDate, cfg.endDate),
+                                reportType: cfg.type,
+                                includes: cfg.includes,
+                                kpi: {
+                                    siteCount: model.kpi.siteCount,
+                                    avgRisk: model.kpi.avgRisk,
+                                    avgSlope: model.kpi.avgSlope,
+                                    avgRough: model.kpi.avgRough,
+                                    focusSite: focus ? {
+                                        mngNo: focus['관리번호'],
+                                        name: focus['급경사지명'],
+                                        address: focus['소재지'],
+                                        riskScore: focus['RiskScore'],
+                                        grade5: focus['risk_grade5_by_region'],
+                                    } : null,
+                                    assessmentTotal: assess ? assess.total : null,
+                                },
+                            },
+                        });
+                    }
+
+                    await sleep(700);
+                    // 가장 최근 생성 행이 있으면 그 행에 전송 표시, 없으면 첫 행에 표시
+                    const tr = lastHistoryRowEl || getHistoryRows()[0] || null;
+                    markHistoryRowNdmsSent(tr, sentAt);
+                    showToast('NDMS 전송 완료. 분석내용이 공유 되었습니다.', 'success');
+                } catch (e) {
+                    showToast('NDMS 전송 중 오류가 발생했습니다.', 'danger');
+                } finally {
+                    isNdmsSending = false;
+                    setGeneratingUI(false);
+                }
             }
 
             // Event bindings
@@ -1160,6 +2497,15 @@
 
             if (elements.generateBtn) {
                 elements.generateBtn.addEventListener('click', generateReport);
+            }
+
+            if (elements.ndmsSendBtn) {
+                elements.ndmsSendBtn.addEventListener('click', async () => {
+                    const cfg = getConfig();
+                    const title = buildReportTitle(cfg);
+                    showToast(`NDMS 전송을 준비합니다: ${title}`, 'info');
+                    await sendReportToNdmsMock(cfg, title);
+                });
             }
 
             if (elements.modalGenerateBtn) {
@@ -1233,14 +2579,19 @@
                         .filter(Boolean),
                 };
 
-                showToast(`다운로드를 준비합니다(MDMS 양식): ${name}`, 'info');
-                downloadHtmlReport(rowCfg, name);
+                const fmt = getSelectedDownloadFormat();
+                showToast(`다운로드를 준비합니다(MDMS 양식): ${name} (${fmt.toUpperCase()})`, 'info');
+                // 클릭 핸들러 내부이므로 사용자 제스처 흐름 유지
+                Promise.resolve(downloadReportByFormat(rowCfg, name, fmt))
+                    .catch(() => showToast('다운로드 중 오류가 발생했습니다.', 'danger'));
             });
 
             // Init
+            preloadDatasets();
             normalizeDates();
             setSelectedReportTypeUI();
             updateSummary();
+            ensureHistoryNdmsCells();
             filterHistory();
         })();
     </script>
