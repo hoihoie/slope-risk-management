@@ -1,5 +1,5 @@
 /* NDMS Linkage Layer (local)
- * - 목적: NDMS 급경사지통합시스템 "연계"가 동작하는 것처럼 보이게 하는 로컬 스토리지 기반 Mock
+ * - 목적: NDMS 급경사지통합시스템 "연계" 기능을 로컬 스토리지 기반 Mock
  * - 제약: 서버/인증/망연계 없음. UI 연출/시연용.
  */
 (function () {
@@ -44,7 +44,7 @@
       }
     }
 
-    // 2) localStorage가 막힌 환경(iframe/정책 등)에서는 window.name을 사용해 "탭 내 페이지 이동"에서도 유지
+
     const NAME_PREFIX = "__NDMS_STORE__=";
     function nameOk() {
       try {
@@ -78,7 +78,6 @@
       }
     }
 
-    // 3) 최후: 메모리(새로고침/페이지 이동 시 유지 불가)
     const mem = {};
 
     const useLocal = localOk();
@@ -216,7 +215,6 @@
   }
 
   function defaultMasterSites() {
-    // 최소 기본 세트(어떤 페이지로 들어와도 "가동 중"처럼 보이도록)
     return [
       { id: "a1", name: "정선읍 A구간", address: "강원특별자치도 정선군 정선읍 봉양리", sigungu: "정선군", eupmyeondong: "정선읍", ri: "봉양리", lat: 37.3805, lng: 128.6608, grade5: 5 },
       { id: "a2", name: "신동읍 B구간", address: "강원특별자치도 정선군 신동읍 용탄리", sigungu: "정선군", eupmyeondong: "신동읍", ri: "용탄리", lat: 37.3505, lng: 128.6808, grade5: 4 },
@@ -300,7 +298,6 @@
       if (!sid) continue;
       if (by[sid]) continue;
 
-      // 문서 핵심(계측 미연계 공백)을 "체감"하게 만들기 위해 일부는 미연계로 둔다.
       const p = hash01(`${seed}|gap|${sid}`);
       const hasSensor = p > 0.12; // 약 12% 미연계
       by[sid] = {
@@ -360,7 +357,7 @@
     const sites = (built && built.length) ? built : defaultMasterSites();
     const res = setMasterSites(sites, sourceLabel || "bootstrap");
 
-    // 최초 기동 시 기본 이벤트 몇 개를 쌓아 "이미 돌고 있다"를 보여준다.
+
     const seed = ensureSeed();
     pushEvent({
       source: "NDMS",
@@ -410,7 +407,6 @@
     const master = getMasterSites();
     if (!master.length) return { ran: false, reason: "no-master" };
 
-    // 계측 갱신: 연계된 일부 현장 최신값 갱신
     const m = getMeasurements();
     const by = m.bySiteId || {};
     let updated = 0;
@@ -419,7 +415,7 @@
       const sid = String(s?.id ?? "");
       const row = by[sid];
       if (!row || row.hasSensor !== true) continue;
-      if (Math.random() > 0.18) continue; // 매 tick마다 전부 바뀌면 부자연스러움
+      if (Math.random() > 0.18) continue;
 
       row.lastReceivedAt = new Date().toISOString();
       const prev = row.latest || { rainMmH: 0, dispMm: 0, tiltDeg: 0 };
@@ -432,9 +428,8 @@
     m.bySiteId = by;
     setMeasurements(m);
 
-    // 이벤트 생성(가끔): 조건 기반으로 0~1건 생성
     if (Math.random() < 0.35) {
-      // 연계된 현장 중 하나를 골라 경보/관측 이벤트 생성
+
       const candidates = master
         .map((s) => ({ s, r: by[String(s?.id ?? "")] }))
         .filter((x) => x.r && x.r.hasSensor === true && x.r.latest);
@@ -468,7 +463,7 @@
     ensureInit();
     const intervalMs = (options && typeof options.intervalMs === "number") ? options.intervalMs : 15000;
     if (window.__NDMSMOCK_AUTO_TIMER__) return { started: false, reason: "already-started" };
-    // 즉시 1회 실행
+
     tickAuto({ intervalMs });
     window.__NDMSMOCK_AUTO_TIMER__ = window.setInterval(() => {
       tickAuto({ intervalMs });

@@ -500,7 +500,6 @@
             }
 
             render();
-            // 같은 탭에서 localStorage가 바뀌어도 storage 이벤트는 안 뜰 수 있어, 포커스 복귀 시 갱신합니다.
             window.addEventListener('focus', render);
             window.addEventListener('visibilitychange', () => {
                 if (document.visibilityState === 'visible') render();

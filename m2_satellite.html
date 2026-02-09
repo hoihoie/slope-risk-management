@@ -107,7 +107,7 @@
             .alert-content span { @apply text-xs text-slate-500; }
         }
     </style>
-    <!-- Leaflet CSS (오픈소스 지도) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
@@ -437,7 +437,7 @@
         </div>
     </div>
 
-    <!-- 페이지 전환 로딩(마커 클릭 시) -->
+    <!-- 페이지 전환 -->
     <div id="pageTransitionOverlay"
         class="fixed inset-0 z-[9999] hidden items-center justify-center bg-slate-900/35 opacity-0 backdrop-blur-sm transition-opacity duration-200">
         <div class="w-[360px] rounded-none bg-white p-6 shadow-xl ring-1 ring-slate-200">
@@ -470,7 +470,7 @@
     </script>
     <script>
         (function () {
-            const MAP_CSV_PATH = 'm2_satellite_points.csv'; // TODO: 추후 프로젝트 폴더에 CSV를 넣고 파일명만 바꾸면 됩니다.
+            const MAP_CSV_PATH = 'm2_satellite_points.csv';
 
             const ALARM_COLORS = {
                 '위험': '#EF4444',
@@ -480,7 +480,7 @@
                 '안전': '#22C55E',
             };
 
-            // CSV가 없을 때 fallback(프로토타입용 더미 포인트)
+
             const DEFAULT_POINTS = [
                 { siteId: 'a1', name: '정선읍 A구간', lat: 37.3805, lng: 128.6608, alarm: '위험' },
                 { siteId: 'a2', name: '신동읍 B구간', lat: 37.3505, lng: 128.6808, alarm: '경계' },
@@ -593,7 +593,7 @@
                 });
             }
 
-            // 전환 로딩 오버레이
+            // 전환 로딩
             const transitionOverlayEl = document.getElementById('pageTransitionOverlay');
             const transitionTitleEl = document.getElementById('pageTransitionTitle');
             const transitionStepEl = document.getElementById('pageTransitionStep');
@@ -658,7 +658,6 @@
                     transitionOverlayEl.classList.add('opacity-100');
                 });
 
-                // 짧은 진행 연출
                 const steps = [
                     { t: 0, p: 18, s: '입력 데이터 로딩' },
                     { t: 120, p: 52, s: '전처리/피처 구성' },
@@ -761,7 +760,6 @@
                     maxZoom: 19
                 });
 
-                // 기본은 위성(영상) 베이스맵
                 layerImagery.addTo(map);
                 L.control.layers({ '위성(영상)': layerImagery, '일반지도': layerOsm }, null, { position: 'topleft' }).addTo(map);
 
@@ -787,7 +785,6 @@
                         const targetUrl = `m2_detail.html?site=${encodeURIComponent(p.siteId)}&name=${encodeURIComponent(p.name)}&lat=${encodeURIComponent(p.lat)}&lng=${encodeURIComponent(p.lng)}&alarm=${encodeURIComponent(p.alarm)}`;
                         showTransitionOverlay({ name: p.name });
 
-                        // 오버레이가 그려질 시간을 확보한 후 이동
                         setTimeout(() => {
                             window.location.href = targetUrl;
                         }, 420);

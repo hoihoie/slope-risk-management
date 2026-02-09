@@ -963,9 +963,7 @@
             const btnZoomOut = document.getElementById('mn1BtnZoomOut');
             const btnSim = document.getElementById('mn1RunSim');
 
-            // MN1은 "한 지점"에 시점이 고정된 느낌이 중요해서,
-            // GLB 내부 좌표(프로젝트에 이미 쓰는 POI 좌표)를 재사용해 기본 카메라 타깃/줌을 고정합니다.
-            // ※ 실제 lat/lng → 3D 좌표 매핑은 추후 변환/피팅 로직으로 교체 가능.
+
             const MN1_FOCUS_PRESETS = {
                 // m3_danger.html의 hotspot 위치를 재사용 (A/B/C)
                 a: { label: 'A', ri: '봉양리', target: '2567.20m 57.70m 4000.23m', orbit: '35deg 65deg 220m' },
@@ -988,7 +986,7 @@
                 if (id === 'a2') return 'b';
                 if (id === 'a3') return 'c';
 
-                // 그 외는 해시 기반으로 고정(매번 같은 시점)
+
                 const seed = String(site && (site.id || site.name) ? (site.id || site.name) : 'site');
                 const keys = ['a', 'b', 'c'];
                 return keys[fnv1a32(seed) % keys.length];
@@ -996,10 +994,9 @@
 
             const focusKey = pickFocusKeyForSite(site);
             const focusPreset = MN1_FOCUS_PRESETS[focusKey] || MN1_FOCUS_PRESETS.a;
-            // "부담스럽지 않게" 초기 시점만 살짝 줌아웃(마우스휠로 0.4 정도 굴린 느낌)
-            // - 값이 크면 더 멀리(줌아웃), 작으면 더 가까이(줌인)
+
             const MN1_FOCUS_ZOOM_OUT_FACTOR = 5;
-            // 카메라가 보는 "좌우 방향(가로 회전)"을 180도 뒤집기
+
             const MN1_FOCUS_YAW_OFFSET_DEG = 180;
 
             function rotateOrbitYaw(orbitStr, yawOffsetDeg) {
@@ -1046,9 +1043,9 @@
             function applyFocusView() {
                 if (!viewer || !focusPreset) return;
 
-                // 시점(타깃) 고정 + 지형이 보이도록 약간 줌인
+
                 viewer.cameraTarget = focusPreset.target;
-                // orbit에 포함된 radius(m)만 살짝 늘려 줌아웃
+
                 const orbitStr = rotateOrbitYaw(String(focusPreset.orbit || 'auto auto 260m'), MN1_FOCUS_YAW_OFFSET_DEG);
                 const radiusMatch = orbitStr.match(/([-\d.]+)\s*m\s*$/i);
                 if (radiusMatch) {
@@ -1063,7 +1060,6 @@
                     viewer.cameraOrbit = orbitStr;
                 }
 
-                // 줌/팬 완전 고정: 반경(radius)을 현재 값으로 잠그기 (회전만 가능)
                 try {
                     const applied = String(viewer.cameraOrbit || '');
                     const m = applied.match(/([-\d.]+)\s*m\s*$/i);
@@ -1077,7 +1073,7 @@
                     viewer.setAttribute('disable-pan', '');
                 } catch { }
 
-                // "고정 시점" 느낌을 위해 기본은 회전 OFF (원하면 버튼으로 ON)
+
                 viewer.autoRotate = false;
                 syncAutoBtn();
             }
@@ -1123,7 +1119,6 @@
                     syncAutoBtn();
                 });
             }
-            // 줌은 고정(회전만 가능) — 버튼도 비활성화
             if (btnZoomIn) {
                 btnZoomIn.disabled = true;
                 btnZoomIn.title = '줌 고정';
@@ -1139,13 +1134,11 @@
                 });
             }
 
-            // 모델 로드 완료 시 고정 시점 적용
             if (viewer) {
                 viewer.addEventListener('load', () => {
                     applyFocusView();
                 }, { once: true });
 
-                // 일부 환경에서 load 이벤트가 늦는 경우 대비(최대 1회 시도)
                 setTimeout(() => {
                     try {
                         applyFocusView();

@@ -224,7 +224,7 @@
                                     style="display:none; width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(245, 158, 11, 0.95); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
                                 </button>
 
-                                <!-- 고정 핫스팟(파란 점) 3개: 사용자는 추가/저장 불가 -->
+                                <!-- 고정 핫스팟 -->
                                 <button id="poiHotspotA" data-poi-id="a" slot="hotspot-poi-a"
                                     data-position="2567.20m 57.70m 4000.23m" data-normal="0 1 0" title="봉양리 (지점 A)"
                                     style="width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(59, 130, 246, 0.95); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
@@ -261,7 +261,7 @@
                                     </div>
                                 </div>
 
-                                <!-- AI 추론(가짜) 진행 표시 -->
+                                <!-- AI 추론 진행 표시 -->
                                 <div id="poiInferencePanel" class="mt-4 hidden rounded-none bg-slate-900/95 p-3 text-slate-100 ring-1 ring-slate-900/40">
                                     <div class="flex items-center justify-between gap-3">
                                         <div class="text-sm font-semibold">AI 위험도 산출 중…</div>
@@ -551,9 +551,7 @@
 
             if (!viewer) return;
 
-            // ===== 지면 "천"처럼 붙는 위험도 히트맵(메쉬 오버레이) =====
-            // - GLB 지형 메쉬를 순회해서 동일 지오메트리의 반투명 레이어 메쉬를 한 겹 더 얹습니다.
-            // - 경사/고도 기반 위험도를 버텍스 컬러(R 채널)로 넣고, Additive blending으로 은은하게 표시합니다.
+            // ===== 위험도 히트맵(메쉬 오버레이) =====
             const HEATMAP_STORAGE_KEY = 'm3_danger_heatmap_enabled_v1';
             const heatmapToggleBtn = document.getElementById('toggleHeatmapBtn');
 
@@ -572,7 +570,7 @@
 
             const HEATMAP_FADE_MS = 360;
             const HEATMAP_MIN_VISIBLE_ALPHA = 0.002;
-            let heatmapAlpha = heatmapEnabled ? 1 : 0; // 0..1 (페이드용)
+            let heatmapAlpha = heatmapEnabled ? 1 : 0;
             let heatmapFadeToken = 0;
 
             function clamp(v, min, max) {
@@ -634,7 +632,6 @@
                     return;
                 }
 
-                // 페이드 중에는 항상 렌더되도록 visible 유지
                 setHeatmapOverlayVisible(true);
 
                 const token = ++heatmapFadeToken;
@@ -666,16 +663,12 @@
                 return Math.acos(dot) * 180 / Math.PI; // 0=평지, 90=수직
             }
 
-            // model-viewer는 내부적으로 심볼 프로퍼티에 ModelScene을 보관합니다.
-            // dist 번들 + 개별 모듈 import 조합에서는 동일 심볼을 직접 import 해와도 키가 달라질 수 있어,
-            // 런타임에서 실제 심볼을 "탐색"해서 내부 씬을 얻습니다.
             function getInternalModelScene() {
                 try {
                     const syms = Object.getOwnPropertySymbols(viewer);
                     for (const sym of syms) {
                         const v = viewer[sym];
                         if (!v || typeof v !== 'object') continue;
-                        // ModelScene에 있는 대표 메서드(버전 호환용)
                         if (typeof v.positionAndNormalFromPoint === 'function' && typeof v.queueRender === 'function') {
                             return v;
                         }
@@ -731,11 +724,9 @@
 
                 if (!baseMeshes.length) return false;
 
-                // 전체 모델 기준 고도 범위(한 번만 계산) → 카메라 움직여도 패턴이 흔들리지 않도록
                 let globalMinY = Infinity;
                 let globalMaxY = -Infinity;
 
-                // "지형"에 가까운 메쉬만 고르기(평면적이 큰 메쉬 위주)
                 const meshStats = [];
 
                 baseMeshes.forEach((mesh) => {
@@ -777,13 +768,10 @@
                 const slopeEnd = 42;
                 const overlayOpacity = 0.48;
 
-                // 그라데이션 기준 색 (sRGB -> Linear 변환)
-                // 노랑(#FDE047) → 연한빨강(#FDA4AF) → 빨강(#EF4444)
                 const c0 = { r: srgbToLinear(253 / 255), g: srgbToLinear(224 / 255), b: srgbToLinear(71 / 255) };
                 const c1 = { r: srgbToLinear(253 / 255), g: srgbToLinear(164 / 255), b: srgbToLinear(175 / 255) };
                 const c2 = { r: srgbToLinear(239 / 255), g: srgbToLinear(68 / 255), b: srgbToLinear(68 / 255) };
 
-                // 너무 넓게 칠해지는 것을 막기 위해, 이 구간부터 서서히 표시
                 const riskShowStart = 0.38;
                 const riskShowEnd = 0.88;
 
@@ -796,7 +784,6 @@
                     if (!mat) return mat;
                     const out = typeof mat.clone === 'function' ? mat.clone() : mat;
 
-                    // 텍스처/라이팅 영향 최소화: "지면 위 얇은 색 레이어" 느낌
                     if (out.map) out.map = null;
                     if (out.emissive && typeof out.emissive.setRGB === 'function') out.emissive.setRGB(0, 0, 0);
                     if (out.color && typeof out.color.setRGB === 'function') out.color.setRGB(1, 1, 1);
@@ -809,13 +796,10 @@
                     out.depthWrite = false;
                     out.depthTest = true;
 
-                    // z-fighting 방지(천을 지면에 살짝 띄워 얹은 느낌)
                     out.polygonOffset = true;
                     out.polygonOffsetFactor = -1;
                     out.polygonOffsetUnits = -1;
 
-                    // THREE.AdditiveBlending === 2, THREE.DoubleSide === 2
-                    // 원 텍스처를 가리지 않고 "살짝 얹힌" 느낌을 위해 Additive로(색이 탁해지는 현상 완화)
                     out.blending = 2;
                     out.side = 2;
                     out.toneMapped = true;
@@ -903,7 +887,6 @@
                     overlayMesh.visible = heatmapAlpha > HEATMAP_MIN_VISIBLE_ALPHA;
                     overlayMesh.frustumCulled = mesh.frustumCulled;
 
-                    // 원본 메쉬에 자식으로 붙이면(동일 로컬 좌표) 지면에 정확히 밀착
                     overlayMesh.position.set(0, 0, 0);
                     overlayMesh.rotation.set(0, 0, 0);
                     overlayMesh.scale.set(1, 1, 1);
@@ -914,7 +897,6 @@
 
                 heatmapOverlay.built = heatmapOverlay.meshes.length > 0;
                 if (heatmapOverlay.built) {
-                    // 생성 직후 현재 알파 상태를 즉시 반영(토글 시에는 애니메이션으로 변화)
                     setHeatmapAlpha(heatmapAlpha);
                     requestSceneRender();
                 }
@@ -934,7 +916,6 @@
                 }
 
                 if (!heatmapOverlay.built) {
-                    // 모델 로드 전 등으로 아직 생성 불가 → 버튼 UI만 반영
                     return;
                 }
 
@@ -965,13 +946,12 @@
                 });
             }
 
-            // GLB 로딩 완료 후 오버레이 생성(켜져 있는 경우)
+
             viewer.addEventListener('load', () => {
                 if (heatmapEnabled) buildHeatmapOverlayIfNeeded();
                 applyHeatmapUI({ animate: false });
             });
 
-            // 초기 UI 반영(모델 로드 전)
             applyHeatmapUI({ animate: false });
 
             const poiEls = Array.from(document.querySelectorAll('[data-poi-id]'));
@@ -985,7 +965,6 @@
                 c: { label: 'C', ri: '덕송리' },
             };
 
-            // 좌측 "관리 대상 목록" 더보기(페이지네이션)
             const SITE_LIST_PAGE_SIZE = 5;
             const MAX_EXTRA_SITES = 30;
             let extraVisibleCount = 0;
@@ -997,7 +976,6 @@
                 });
             }
 
-            // CSV 로딩이 막히는 환경(file:// 등)에서도 동작하도록 최소 fallback(각 리 내 최고 RiskScore 1건)
             const FALLBACK_ROWS_BY_POI = {
                 a: {
                     '관리번호': '7',
@@ -1049,7 +1027,6 @@
                 }
             };
 
-            // CSV fetch가 막힐 때(file:// 등)에도 "더보기"가 동작하도록 일부 샘플 지점 추가
             const FALLBACK_EXTRA_ROWS = [
                 {
                     '관리번호': '10',
@@ -1241,7 +1218,6 @@
                     return { rows: riskRowsCache, sourceLabel: riskRowsSourceLabel || 'CSV 캐시' };
                 }
 
-                // 1) 가능하면 CSV 파일을 fetch로 로딩
                 try {
                     const res = await fetch(encodeURI(CSV_PATH), { cache: 'no-store' });
                     if (!res.ok) throw new Error(`CSV 로딩 실패 (HTTP ${res.status})`);
@@ -1253,7 +1229,6 @@
                     riskRowsSourceLabel = `CSV 파일 (${CSV_PATH})`;
                     return { rows, sourceLabel: riskRowsSourceLabel };
                 } catch (e) {
-                    // 2) file:// 등에서 fetch가 막히면 fallback(내장 샘플)
                     const fallbackRows = [...Object.values(FALLBACK_ROWS_BY_POI), ...FALLBACK_EXTRA_ROWS];
                     riskRowsCache = fallbackRows;
                     riskRowsSourceLabel = '내장 샘플(오프라인 fallback)';
@@ -1438,7 +1413,6 @@
                 safeText(poiFeatS1TransferEl, '--');
                 safeText(poiFeatS1UsedEl, '--');
 
-                // 관리 폼은 일단 기본값으로 초기화 (완료 후 저장값으로 덮어씀)
                 if (poiMgmtStatusEl) poiMgmtStatusEl.value = '모니터링';
                 if (poiMgmtAssigneeEl) poiMgmtAssigneeEl.value = '김담당 주무관';
                 if (poiMgmtPriorityEl) poiMgmtPriorityEl.value = '중간';
@@ -1503,7 +1477,6 @@
                 safeText(poiFeatS1TransferEl, '--');
                 safeText(poiFeatS1UsedEl, '--');
 
-                // 관리 폼은 일단 기본값으로 초기화 (완료 후 저장값으로 덮어씀)
                 if (poiMgmtStatusEl) poiMgmtStatusEl.value = '모니터링';
                 if (poiMgmtAssigneeEl) poiMgmtAssigneeEl.value = '김담당 주무관';
                 if (poiMgmtPriorityEl) poiMgmtPriorityEl.value = '중간';
@@ -1650,7 +1623,6 @@
                 if (token !== inferenceRunToken) return;
                 showInferenceUI(false);
 
-                // 좌측 목록도 함께 갱신 (상태/선택표시 반영)
                 renderSiteList(rows, sourceLabel);
             }
 
@@ -1659,17 +1631,14 @@
                 const pos = el.getAttribute('data-position');
                 if (!pos) return;
 
-                // 카메라 타깃을 핀 위치로 이동
                 viewer.cameraTarget = pos;
 
-                // 현재 각도는 유지하고, 거리만 줄여서 "줌인" 느낌
                 if (typeof viewer.getCameraOrbit === 'function') {
                     const orbit = viewer.getCameraOrbit();
                     const theta = orbit && typeof orbit.theta === 'number' ? orbit.theta : 0;
                     const phi = orbit && typeof orbit.phi === 'number' ? orbit.phi : 1.0;
                     const radius = orbit && typeof orbit.radius === 'number' ? orbit.radius : 100;
 
-                    // 너무 과하게 가까워지지 않도록 하한선 + 비율 기반
                     const nextRadius = Math.max(radius * 0.35, 30);
                     viewer.cameraOrbit = `${theta}rad ${phi}rad ${nextRadius}m`;
                 }
@@ -1701,7 +1670,6 @@
                 const poiIds = Object.keys(POI_META);
                 siteListEl.innerHTML = '';
 
-                // ===== 1) 고정 지점(A/B/C) =====
                 poiIds.forEach((poiId) => {
                     const row = pickBestRowForPoi(poiId, rows) || FALLBACK_ROWS_BY_POI[poiId];
                     const g = gradeInfo(row && row['risk_grade5_by_region']);
@@ -1750,7 +1718,6 @@
                     siteListEl.appendChild(btn);
                 });
 
-                // ===== 2) "더보기"용 추가 지점 (RiskScore 상위) =====
                 const pinnedMgmtNos = new Set();
                 poiIds.forEach((poiId) => {
                     const r = pickBestRowForPoi(poiId, rows) || FALLBACK_ROWS_BY_POI[poiId];
@@ -1833,7 +1800,6 @@
                     siteListEl.appendChild(btn);
                 });
 
-                // ===== 3) "더보기" 버튼 상태 =====
                 if (siteListLoadMoreWrapEl) {
                     if (extraRows.length <= 0) {
                         siteListLoadMoreWrapEl.style.display = 'none';
@@ -1858,7 +1824,6 @@
                 }
             }
 
-            // 핫스팟(파란 점) 클릭 → 선택 + AI 추론 연출
             poiEls.forEach((el) => {
                 el.addEventListener('pointerdown', (ev) => ev.stopPropagation());
                 el.addEventListener('pointerup', (ev) => ev.stopPropagation());
@@ -1870,18 +1835,15 @@
                 });
             });
 
-            // 닫기
             if (poiInfoCloseBtn) {
                 poiInfoCloseBtn.addEventListener('click', () => {
                     selectedTargetId = null;
                     showInferenceUI(false);
                     hidePoiPanel();
-                    // 선택 해제 표시를 위해 목록 리렌더
                     loadRiskRows().then(({ rows, sourceLabel }) => renderSiteList(rows, sourceLabel));
                 });
             }
 
-            // AI 재산출 (선택 지점 기준)
             if (poiRunModelBtn) {
                 poiRunModelBtn.addEventListener('click', () => {
                     if (!selectedTargetId) {
@@ -1897,7 +1859,6 @@
                 });
             }
 
-            // 위험관리 저장/이력
             if (poiMgmtSaveBtn) {
                 poiMgmtSaveBtn.addEventListener('click', () => {
                     if (!selectedTargetId) return;
@@ -1990,22 +1951,17 @@
                 });
             }
 
-            // 최초 로딩 시: 목록만 먼저 채우고, 선택은 사용자가 하도록 둠
             loadRiskRows().then(({ rows, sourceLabel }) => {
                 renderSiteList(rows, sourceLabel);
                 if (poiMgmtHistoryEl) poiMgmtHistoryEl.innerHTML = '<div class="py-2 text-sm text-slate-500">지점을 선택하면 관리 이력이 표시됩니다.</div>';
             });
 
-            // URL 파라미터로 지점 자동 선택 지원 (시나리오/딥링크용)
-            // - 예: m3_danger.html?poi=a  /  m3_danger.html?poi=b  /  m3_danger.html?poi=c
-            // - 예: m3_danger.html?mng=10 (관리번호 기반 추가 지점)
             try {
                 const params = new URLSearchParams(window.location.search);
                 const qPoi = params.get('poi');
                 const qMng = params.get('mng');
 
                 if (qPoi && POI_META[qPoi]) {
-                    // 목록 로딩과는 독립적으로, 바로 선택(패널 오픈 + AI 연출)
                     selectPoi(qPoi, { focus: true });
                 } else if (qMng) {
                     selectExtraSite(qMng, { force: true });
@@ -2308,7 +2264,6 @@
             // 최초 렌더
             renderSafetyCheckList();
 
-            // 관리자 모드: 핀 좌표 교정 (사용자에게는 숨김)
             const isAdmin = new URLSearchParams(window.location.search).get('admin') === '1';
             if (isAdmin && adminToolsEl) {
                 adminToolsEl.style.display = 'block';
@@ -2328,7 +2283,6 @@
                     return `${format(v.x)} ${format(v.y)} ${format(v.z)}`;
                 }
 
-                // 지형 클릭해서 좌표 얻기
                 viewer.addEventListener('pointerdown', (e) => {
                     pointerDown = { x: e.clientX, y: e.clientY };
                 });
@@ -2339,7 +2293,6 @@
                     const dy = Math.abs(e.clientY - pointerDown.y);
                     pointerDown = null;
 
-                    // 드래그(회전/이동)와 구분
                     if (dx > 6 || dy > 6) return;
 
                     if (typeof viewer.positionAndNormalFromPoint !== 'function') return;
@@ -2357,7 +2310,6 @@
                         adminLastPickEl.textContent = `마지막 클릭 좌표: x ${format(p.x)}, y ${format(p.y)}, z ${format(p.z)}`;
                     }
 
-                    // 주황색 디버그 마커 표시
                     if (adminPickHotspotEl) {
                         adminPickHotspotEl.style.display = 'block';
                         adminPickHotspotEl.setAttribute('data-position', toPosString(p));
@@ -2365,7 +2317,6 @@
                     }
                 });
 
-                // 핀 위치를 마지막 클릭 좌표로 이동
                 adminSetBtns.forEach((btn) => {
                     btn.addEventListener('click', () => {
                         if (!lastHit) {

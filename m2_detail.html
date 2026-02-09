@@ -356,8 +356,7 @@
                 a3: { name: '화암면 C구간' },
             };
 
-            // 데이터 소스: xinmo CSV (프로젝트 폴더에 위치)
-            // 필요 시 여기 파일명만 바꾸면 됩니다.
+            // 데이터 소스: xinmo CSV 
             const DATA_CSV = 'xinmo_3x3_table(수정).csv';
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -438,8 +437,7 @@
                 return true;
             }
 
-            // 상세(분석) 컬럼들이 비어있는 초반 구간은 표에서 제외
-            // - date/cum_mm 외 컬럼 중 하나라도 "의미 있는 값"이 처음 등장하는 시점부터 표시
+         
             function sliceRowsFromFirstDetailData(headers, rows) {
                 if (!rows || !rows.length) return [];
                 const cols = (headers && headers.length) ? headers : Object.keys(rows[0] || {});
@@ -464,7 +462,6 @@
                 return rows;
             }
 
-            // fallback 샘플(이미지 형태를 맞추기 위한 더미)
             function fallbackRowsForSite() {
                 return [
                     { date: '2025-11-17', cum_mm: '67.536466', s_prev4: '183.016004', s_last4: '148.074512', ratio4: '0.809080', net8: '67.536466', R1: 'False', R2: 'False', R3: 'True', ACCEL: 'False', C1: 'False', C2: 'True', C3: 'True', CREEP: 'False', if_score: '-0.571633', if_pctl: '7.250', IF: 'False', label: 'NONE' },

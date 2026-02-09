@@ -107,7 +107,7 @@
             .alert-content span { @apply text-xs text-slate-500; }
         }
     </style>
-    <!-- Leaflet CSS (오픈소스 지도) -->
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
@@ -333,14 +333,12 @@
     <!-- 내장 데이터 -->
     <script src="m1_embedded_slope_rows.js"></script>
     <script>
-        // =========================
-        // 통합 관제 맵 (강원도 줌아웃 + 내장 데이터 기반 목록/마커)
-        // =========================
 
+        // 통합 관제 맵 
         const EMBEDDED_SLOPE_ROWS = Array.isArray(window.__M1_EMBEDDED_SLOPE_ROWS__) ? window.__M1_EMBEDDED_SLOPE_ROWS__ : [];
-        const SAMPLE_LIMIT = 800; // 샘플링 개수(내장 데이터 기본 800개)
+        const SAMPLE_LIMIT = 800; 
 
-        // 강원도 대략 범위 (Lat/Lng)
+
         const GANGWON_SW = [36.90, 127.00];
         const GANGWON_NE = [38.65, 129.45];
         const GANGWON_CENTER = [37.82, 128.20];
@@ -349,7 +347,6 @@
         const map = L.map('map', { preferCanvas: true }).setView(GANGWON_CENTER, 8);
         const GANGWON_BOUNDS = L.latLngBounds(GANGWON_SW, GANGWON_NE);
         map.fitBounds(GANGWON_BOUNDS, { padding: [20, 20] });
-        // 너무 멀리 보이는 경우를 대비해 "살짝" 줌인
         map.setZoom(map.getZoom() + 1);
 
         // Basemap layers
@@ -518,7 +515,6 @@
                 return { rows: slopeRowsCache, sourceLabel: slopeRowsSourceLabel };
             }
 
-            // 내장 데이터가 비어있으면 최소 샘플로 fallback
             slopeRowsCache = FALLBACK_GANGWON_ROWS;
             slopeRowsSourceLabel = '내장 샘플(최소 fallback)';
             return { rows: slopeRowsCache, sourceLabel: slopeRowsSourceLabel, error: new Error('내장 데이터가 비어있습니다.') };
@@ -599,15 +595,13 @@
             const name = (r['급경사지명'] || '').trim();
             const base = COUNTY_CENTER[sigungu] || GANGWON_CENTER;
 
-            // (1) 시군구 중심점 + (2) 읍면동/리 단위의 "근처 클러스터" + (3) 개별 지점 소폭 분산 으로 좌표를 추정합니다.
-            // ※ 지오코딩(주소→좌표) 추후 API 연동을 붙일 수 있습니다.
+
             const areaKey = `${sigungu}|${eupmyeondong}|${ri}`;
 
-            // 읍면동/리 단위 분산(동네끼리 모이도록)
+
             const areaLatJ = (hash01(areaKey + '|areaLat') - 0.5) * 0.18;
             const areaLngJ = (hash01(areaKey + '|areaLng') - 0.5) * 0.28;
 
-            // 개별 지점 분산(겹침 완화)
             const pointLatJ = (hash01(seed + '|lat') - 0.5) * 0.04;
             const pointLngJ = (hash01(seed + '|lng') - 0.5) * 0.06;
 
@@ -630,7 +624,6 @@
                 lng = lng - extraWest;
             }
 
-            // 전체 범위 클램프
             lng = clamp(lng, GANGWON_SW[1], GANGWON_NE[1]);
             return { lat, lng };
         }
@@ -826,10 +819,9 @@
             if (eventsBound) return;
             eventsBound = true;
 
-            // 이벤트: 지도 이동/줌 → 현재 화면에 보이는 것만 목록 표시
+        
             map.on('moveend', () => renderTable());
 
-            // 이벤트: 검색
             if (searchInputEl) {
                 searchInputEl.addEventListener('input', () => renderTable());
             }
@@ -841,7 +833,6 @@
 
             allSites = sampled.map(buildSite);
 
-            // detail 페이지에서 재사용 가능하도록 캐시 (옵션)
             try {
                 localStorage.setItem('m1_integrated_sites_cache_v1', JSON.stringify(allSites));
             } catch {

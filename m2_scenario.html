@@ -666,9 +666,7 @@
     <script src="assets/js/ndms_mock.js?v=20260204"></script>
     <script>
         (function () {
-            // =========================
-            // Scenario data (prototype)
-            // =========================
+            // Scenario data
             const ALARM_COLORS = {
                 '위험': '#EF4444',
                 '경계': '#F97316',
@@ -689,9 +687,6 @@
                 { poiId: 'c', name: '덕송리 권역', lat: 37.2700, lng: 128.6250, alarm: '주의', dispMm: 8.6, trend: '초기' },
             ];
 
-            // =========================
-            // Stepper
-            // =========================
             const stepSatEl = document.getElementById('step-sat');
             const stepCandEl = document.getElementById('step-cand');
             const stepDroneEl = document.getElementById('step-drone');
@@ -710,9 +705,6 @@
                 });
             }
 
-            // =========================
-            // Satellite map + heatmap overlay
-            // =========================
             const mapEl = document.getElementById('scenarioMap');
             const btnHeatmapToggle = document.getElementById('btnHeatmapToggle');
             const btnMapFit = document.getElementById('btnMapFit');
@@ -818,7 +810,6 @@
                 const dispN = clamp(disp / 25, 0, 1);
                 const alarmN = clamp(alarmRank(cluster.alarm) / 5, 0, 1);
                 const trN = clamp(trendWeight(cluster.trend), 0, 1);
-                // 0..100 (위성 지표만으로 만든 보조 점수)
                 const score = 100 * clamp((0.52 * dispN) + (0.33 * alarmN) + (0.15 * trN), 0, 1);
                 return score;
             }
@@ -879,9 +870,8 @@
                 return (fnv1a32(str) % 1000000) / 1000000;
             }
 
-            // --------------
-            // CSV risk score loading (same idea as m3_danger)
-            // --------------
+
+            // CSV risk score loading
             const CSV_PATH = 'risk_scored_정선_v2(라벨없음).csv';
             const FALLBACK_ROWS_BY_POI = {
                 a: {
@@ -1053,7 +1043,7 @@
                 const losMm = cluster ? (losSign * (toNumber(cluster.dispMm) ?? 0)) : null;
                 const satScore = satScoreFromCluster(cluster);
 
-                // 지형·지표 모델(기존 CSV 결과)
+                // 지형·지표 모델
                 const baseRisk = toNumber(row['RiskScore']);
                 const baseSus = toNumber(row['Susceptibility']);
                 const baseG = gradeInfo(row['risk_grade5_by_region']);
@@ -1102,8 +1092,7 @@
                 const force = options && options.force === true;
                 if (!poiId) return;
 
-                // 이 페이지에서만: AI 연출 템포를 더 빠르게
-                const INFERENCE_SPEED = 0.45; // 낮을수록 더 빠름 (0.45 ≈ 2.2x)
+                const INFERENCE_SPEED = 0.45;
                 const sleepFast = (ms) => sleep(Math.max(60, Math.round((ms || 0) * INFERENCE_SPEED)));
 
                 const meta = POI_META[poiId];
@@ -1144,7 +1133,7 @@
                 await sleepFast(240);
                 if (token !== inferenceToken) return;
 
-                // sat score는 cluster에서 즉시 계산 가능
+
                 const cluster = (CLUSTERS || []).find((x) => x && x.poiId === poiId) || null;
                 const satScore = satScoreFromCluster(cluster);
                 const baseRisk = toNumber(best && best['RiskScore']);
@@ -1161,9 +1150,7 @@
                 setInferenceVisible(false);
             }
 
-            // --------------
-            // Leaflet map init
-            // --------------
+
             const fallbackCenter = [37.3505, 128.6808];
             const map = L.map('scenarioMap').setView(fallbackCenter, 10);
             const layerImagery = L.tileLayer(
@@ -1180,16 +1167,14 @@
             layerImagery.addTo(map);
             L.control.layers({ '위성(영상)': layerImagery, '일반지도': layerOsm }, null, { position: 'topleft' }).addTo(map);
 
-            // Displacement overlay (위성 변위 분석 "결과 레이어" 느낌)
-            // - 한국 전역을 격자(raster/grid) 형태로 덮는 히트맵 레이어로 그립니다.
-            const DISP_MAX_MM = 25; // 색상 스케일 기준(mm)
+            // Displacement overlay 
 
-            // InSAR LOS 변위처럼 Red/Blue가 서로 다른 방향을 의미하도록(예시)
-            // - a/c: (+) 침하(RED), b: (-) 융기(BLUE)
+            const DISP_MAX_MM = 25;
+
             const DISP_SOURCES = (CLUSTERS || []).map((c) => {
                 const sign = c.poiId === 'b' ? -1 : 1;
                 const losMm = sign * (Number(c.dispMm) || 0);
-                // 전국 단위 화면에서 스팟이 너무 작지 않도록 영향권을 확대
+
                 const sigmaBase = c.alarm === '위험' ? 12000 : c.alarm === '경계' ? 9500 : 8000;
                 const sigmaMeters = sigmaBase * 5.0;
                 return {
@@ -1202,17 +1187,14 @@
             });
 
             const displacementPane = map.createPane('displacementPane');
-            displacementPane.style.zIndex = '520'; // 확실히 위에 보이도록 상향
+            displacementPane.style.zIndex = '520';
             displacementPane.style.pointerEvents = 'none';
 
             function metersPerPixelAtLat(latDeg, zoom) {
                 const latRad = (Number(latDeg) || 0) * Math.PI / 180;
-                // 156543.03392 * cos(lat) / 2^zoom
                 return 156543.03392 * Math.cos(latRad) / Math.pow(2, zoom);
             }
 
-            // 한국 전역(대략) bounds
-            // - 제주 포함 / 동해·서해 여유 포함
             const KOREA_BOUNDS = L.latLngBounds([33.0, 124.0], [39.9, 131.8]);
 
             function computeDisplacementBounds() {
@@ -1221,11 +1203,10 @@
 
             let heatmapBounds = computeDisplacementBounds();
 
-            // 단일 캔버스 오버레이로 생성 (환경에 관계없이 확실히 표시)
             function buildDisplacementOverlay() {
                 heatmapBounds = computeDisplacementBounds();
 
-                const size = 1024; // 해상도 (성능/품질 균형)
+                const size = 1024; // 해상도
                 const canvas = document.createElement('canvas');
                 canvas.width = size;
                 canvas.height = size;
@@ -1240,7 +1221,6 @@
                 function lngToMeters(dLng) { return dLng * 111000 * cosLat; }
                 function latToMeters(dLat) { return dLat * 111000; }
 
-                // 저주파 value-noise (지도 전반에 “위성 변위 결과 레이어”가 깔리는 느낌)
                 function lerp(a, b, t) { return a + (b - a) * t; }
                 function fade(t) { return t * t * (3 - 2 * t); }
                 function rand2(ix, iy) {
@@ -1265,7 +1245,6 @@
                     return lerp(ix0, ix1, sy);
                 }
                 function fbm(x, y) {
-                    // 3옥타브 정도면 충분히 “연속 래스터” 느낌이 납니다.
                     let sum = 0;
                     let amp = 0.55;
                     let freq = 2.2;
@@ -1279,14 +1258,10 @@
                     return norm > 0 ? (sum / norm) : 0; // [-1,1]
                 }
 
-                // 격자 셀 크기(px) — "전국 격자 히트맵" 느낌
+                // 격자 셀 크기(px)
                 const cell = 10; // 1024/10 ≈ 100 x 100 grid
 
-                // 한국 "육지" 마스크(바다는 투명)
-                // - 타원 근사는 화면이 "큰 덩어리"처럼 보여 부자연스럽기 때문에,
-                //   한반도 윤곽(대략 폴리곤) 기반 point-in-polygon으로 마스크를 만듭니다.
-                // 남한 본토(대략 경계+해안선) - [lat, lng]
-                // - 사용자가 제공한 폴리곤을 그대로 사용합니다.
+
                 const KOREA_MAINLAND_POLY = [
                     // 북서쪽(강화/임진강 하구 부근) → 북동쪽(DMZ 근처) "대략 경계"
                     [37.98, 126.55],
@@ -1386,9 +1361,6 @@
                 }
 
                 function koreaLandMask(lat, lng) {
-                    // 경계가 너무 딱 잘리지 않도록 주변 샘플링으로 feather(0..1)
-                    // 과도한 feather는 바다 쪽까지 번져서 "덩어리"처럼 보이므로 축소
-                    // 본토 폴리곤이 더 정확해져서 feather를 더 줄여도 자연스럽습니다.
                     const dLat = 0.045;
                     const dLng = 0.075;
                     const offs = [
@@ -1408,14 +1380,12 @@
                     return clamp(Math.pow(a, 1.35), 0, 1);
                 }
 
-                // 산악/능선 느낌(대략): 동쪽 산맥 스파인 + ridged-noise
                 function ridged(x, y) {
                     const n = fbm(x * 1.25, y * 1.15); // [-1,1]
-                    return clamp(1 - Math.abs(n), 0, 1); // 0..1 (능선 강조)
+                    return clamp(1 - Math.abs(n), 0, 1); // 0..1 
                 }
                 function mountainField(x, y) {
-                    // 동해안 쪽(우측)에 산맥이 더 많게 스파인 구성
-                    const spineCenter = 0.66 - 0.06 * (y - 0.5); // 약간 기울어진 능선
+                    const spineCenter = 0.66 - 0.06 * (y - 0.5); 
                     const d = Math.abs(x - spineCenter);
                     const spine = clamp(1 - (d / 0.18), 0, 1);
                     const r = ridged(x + 0.07, y - 0.04);
@@ -1423,7 +1393,6 @@
                     return m;
                 }
 
-                // 보라/핑크 없이: 파랑→청록→초록→노랑→주황→빨강 램프
                 function lerpColor(c0, c1, t) {
                     return [
                         Math.round(c0[0] + (c1[0] - c0[0]) * t),
@@ -1452,7 +1421,7 @@
                     return stops[stops.length - 1][1];
                 }
 
-                // 셀 단위로 채색(육지에만)
+
                 ctx.save();
                 ctx.lineWidth = 1;
                 for (let py = 0; py < size; py += cell) {
@@ -1463,18 +1432,15 @@
                         const lng = sw.lng + (ne.lng - sw.lng) * tX;
 
                         const land = koreaLandMask(lat, lng);
-                        if (land <= 0.02) continue; // 바다는 투명
+                        if (land <= 0.02) continue; 
 
-                        // 예시 히트맵 느낌(1번): 전국에 파랑/초록/노랑이 깔리고,
-                        // 산악대 주변이 "패치 형태"로 주황/빨강이 뜨도록 구성합니다.
                         const m = mountainField(tX, tY); // 0..1
                         const r1 = ridged(tX * 1.7 + 0.03, tY * 1.55 - 0.02); // 0..1
                         const r2 = ridged(tX * 3.4 - 0.11, tY * 3.1 + 0.07);  // 0..1
                         const patch = clamp((0.58 * r1) + (0.42 * r2), 0, 1); // 0..1
                         const n = fbm(tX + 0.13, tY - 0.09) * 0.10; // [-0.10..0.10]
 
-                        // "빨간거 여기저기"를 위해: 산악대에서만 활성화되는 스파스(sparse) 핫스팟을 추가
-                        // - 완전 랜덤이 아니라 deterministic하게 동일 패턴이 나오도록 valueNoise 기반으로 생성
+
                         const sp1 = valueNoise(tX + 0.21, tY - 0.17, 22); // [-1,1]
                         const sp2 = valueNoise(tX - 0.11, tY + 0.09, 34); // [-1,1]
                         const sp = clamp(
@@ -1482,9 +1448,8 @@
                             0.45 * Math.pow(clamp((sp2 - 0.05) / 0.95, 0, 1), 3.2),
                             0,
                             1
-                        ); // 0..1 (희소 핫스팟)
+                        ); 
 
-                        // 중심은 초록~노랑(0.48~0.55), 패치/산악/핫스팟에서만 빨강으로 올라가게 제한
                         let u = 0.50
                             + 0.10 * (m - 0.5)
                             + 0.28 * (patch - 0.5)
@@ -1492,7 +1457,6 @@
                             + n;
                         u = clamp(u, 0, 1);
 
-                        // 클러스터는 u를 빨강 방향으로 끌어올림
                         for (const s of DISP_SOURCES) {
                             const dxm = lngToMeters(lng - s.lng);
                             const dym = latToMeters(lat - s.lat);
@@ -1507,7 +1471,7 @@
                         ctx.fillStyle = `rgba(${rr}, ${gg}, ${bb}, ${a.toFixed(3)})`;
                         ctx.fillRect(px, py, cell, cell);
 
-                        // 격자 라인(육지 위에만 은은하게)
+                        // 격자 라인
                         const gl = clamp(a * 0.12, 0.03, 0.10);
                         ctx.strokeStyle = `rgba(255,255,255,${gl.toFixed(3)})`;
                         ctx.strokeRect(px + 0.5, py + 0.5, cell, cell);
@@ -1522,16 +1486,14 @@
                     interactive: false,
                 });
 
-                // 영상 위에 자연스럽게 앉도록(지원 브라우저)
+
                 overlay.on('add', () => {
                     try {
                         const img = overlay.getElement();
                         if (img) {
-                            // 위성 영상 위에 "레이어처럼" 앉는 느낌
+
                             img.style.mixBlendMode = 'multiply';
-                            // 격자가 "흐려져 보이지" 않도록 픽셀 렌더링(지원 브라우저)
                             img.style.imageRendering = 'pixelated';
-                            // 위성 영상 위에서도 컬러가 살아나도록 약간 보정
                             img.style.filter = 'saturate(1.18) contrast(1.06)';
                         }
                     } catch { }
@@ -1544,14 +1506,11 @@
             if (displacementLayer) displacementLayer.addTo(map);
 
             function fitToPoints() {
-                // 초기 진입 시에는 후보지(점) 주변이 잘 보이도록 포커스
                 try {
                     const pts = (CLUSTERS || []).map((c) => [Number(c.lat), Number(c.lng)]).filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]));
                     if (!pts.length) return;
-                    // 너무 가까워지지 않도록: 패딩↑ + fitBounds maxZoom으로 확대 제한
                     const b = L.latLngBounds(pts).pad(0.95);
                     map.fitBounds(b, { animate: false, maxZoom: 8 });
-                    // 너무 줌아웃 되지 않도록 하한만 가볍게 제한
                     if (map.getZoom && map.getZoom() < 7) {
                         map.setZoom(7, { animate: false });
                     }
@@ -1561,7 +1520,6 @@
             function fitToBounds() {
                 map.fitBounds((heatmapBounds || computeDisplacementBounds()).pad(0.08));
             }
-            // 처음 페이지 진입 시: 점(후보지) 근처로 카메라(지도) 위치
             fitToPoints();
 
             function alarmRank(alarm) {
@@ -1624,7 +1582,6 @@
                     row.setAttribute('role', 'button');
                     row.setAttribute('aria-label', `지점 ${c.poiId} 분석 실행`);
 
-                    // 후보지 네모 클릭 = 정밀탐지(분석) 실행
                     const run = () => selectCluster(c.poiId, { focusMap: true, focus3d: true, autoRisk: true });
                     row.addEventListener('click', () => run());
                     row.addEventListener('keydown', (e) => {
@@ -1664,7 +1621,6 @@
                     const badge = document.createElement('span');
                     badge.className = `badge ${c.alarm === '위험' ? 'badge-danger' : c.alarm === '경계' ? 'badge-warning' : c.alarm === '주의' ? 'badge-warning' : 'badge-info'}`;
                     badge.textContent = c.alarm;
-                    // 정밀탐지 버튼 자리: 통합 RiskScore 상시 표시
                     let integrated = null;
                     try {
                         const sat = satScoreFromCluster(c);
@@ -1703,14 +1659,9 @@
                 });
             }
 
-            // 3D 뷰어 카메라 프리셋
-            // - 처음 진입: 전반 구도(전체 지형이 보이도록)
-            // - 지점 A(위성 히트맵) 클릭: 확대 구도(근접 사진 느낌)
             const VIEW_PRESETS = {
                 overview: {
-                    // A/B/C의 중간 지점으로 대략 조준
                     target: '586m 57.70m 2373m',
-                    // max-camera-orbit이 20000m라서 그 안에서 충분히 줌아웃
                     orbit: '35deg 72deg 14000m',
                 },
                 a: { target: '2567.20m 57.70m 4000.23m', orbit: '25deg 65deg 2500m' },
@@ -1741,7 +1692,6 @@
                     return;
                 }
 
-                // 프리셋이 없으면 기존 방식(현재 orbit에서 살짝 줌인)
                 const el = document.querySelector(`[data-poi-id="${id}"]`);
                 if (!el) return;
                 const pos = el.getAttribute('data-position');
@@ -1794,7 +1744,6 @@
 
                 renderCandidateList();
 
-                // 후보지 클릭(선택) 시 자동으로 RiskScore 산출
                 const autoRisk = !(options && options.autoRisk === false);
                 if (autoRisk) {
                     runFakeInference(poiId, { force: true });
@@ -1818,10 +1767,8 @@
                     opacity: 0.95
                 });
                 marker.on('click', () => {
-                    // 분석은 AUTO DETECT 후보지 클릭으로만 실행(마커는 안내/포커스만)
                     marker.openTooltip();
 
-                    // 위성 변위 히트맵에서 지점 A/B/C 클릭 시: 3D 카메라를 해당 지점으로 이동(분석은 실행하지 않음)
                     const pid = String(c && c.poiId);
                     if (pid === 'a' || pid === 'b' || pid === 'c') {
                         try {
@@ -1833,16 +1780,12 @@
                 markerByPoi.set(c.poiId, marker);
             });
 
-            // 통합 RiskScore 상시 표시를 위해, 후보 리스트 렌더 → CSV 로드 후 한 번 더 갱신
             renderCandidateList();
             loadRiskRows().then(() => {
                 try { renderCandidateList(); } catch { }
             });
             resetRiskPanel();
 
-            // -------------------------
-            // Controls
-            // -------------------------
             if (btnMapFit) btnMapFit.addEventListener('click', fitToBounds);
             if (btnHeatmapToggle) {
                 btnHeatmapToggle.addEventListener('click', () => {
@@ -1857,7 +1800,6 @@
                         if (displacementLayer && map.hasLayer(displacementLayer)) map.removeLayer(displacementLayer);
                     }
                 });
-                // 초기 상태: ON
                 btnHeatmapToggle.classList.add('btn-danger');
                 btnHeatmapToggle.classList.remove('btn-secondary');
             }
@@ -1885,7 +1827,6 @@
 
             function applyDefaultView() {
                 if (!viewer) return;
-                // 처음 진입 시: 전반 구도
                 focusOnPoi('overview', { mode: 'overview' });
                 viewer.autoRotate = false;
                 syncAutoBtn();
@@ -1908,7 +1849,6 @@
                 el.addEventListener('pointerup', (ev) => ev.stopPropagation());
                 el.addEventListener('click', (ev) => {
                     ev.stopPropagation();
-                    // 분석은 AUTO DETECT 후보지 클릭으로만 실행(3D 핫스팟은 비활성)
                     return;
                 });
             });
@@ -1923,8 +1863,6 @@
             const params = new URLSearchParams(window.location.search);
             const qPoi = params.get('poi');
             if (qPoi && POI_META[qPoi]) {
-                // 분석은 AUTO DETECT 후보지 클릭으로만 실행
-                // 딥링크는 지도/3D 포커싱만 수행합니다.
                 const cluster = CLUSTERS.find((x) => x.poiId === qPoi);
                 if (cluster) {
                     map.setView([cluster.lat, cluster.lng], Math.max(map.getZoom(), 12), { animate: true });
@@ -1934,7 +1872,6 @@
                 focusOnPoi(qPoi);
             }
 
-            // NDMS linkage: 자동 수집/이벤트 적재가 동작 중인 상태로 유지
             (function () {
                 if (!window.NDMSMock) return;
                 window.NDMSMock.ensureInit();

@@ -452,7 +452,7 @@
 
         if (btnOpenM1) btnOpenM1.addEventListener('click', () => { window.location.href = 'm1_integrated.html'; });
 
-            // init: "이미 동작 중" 상태로 부팅
+
         if (window.NDMSMock) {
             window.NDMSMock.ensureInit();
             window.NDMSMock.bootstrapIfEmpty(() => buildMasterFromEmbedded(800), '내장 데이터(m1_embedded_slope_rows.js)');
