@@ -743,11 +743,11 @@
                 return `${typeShort} 보고서 (${region}, ${formatDateRange(start, end)})`;
             }
 
-            // ===== 데이터 소스(프로젝트 내 CSV) 로딩 =====
+            // ===== 데이터 소스 로딩 =====
             const RISK_CSV_PATH = 'risk_scored_정선_v2(라벨없음).csv';
             const XINMO_CSV_PATH = 'xinmo_3x3_table(수정).csv';
 
-            // file:// 등에서 fetch가 막히는 환경을 위한 최소 fallback(일부 샘플)
+            // file:// 등에서 fetch가 막히는 환경을 위한 최소 fallback
             const FALLBACK_RISK_ROWS = [
                 {
                     '관리번호': '10',
@@ -917,7 +917,7 @@
                 return { rows: FALLBACK_XINMO_ROWS, sourceLabel: '내장 샘플(오프라인 fallback)' };
             }
 
-            // ===== 시드 기반 난수(옵션 변경 시 내용이 달라지도록) =====
+            // ===== 시드 기반 난수 =====
             function clamp(v, a, b) {
                 return Math.min(b, Math.max(a, v));
             }
@@ -1002,7 +1002,7 @@
                 return items[items.length - 1]?.value ?? fallback;
             }
 
-            // ===== 급경사지 평가 기준 지표(요청 항목) 생성/점수화 =====
+            // ===== 급경사지 평가 기준 지표 생성/점수화 =====
             function scoreSlopeAngleDeg(angle) {
                 const a = Number(angle);
                 if (!Number.isFinite(a)) return { score: null, band: '미상' };
@@ -1299,27 +1299,6 @@
                         <thead><tr>${th}</tr></thead>
                         <tbody>${trs}</tbody>
                       </table>
-                    `;
-                }
-
-                function renderIncludesNote() {
-                    const inc = new Set(cfg.includes || []);
-                    const rows = [
-                        ['위성 변위 분석값', inc.has('satellite') ? '포함' : '미포함', inc.has('satellite') ? 'LOS 변위/속도/가속도 요약' : '요약만 또는 제외'],
-                        ['IoT 센서 측정값', inc.has('iot') ? '포함' : '미포함', inc.has('iot') ? '변위/경사/강우(추정) 지표 포함' : '요약만 또는 제외'],
-                        ['위험도 히트맵', inc.has('heatmap') ? '포함' : '미포함', inc.has('heatmap') ? '위험도 공간 분포(설명) 포함' : '제외'],
-                        ['현장 점검 사진', inc.has('photos') ? '포함' : '미포함', inc.has('photos') ? '점검 항목별 사진/캡션(연동 예정)' : '제외'],
-                    ];
-                    return `
-                      <div class="section">
-                        <h2 class="section-title">1. 보고서 구성(옵션 반영)</h2>
-                        <div class="box">
-                          ${renderTable(['항목', '선택', '반영 방식'], rows.map((r) => r.map(escapeHtml)))}
-                          <div style="margin-top:8px; color:var(--muted); font-size:11.5px;">
-                            ※ 본 문서는 “옵션/유형/기간/지역” 조합을 시드로 사용해 문구·수치·선정 구간이 달라집니다(동일 설정이면 동일 결과).
-                          </div>
-                        </div>
-                      </div>
                     `;
                 }
 
@@ -1803,7 +1782,7 @@
     <div class="doc-header">
       <div>
         <h1 class="doc-title">${titleText}</h1>
-        <p class="doc-sub">행정안전부 MDMS 양식 스타일(프로토타입) · 급경사지 안전관리 통합시스템 자동 생성</p>
+        <p class="doc-sub">행정안전부 MDMS 양식 스타일 · 급경사지 안전관리 통합시스템 자동 생성</p>
       </div>
       <div class="doc-meta">
         <div><strong>문서번호</strong> <span class="mono">${escapeHtml(docNo)}</span></div>
@@ -1841,7 +1820,6 @@
       </div>
     </div>
 
-    ${renderIncludesNote()}
     <div class="section">
       <h2 class="section-title">1. 관측/분석 핵심 요약</h2>
       <div class="box">
@@ -1854,18 +1832,8 @@
     ${renderFocusAssessmentSection()}
     ${renderTypeSpecificSections()}
 
-    <div class="section">
-      <h2 class="section-title">6. 향후 계획</h2>
-      <div class="box">
-        <ul>
-          <li>데이터 연동 강화: 그래프/표/사진(첨부) 자동 포함 및 문서형 PDF 출력 연계</li>
-          <li>기관별 보고 항목(필수/선택) 커스터마이징 및 결재 라인/문서번호 체계 연결</li>
-          <li>고시 기반 점검 항목/평가표(별표) 상세 매핑 및 “정밀점검” 템플릿 추가</li>
-        </ul>
-        <div style="margin-top:10px; color:var(--muted); font-size:11.5px;">
-          생성 시드: <span class="mono">${escapeHtml(String(kpi.seed))}</span>
-        </div>
-      </div>
+    <div style="margin-top:20px; color:var(--muted); font-size:11.5px; text-align:right;">
+      생성 시드: <span class="mono">${escapeHtml(String(kpi.seed))}</span>
     </div>
 
     <div class="sign">
@@ -1882,7 +1850,7 @@
         <div style="font-weight:800;">확인자</div>
         <div>
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-            <div>${escapeHtml('결재 라인(추후 연동)')}</div>
+            <div>${escapeHtml('결재 라인')}</div>
             <div class="stamp">서명/직인</div>
           </div>
         </div>
@@ -2241,11 +2209,7 @@
                     children.push(new d.Paragraph({ text: `중점 구간: ${focusName} / ${focusAddr}` }));
                 }
 
-                children.push(docxHeading('6. 향후 계획', 2));
-                children.push(new d.Paragraph({ text: '데이터 연동 강화: 그래프/표/사진(첨부) 자동 포함 및 문서형 PDF 출력 연계' }));
-                children.push(new d.Paragraph({ text: '기관별 보고 항목(필수/선택) 커스터마이징 및 결재 라인/문서번호 체계 연결' }));
-                children.push(new d.Paragraph({ text: '고시 기반 점검 항목/평가표(별표) 상세 매핑 및 “정밀점검” 템플릿 추가' }));
-                children.push(new d.Paragraph({ text: `생성 시드: ${String(kpi.seed)}`, spacing: { before: 120 } }));
+                children.push(new d.Paragraph({ text: `생성 시드: ${String(kpi.seed)}`, spacing: { before: 240 } }));
 
                 const doc = new d.Document({
                     sections: [{ properties: {}, children }],
@@ -2363,7 +2327,6 @@
                 const title = buildReportTitle(cfg);
                 const fmt = getSelectedDownloadFormat();
 
-                // NOTE: 다운로드는 사용자 제스처(클릭) 흐름 안에서 실행돼야 브라우저 차단을 피할 수 있습니다.
                 showToast(`보고서를 생성하고 있습니다. (${fmt.toUpperCase()})`, 'info');
                 await downloadReportByFormat(cfg, title, fmt);
 
@@ -2380,7 +2343,6 @@
                 if (!window.NDMSMock) return false;
                 try {
                     window.NDMSMock.ensureInit();
-                    // 마스터가 비어 있으면 최소 부팅(페이지 간 이동 시에도 "가동 중"처럼)
                     window.NDMSMock.bootstrapIfEmpty(() => [], '보고서 페이지(빈 마스터)');
                     return true;
                 } catch {
@@ -2403,7 +2365,6 @@
                     if (!statusTd) return;
                     if (statusTd.querySelector('[data-ndms-status]')) return;
 
-                    // 기존 정적 행: "생성 완료" 텍스트를 유지하면서 NDMS 라인만 추가
                     const curText = statusTd.textContent?.trim() || '생성 완료';
                     statusTd.innerHTML = `
                         <div class="font-medium text-emerald-600">${curText}</div>
@@ -2420,7 +2381,7 @@
 
                 try {
                     const ok = ensureNdmsMockReady();
-                    // NDMSMock가 없어도 "전송됨" 연출은 해야 함
+                    // NDMSMock가 없어도 "전송됨" 
                     const model = buildReportModel(cfg);
                     const focus = model.kpi.focusSite;
                     const assess = focus ? generateAssessmentForSite(focus, model.kpi.seed) : null;
@@ -2581,7 +2542,6 @@
 
                 const fmt = getSelectedDownloadFormat();
                 showToast(`다운로드를 준비합니다(MDMS 양식): ${name} (${fmt.toUpperCase()})`, 'info');
-                // 클릭 핸들러 내부이므로 사용자 제스처 흐름 유지
                 Promise.resolve(downloadReportByFormat(rowCfg, name, fmt))
                     .catch(() => showToast('다운로드 중 오류가 발생했습니다.', 'danger'));
             });
