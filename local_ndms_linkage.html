@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDMS 연계 - 급경사지 안전관리 통합시스템</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100 align-top; }
+            tr:hover td { @apply bg-slate-50; }
+        }
+    </style>
+
+    <style>
+        .mini-kpi {
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: rgba(248, 250, 252, 0.7);
+            padding: 12px 14px;
+            border-radius: 0;
+        }
+
+        .flow-line {
+            height: 2px;
+            background: linear-gradient(90deg, rgba(14, 165, 233, 0.25), rgba(14, 165, 233, 0.55), rgba(14, 165, 233, 0.25));
+        }
+
+        .flow-node {
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            background: #fff;
+            padding: 12px 14px;
+            border-radius: 0;
+        }
+
+        .progress-rail {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(226, 232, 240, 1);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(14, 165, 233, 0.85), rgba(2, 132, 199, 0.95));
+            transition: width 180ms ease;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_newlogo.png" alt="Orbital" class="h-10 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="local_dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                    <a href="local_ndms_linkage.html" class="nav-item active">
+                        <i class="fas fa-link"></i>
+                        <span>NDMS 연계</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="local_m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="local_m2_satellite.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="local_m2_scenario.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="local_m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="local_r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="local_sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2>NDMS 연계</h2>
+                    <p>NDMS 급경사지통합시스템과의 데이터·업무 연계 포인트와 ORBITAL의 확장 가치를 한눈에 정리</p>
+                </div>
+                <div class="header-actions">
+                    <a href="local_dashboard.html" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-arrow-left"></i> 대시보드
+                    </a>
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-signal text-slate-400"></i> NDMS 연계 상태판</h3>
+                    <div class="flex items-center gap-2">
+                        <span id="badge-sync" class="badge badge-info">대기</span>
+                        <span id="badge-policy" class="badge badge-warning">승인 IP 고려</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        <div class="mini-kpi">
+                            <div class="text-xs font-semibold text-slate-500">동기화(마스터)</div>
+                            <div class="mt-2 text-sm font-semibold text-slate-900">
+                                마지막 동기화: <span id="sync-last" class="font-semibold">-</span>
+                            </div>
+                            <div class="mt-2 text-sm text-slate-600">
+                                마스터는 NDMS의 “급경사지 정보관리”에 해당하며, ORBITAL의 지도/분석 대상 기준으로 동기화됩니다.
+                            </div>
+                            <div class="mt-3 progress-rail">
+                                <div id="sync-progress" class="progress-bar"></div>
+                            </div>
+                            <div class="mt-3 flex flex-wrap items-center gap-2">
+                                <span class="badge badge-success"><i class="fas fa-circle-check mr-1"></i> 자동 동기화</span>
+                                <span class="badge badge-info"><i class="fas fa-wifi mr-1"></i> 수집 중</span>
+                            </div>
+                            <div class="mt-2 text-xs text-slate-500">
+                                운영/보안 제약(승인 IP·권한)에 따라 실제 연계는 망/정책에 맞춘 중계 구성이 필요합니다.
+                            </div>
+                        </div>
+
+                        <div class="mini-kpi">
+                            <div class="text-xs font-semibold text-slate-500">NDMS 요약 지표</div>
+                            <div class="mt-3 grid grid-cols-3 gap-3 text-center">
+                                <div class="rounded-none bg-slate-50 p-3 ring-1 ring-slate-200">
+                                    <div class="text-xs font-semibold text-slate-500">마스터</div>
+                                    <div id="kpi-master" class="mt-1 text-lg font-semibold text-slate-900">-</div>
+                                </div>
+                                <div class="rounded-none bg-amber-50 p-3 ring-1 ring-amber-200">
+                                    <div class="text-xs font-semibold text-amber-800/80">계측 미연계</div>
+                                    <div id="kpi-gaps" class="mt-1 text-lg font-semibold text-amber-800">-</div>
+                                </div>
+                                <div class="rounded-none bg-sky-50 p-3 ring-1 ring-sky-200">
+                                    <div class="text-xs font-semibold text-sky-800/80">경보 이벤트</div>
+                                    <div id="kpi-events" class="mt-1 text-lg font-semibold text-sky-800">-</div>
+                                </div>
+                            </div>
+                            <div class="mt-3 text-sm text-slate-600">
+                                문서 핵심 공백(계측 데이터 미연계)을 <span class="font-semibold">“계측 미연계”</span>로 가시화하고,
+                                ORBITAL에서 발생한 경보/분석 결과를 <span class="font-semibold">NDMS 이벤트</span>로 적재하는 흐름을 제공합니다.
+                            </div>
+                            <div class="mt-3 text-xs text-slate-500">
+                                운영/보안 제약: 승인 IP 기반 접근 + 권한(관리자/일반) 체계
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-diagram-project text-slate-400"></i> 연계 파이프라인(동작)</h3>
+                    <span class="badge badge-info">실시간 반영</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid gap-4 lg:grid-cols-3">
+                        <div class="flow-node">
+                            <div class="text-xs font-semibold text-slate-500">1) NDMS 마스터 동기화</div>
+                            <div class="mt-1 text-sm font-semibold text-slate-900">급경사지 기본정보(대상 목록)</div>
+                            <div class="mt-2 text-sm text-slate-600">
+                                NDMS 마스터(급경사지 정보관리)를 기준으로 우리 시스템의 지도·분석 대상이 일치하도록 유지됩니다.
+                            </div>
+                            <div class="mt-3">
+                                <button id="btn-open-m1" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-map"></i> 통합 관제 맵 열기
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="text-xs font-semibold text-slate-500">2) 우리 시스템 분석 → 이벤트</div>
+                            <div class="mt-1 text-sm font-semibold text-slate-900">위성/드론/AI 결과를 NDMS로</div>
+                            <div class="mt-2 text-sm text-slate-600">
+                                분석 결과가 “경보/관측 이벤트”로 적재되어, 상황판·이력·통계에서 동일하게 재사용됩니다.
+                            </div>
+                        </div>
+                        <div class="flow-node">
+                            <div class="text-xs font-semibold text-slate-500">3) 계측 미연계 공백 가시화</div>
+                            <div class="mt-1 text-sm font-semibold text-slate-900">“미연계 현장” → 수신/표준화</div>
+                            <div class="mt-2 text-sm text-slate-600">
+                                기관/현장별로 흩어진 계측 데이터를 수집·검증·표준화하여 연계 공백을 지속적으로 줄입니다.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <div class="text-sm font-semibold text-slate-900">최근 NDMS 이벤트</div>
+                        <div class="mt-3 table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 140px;">시간</th>
+                                        <th style="width: 90px;">출처</th>
+                                        <th style="width: 90px;">유형</th>
+                                        <th style="width: 90px;">레벨</th>
+                                        <th>메시지</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="evt-tbody">
+                                    <tr>
+                                        <td colspan="5" class="text-center text-slate-500 py-10">이벤트 이력이 없습니다.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-star text-slate-400"></i> 관리 체계 흐름</h3>
+                    <span class="badge badge-success">동작 기반</span>
+                </div>
+                <div class="card-body">
+                    <div class="grid gap-4 lg:grid-cols-4">
+                        <div class="mini-kpi">
+                            <div class="text-xs font-semibold text-slate-500">조기탐지</div>
+                            <div class="mt-2 text-sm font-semibold text-slate-900">위성 변위 → 후보지 자동 좁히기</div>
+                            <div class="mt-2 text-sm text-slate-600">“선별”이 되기 때문에 이후 단계(드론/현장/계측)를 줄줄이 자동 연결</div>
+                        </div>
+                        <div class="mini-kpi">
+                            <div class="text-xs font-semibold text-slate-500">정밀평가</div>
+                            <div class="mt-2 text-sm font-semibold text-slate-900">드론/LiDAR → 위험도 근거 생성</div>
+                            <div class="mt-2 text-sm text-slate-600">보고서/결재에 바로 쓰는 산출물 중심(근거·이력)</div>
+                        </div>
+                        <div class="mini-kpi">
+                            <div class="text-xs font-semibold text-slate-500">위험설명</div>
+                            <div class="mt-2 text-sm font-semibold text-slate-900">통합 스코어 + 이벤트 로그</div>
+                            <div class="mt-2 text-sm text-slate-600">“왜 경보인지”를 NDMS 이벤트(메시지+payload)로 남김</div>
+                        </div>
+                        <div class="mini-kpi">
+                            <div class="text-xs font-semibold text-slate-500">연계 공백 보완</div>
+                            <div class="mt-2 text-sm font-semibold text-slate-900">계측 미연계 현장 가시화/해소</div>
+                            <div class="mt-2 text-sm text-slate-600">공백이 “숫자”로 드러나고, 수신 생성으로 줄어드는 흐름</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="m1_embedded_slope_rows.js"></script>
+    <script src="assets/js/ndms_mock.js?v=20260204"></script>
+    <script>
+        const badge = document.getElementById('badge-sync');
+        const lastEl = document.getElementById('sync-last');
+        const bar = document.getElementById('sync-progress');
+        const kpiMaster = document.getElementById('kpi-master');
+        const kpiGaps = document.getElementById('kpi-gaps');
+        const kpiEvents = document.getElementById('kpi-events');
+        const evtTbody = document.getElementById('evt-tbody');
+
+        const btnOpenM1 = document.getElementById('btn-open-m1');
+        
+
+        function safeText(el, v) {
+            if (!el) return;
+            el.textContent = v == null ? '-' : String(v);
+        }
+
+        function setBadge(kind, text) {
+            if (!badge) return;
+            badge.classList.remove('badge-info', 'badge-success', 'badge-warning', 'badge-danger');
+            badge.classList.add(kind);
+            badge.textContent = text;
+        }
+
+        function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+
+        function renderEvents() {
+            if (!evtTbody || !window.NDMSMock) return;
+            const events = window.NDMSMock.getEvents().slice(0, 8);
+            evtTbody.innerHTML = '';
+            if (!events.length) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="5" class="text-center text-slate-500 py-10">이벤트 이력이 없습니다.</td>`;
+                evtTbody.appendChild(tr);
+                return;
+            }
+            for (const e of events) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${String(e.createdAt || '-')}</td>
+                    <td class="font-semibold">${String(e.source || '-')}</td>
+                    <td>${String(e.type || '-')}</td>
+                    <td>${String(e.level || '-')}</td>
+                    <td>${String(e.message || '-')}</td>
+                `;
+                evtTbody.appendChild(tr);
+            }
+        }
+
+        function renderSummary() {
+            if (!window.NDMSMock) return;
+            const s = window.NDMSMock.getStatusSummary();
+            safeText(lastEl, s.lastSync || '-');
+            safeText(kpiMaster, s.masterCount);
+            safeText(kpiGaps, s.gapSites);
+            safeText(kpiEvents, s.eventCount);
+            renderEvents();
+        }
+
+        function renderProgressFromLastSync(lastSync) {
+            if (!bar) return;
+            const t = lastSync ? Date.parse(lastSync) : 0;
+            if (!t) { bar.style.width = '0%'; return; }
+            const dt = Math.max(0, Date.now() - t);
+            const pct = Math.max(12, Math.min(100, Math.round((dt / 15000) * 100)));
+            bar.style.width = `${pct}%`;
+        }
+
+        function buildMasterFromEmbedded(limit) {
+            const rows = Array.isArray(window.__M1_EMBEDDED_SLOPE_ROWS__) ? window.__M1_EMBEDDED_SLOPE_ROWS__ : [];
+            if (!rows.length) return [];
+
+            const max = Math.max(50, Math.min(Number(limit) || 800, rows.length));
+            const picked = rows.slice(0, max);
+
+            // 최소 정보만으로 NDMS 마스터 생성
+            return picked.map((r, idx) => {
+                const sido = String(r['시도'] || '').trim();
+                const sigungu = String(r['시군구'] || '').trim();
+                const eup = String(r['읍면동'] || '').trim();
+                const ri = String(r['리'] || '').trim();
+                const name = String(r['급경사지명'] || '').trim() || `${sigungu || '권역'} 급경사지`;
+                const addr = [sido, sigungu, eup, ri].filter(Boolean).join(' ');
+                const siteId = `gw_${idx.toString(36)}`;
+                return {
+                    id: siteId,
+                    name,
+                    address: addr,
+                    sigungu,
+                    eupmyeondong: eup,
+                    ri,
+                };
+            });
+        }
+
+        if (btnOpenM1) btnOpenM1.addEventListener('click', () => { window.location.href = 'm1_integrated.html'; });
+
+            // init: "이미 동작 중" 상태로 부팅
+        if (window.NDMSMock) {
+            window.NDMSMock.ensureInit();
+            window.NDMSMock.bootstrapIfEmpty(() => buildMasterFromEmbedded(800), '내장 데이터(m1_embedded_slope_rows.js)');
+            window.NDMSMock.startAuto({ intervalMs: 15000 });
+        }
+
+        setBadge('badge-success', '정상');
+        renderSummary();
+        window.setInterval(() => {
+            const s = window.NDMSMock ? window.NDMSMock.getStatusSummary() : null;
+            renderProgressFromLastSync(s && s.lastSync);
+            renderSummary();
+        }, 2000);
+    </script>
+</body>
+
+</html>

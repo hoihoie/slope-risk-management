@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합관리 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .stat-cards { @apply mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4; }
+            .stat-card { @apply rounded-none bg-white p-6 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-lg; }
+            .stat-info h4 { @apply text-sm font-medium text-slate-600; }
+            .stat-info .value { @apply mt-2 text-3xl font-semibold tracking-tight text-slate-900; }
+            .stat-icon { @apply flex h-11 w-11 items-center justify-center rounded-none ring-1 ring-inset; }
+            .stat-icon.blue { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+            .stat-icon.red { @apply bg-rose-50 text-rose-700 ring-rose-100; }
+            .stat-icon.yellow { @apply bg-amber-50 text-amber-700 ring-amber-100; }
+            .stat-icon.orange { @apply bg-orange-50 text-orange-700 ring-orange-100; }
+            .stat-icon.green { @apply bg-emerald-50 text-emerald-700 ring-emerald-100; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+
+            .grid-2 { @apply grid gap-6 lg:grid-cols-2; }
+            .grid-2 > .card { @apply mb-0; }
+
+            .quick-links { @apply grid gap-4 sm:grid-cols-2; }
+            .quick-link { @apply flex items-center gap-4 rounded-none bg-white p-5 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-lg; }
+            .quick-link i { @apply text-lg text-slate-500; }
+
+            .alert-list { @apply divide-y divide-slate-100; }
+            .alert-item { @apply flex items-start gap-4 px-6 py-4; }
+            .alert-item-icon { @apply mt-0.5; }
+            .alert-content p { @apply text-sm font-semibold text-slate-900; }
+            .alert-content span { @apply text-xs text-slate-500; }
+        }
+    </style>
+    <!-- Leaflet CSS (오픈소스 지도) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+            border-radius: 0;
+            z-index: 1;
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 16px;
+            border-radius: 0;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12), 0 2px 10px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            width: 250px;
+        }
+
+        .filter-group {
+            margin-bottom: 12px;
+        }
+
+        .filter-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #475569;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* 목록 테이블: 스크롤 + 헤더 고정 */
+        .site-table-wrap {
+            max-height: 460px;
+            overflow: auto;
+        }
+
+        .site-table-wrap thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        tbody tr {
+            cursor: pointer;
+        }
+
+        tr.site-row-selected td {
+            background: rgba(14, 165, 233, 0.08);
+        }
+
+        tr.site-row-selected:hover td {
+            background: rgba(14, 165, 233, 0.08);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_newlogo.png" alt="Orbital" class="h-10 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="mois_dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                    <a href="mois_ndms_overview.html" class="nav-item">
+                        <i class="fas fa-link"></i>
+                        <span>NDMS 연계</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="mois_m1_integrated.html" class="nav-item active">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="mois_satellite_overview.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="mois_drone_overview.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="mois_m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="mois_r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="mois_sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2>통합 관제 맵</h2>
+                    <p>GIS 기반 전체 급경사지 위치 및 위험도 모니터링</p>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="card" style="position: relative;">
+                <div class="card-header">
+                    <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-sm"><i class="fas fa-layer-group"></i> 레이어</button>
+                        <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> 필터</button>
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div id="map"></div>
+
+                    <!-- Map Overlay Controls -->
+                    <div class="map-overlay">
+                        <div class="filter-group">
+                            <div class="filter-title">지도 유형</div>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="map-type-base-btn" type="button" class="btn btn-primary btn-sm" style="flex:1;">기본</button>
+                                <button id="map-type-satellite-btn" type="button" class="btn btn-secondary btn-sm" style="flex:1;">위성</button>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <div class="filter-title">위험 등급 범례</div>
+                            <div class="legend-item"><span class="dot bg-rose-500"></span> E등급 (심각)</div>
+                            <div class="legend-item"><span class="dot bg-amber-500"></span> D등급 (경계)</div>
+                            <div class="legend-item"><span class="dot" style="background: #FCD34D;"></span> C등급 (주의)</div>
+                            <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
+                            <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail List below map -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
+                    <div class="flex items-center gap-2">
+                        <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                    </div>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-container site-table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;">No</th>
+                                    <th>지역명</th>
+                                    <th>위치</th>
+                                    <th>위험등급</th>
+                                    <th>최종점검</th>
+                                    <th>상태</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="site-table-body">
+                                <tr>
+                                    <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- 내장 데이터 -->
+    <script src="m1_embedded_slope_rows.js"></script>
+    <script>
+        // =========================
+        // 통합 관제 맵 (강원도 줌아웃 + 내장 데이터 기반 목록/마커)
+        // =========================
+
+        const EMBEDDED_SLOPE_ROWS = Array.isArray(window.__M1_EMBEDDED_SLOPE_ROWS__) ? window.__M1_EMBEDDED_SLOPE_ROWS__ : [];
+        const SAMPLE_LIMIT = 800; // 샘플링 개수(내장 데이터 기본 800개)
+
+        // 강원도 대략 범위 (Lat/Lng)
+        const GANGWON_SW = [36.90, 127.00];
+        const GANGWON_NE = [38.65, 129.45];
+        const GANGWON_CENTER = [37.82, 128.20];
+
+        // Initialize Map (Gangwon)
+        const map = L.map('map', { preferCanvas: true }).setView(GANGWON_CENTER, 8);
+        const GANGWON_BOUNDS = L.latLngBounds(GANGWON_SW, GANGWON_NE);
+        map.fitBounds(GANGWON_BOUNDS, { padding: [20, 20] });
+        // 너무 멀리 보이는 경우를 대비해 "살짝" 줌인
+        map.setZoom(map.getZoom() + 1);
+
+        // Basemap layers
+        const baseTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        });
+
+        // Satellite basemap (Esri World Imagery)
+        const satelliteTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri'
+        });
+
+        baseTileLayer.addTo(map);
+
+        // Map type toggle (기본/위성)
+        const mapTypeBaseBtn = document.getElementById('map-type-base-btn');
+        const mapTypeSatBtn = document.getElementById('map-type-satellite-btn');
+
+        function setMapType(type) {
+            const next = type === 'satellite' ? 'satellite' : 'base';
+            if (next === 'satellite') {
+                if (map.hasLayer(baseTileLayer)) map.removeLayer(baseTileLayer);
+                if (!map.hasLayer(satelliteTileLayer)) map.addLayer(satelliteTileLayer);
+
+                if (mapTypeBaseBtn) {
+                    mapTypeBaseBtn.classList.remove('btn-primary');
+                    mapTypeBaseBtn.classList.add('btn-secondary');
+                }
+                if (mapTypeSatBtn) {
+                    mapTypeSatBtn.classList.remove('btn-secondary');
+                    mapTypeSatBtn.classList.add('btn-primary');
+                }
+            } else {
+                if (map.hasLayer(satelliteTileLayer)) map.removeLayer(satelliteTileLayer);
+                if (!map.hasLayer(baseTileLayer)) map.addLayer(baseTileLayer);
+
+                if (mapTypeBaseBtn) {
+                    mapTypeBaseBtn.classList.remove('btn-secondary');
+                    mapTypeBaseBtn.classList.add('btn-primary');
+                }
+                if (mapTypeSatBtn) {
+                    mapTypeSatBtn.classList.remove('btn-primary');
+                    mapTypeSatBtn.classList.add('btn-secondary');
+                }
+            }
+        }
+
+        if (mapTypeBaseBtn) mapTypeBaseBtn.addEventListener('click', () => setMapType('base'));
+        if (mapTypeSatBtn) mapTypeSatBtn.addEventListener('click', () => setMapType('satellite'));
+
+        const canvasRenderer = L.canvas({ padding: 0.5 });
+        const markerLayer = L.layerGroup().addTo(map);
+        const markerById = new Map();
+
+        const tableBodyEl = document.getElementById('site-table-body');
+        const searchInputEl = document.getElementById('site-search-input');
+
+        let allSites = [];
+        let selectedSiteId = null;
+        let eventsBound = false;
+
+        const COUNTY_CENTER = {
+            '춘천시': [37.8813, 127.7298],
+            '원주시': [37.3422, 127.9202],
+            '강릉시': [37.7519, 128.8761],
+            '동해시': [37.5248, 129.1143],
+            '태백시': [37.1641, 128.9855],
+            '속초시': [38.2070, 128.5919],
+            '삼척시': [37.4499, 129.1650],
+            '홍천군': [37.6972, 127.8887],
+            '횡성군': [37.4918, 127.9850],
+            '영월군': [37.1834, 128.4616],
+            '평창군': [37.3703, 128.3900],
+            '정선군': [37.3805, 128.6608],
+            '철원군': [38.1469, 127.3134],
+            '화천군': [38.1069, 127.7089],
+            '양구군': [38.1090, 127.9890],
+            '인제군': [38.0696, 128.1700],
+            '고성군': [38.3806, 128.4678],
+            '양양군': [38.0755, 128.6191],
+        };
+
+        
+        const COASTAL_LNG_GUARD_BY_SIGUNGU = {
+      
+            '고성군': { scale: 0.55, westShift: 0.04, westMax: 0.16, eastMax: -0.02 },
+            '속초시': { scale: 0.55, westShift: 0.04, westMax: 0.10, eastMax: 0.0 },
+            '양양군': { scale: 0.55, westShift: 0.04, westMax: 0.10, eastMax: 0.0 },
+            '강릉시': { scale: 0.55, westShift: 0.00, westMax: 0.12, eastMax: 0.03 },
+            '동해시': { scale: 0.50, westShift: 0.08, westMax: 0.12, eastMax: -0.02 },
+            '삼척시': { scale: 0.50, westShift: 0.08, westMax: 0.14, eastMax: -0.02 },
+        };
+
+        const EXTRA_WEST_SHIFT_BY_NAME = {
+            '강원 고성 거진 송강 N1지구': 0.08,
+            '미시령지구': 0.08,
+            '미시령2지구': 0.08,
+
+            '강원 동해 비천 N1지구': 0.06,
+            '강원 삼척 미로 삼거 N1지구': 0.06,
+            '강원 삼척 도계 점 N2지구': 0.06,
+            '강원 삼척 도계 점 N3지구': 0.06,
+            '강원 삼척 등봉 N2지구': 0.06,
+            '영남 동해선 17-2(포삼)': 0.06,
+            '영남 동해선 17-6(포삼)': 0.06,
+            '강원-영동선135-강': 0.06,
+            '동막2지구(지방도427)': 0.06,
+            '용연리': 0.06,
+            '강원 삼척 미로 사둔 N2지구': 0.06,
+        };
+
+        function safeText(el, text) {
+            if (!el) return;
+            el.textContent = text == null ? '' : String(text);
+        }
+
+        function clamp(num, min, max) {
+            return Math.max(min, Math.min(max, num));
+        }
+
+        function fnv1a32(str) {
+            let h = 0x811c9dc5;
+            const s = String(str ?? '');
+            for (let i = 0; i < s.length; i++) {
+                h ^= s.charCodeAt(i);
+                h = Math.imul(h, 0x01000193);
+            }
+            return h >>> 0;
+        }
+
+        function hash01(str) {
+            // 0..1 (deterministic)
+            return (fnv1a32(str) % 1000000) / 1000000;
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        const FALLBACK_GANGWON_ROWS = [
+            { '급경사지명': '춘천-방하(샘플)', '시도': '강원특별자치도', '시군구': '춘천시', '읍면동': '남산면', '리': '방하리', '산여부': '산', '주지번': '5', '부지번': '4' },
+            { '급경사지명': '강릉-주문진(샘플)', '시도': '강원특별자치도', '시군구': '강릉시', '읍면동': '주문진읍', '리': '', '산여부': '', '주지번': '120', '부지번': '1' },
+            { '급경사지명': '원주-흥업(샘플)', '시도': '강원특별자치도', '시군구': '원주시', '읍면동': '흥업면', '리': '', '산여부': '', '주지번': '88', '부지번': '2' },
+            { '급경사지명': '속초-대포(샘플)', '시도': '강원특별자치도', '시군구': '속초시', '읍면동': '대포동', '리': '', '산여부': '', '주지번': '33', '부지번': '' },
+            { '급경사지명': '정선-봉양(샘플)', '시도': '강원특별자치도', '시군구': '정선군', '읍면동': '정선읍', '리': '봉양리', '산여부': '', '주지번': '430', '부지번': '' },
+        ];
+
+        let slopeRowsCache = null;
+        let slopeRowsSourceLabel = null;
+
+        async function loadSlopeRows(options = {}) {
+            const force = options && options.force === true;
+            if (slopeRowsCache && !force) {
+                return { rows: slopeRowsCache, sourceLabel: slopeRowsSourceLabel || '내장 데이터 캐시' };
+            }
+
+            const embedded = Array.isArray(EMBEDDED_SLOPE_ROWS) ? EMBEDDED_SLOPE_ROWS : [];
+            if (embedded.length) {
+                slopeRowsCache = embedded;
+                slopeRowsSourceLabel = '내장 데이터 (m1_embedded_slope_rows.js)';
+                return { rows: slopeRowsCache, sourceLabel: slopeRowsSourceLabel };
+            }
+
+            // 내장 데이터가 비어있으면 최소 샘플로 fallback
+            slopeRowsCache = FALLBACK_GANGWON_ROWS;
+            slopeRowsSourceLabel = '내장 샘플(최소 fallback)';
+            return { rows: slopeRowsCache, sourceLabel: slopeRowsSourceLabel, error: new Error('내장 데이터가 비어있습니다.') };
+        }
+
+        function gradeInfo(grade5) {
+            const g = Number.parseInt(String(grade5 ?? ''), 10);
+            if (g === 5) return { label: 'E등급 (심각)', gradeOnly: 'E등급', badgeClass: 'badge-danger', color: '#EF4444', status: '경보 발령 중', statusClass: 'text-rose-600' };
+            if (g === 4) return { label: 'D등급 (경계)', gradeOnly: 'D등급', badgeClass: 'badge-warning', color: '#F59E0B', status: '변위 감지', statusClass: 'text-amber-700' };
+            if (g === 3) return { label: 'C등급 (주의)', gradeOnly: 'C등급', badgeClass: 'badge-warning', color: '#FCD34D', status: '주의 관찰', statusClass: 'text-yellow-700' };
+            if (g === 2) return { label: 'B등급 (관심)', gradeOnly: 'B등급', badgeClass: 'badge-info', color: '#3B82F6', status: '관심', statusClass: 'text-sky-700' };
+            if (g === 1) return { label: 'A등급 (안전)', gradeOnly: 'A등급', badgeClass: 'badge-success', color: '#10B981', status: '모니터링', statusClass: 'text-slate-600' };
+            return { label: '등급 미상', gradeOnly: '등급 미상', badgeClass: 'badge-info', color: '#64748B', status: '모니터링', statusClass: 'text-slate-600' };
+        }
+
+        function buildAddress(r) {
+            const sido = (r['시도'] || '').trim();
+            const sigungu = (r['시군구'] || '').trim();
+            const eup = (r['읍면동'] || '').trim();
+            const ri = (r['리'] || '').trim();
+            const isMt = (r['산여부'] || '').trim();
+            const main = (r['주지번'] || '').trim();
+            const sub = (r['부지번'] || '').trim();
+            const jibun = main ? (sub ? `${main}-${sub}` : `${main}`) : '';
+            const mt = isMt ? `${isMt} ` : '';
+            const parts = [sido, sigungu, eup, ri].filter(Boolean);
+            return `${parts.join(' ')} ${mt}${jibun}`.trim();
+        }
+
+        function rowKey(r) {
+            return [
+                (r['시도'] || '').trim(),
+                (r['시군구'] || '').trim(),
+                (r['읍면동'] || '').trim(),
+                (r['리'] || '').trim(),
+                (r['산여부'] || '').trim(),
+                (r['주지번'] || '').trim(),
+                (r['부지번'] || '').trim(),
+                (r['급경사지명'] || '').trim(),
+            ].join('|');
+        }
+
+        function pickSample(rows, limit) {
+            const withScore = (rows || []).map((r) => ({ r, score: fnv1a32(rowKey(r)) }));
+            withScore.sort((a, b) => a.score - b.score);
+            return withScore.slice(0, Math.max(0, limit || 0)).map((x) => x.r);
+        }
+
+        function deriveGrade5(seed) {
+            const x = hash01(seed);
+            if (x < 0.52) return 1; // A
+            if (x < 0.74) return 2; // B
+            if (x < 0.88) return 3; // C
+            if (x < 0.96) return 4; // D
+            return 5; // E
+        }
+
+        function formatDateYYYYMMDD(d) {
+            const yy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yy}-${mm}-${dd}`;
+        }
+
+        function deriveLastCheck(grade5, seed) {
+            const base = grade5 === 5 ? 7 : grade5 === 4 ? 14 : grade5 === 3 ? 30 : grade5 === 2 ? 60 : 90;
+            const jitter = Math.floor(hash01(seed + '|lastCheck') * base);
+            const daysAgo = base + jitter;
+            const d = new Date();
+            d.setDate(d.getDate() - daysAgo);
+            return formatDateYYYYMMDD(d);
+        }
+
+        function deriveLatLng(r, seed) {
+            const sigungu = (r['시군구'] || '').trim();
+            const eupmyeondong = (r['읍면동'] || '').trim();
+            const ri = (r['리'] || '').trim();
+            const name = (r['급경사지명'] || '').trim();
+            const base = COUNTY_CENTER[sigungu] || GANGWON_CENTER;
+
+            // (1) 시군구 중심점 + (2) 읍면동/리 단위의 "근처 클러스터" + (3) 개별 지점 소폭 분산 으로 좌표를 추정합니다.
+            // ※ 지오코딩(주소→좌표) 추후 API 연동을 붙일 수 있습니다.
+            const areaKey = `${sigungu}|${eupmyeondong}|${ri}`;
+
+            // 읍면동/리 단위 분산(동네끼리 모이도록)
+            const areaLatJ = (hash01(areaKey + '|areaLat') - 0.5) * 0.18;
+            const areaLngJ = (hash01(areaKey + '|areaLng') - 0.5) * 0.28;
+
+            // 개별 지점 분산(겹침 완화)
+            const pointLatJ = (hash01(seed + '|lat') - 0.5) * 0.04;
+            const pointLngJ = (hash01(seed + '|lng') - 0.5) * 0.06;
+
+            const lat = clamp(base[0] + areaLatJ + pointLatJ, GANGWON_SW[0], GANGWON_NE[0]);
+            let lng = base[1] + areaLngJ + pointLngJ;
+
+            const guard = COASTAL_LNG_GUARD_BY_SIGUNGU[sigungu];
+            if (guard) {
+                const scaled = (areaLngJ + pointLngJ) * (typeof guard.scale === 'number' ? guard.scale : 0.55);
+                const westShift = typeof guard.westShift === 'number' ? guard.westShift : 0.04;
+                lng = base[1] + scaled - westShift;
+
+                const westMax = typeof guard.westMax === 'number' ? guard.westMax : 0.12;
+                const eastMax = typeof guard.eastMax === 'number' ? guard.eastMax : 0.0;
+                lng = clamp(lng, base[1] - westMax, base[1] + eastMax);
+            }
+
+            const extraWest = EXTRA_WEST_SHIFT_BY_NAME[name];
+            if (typeof extraWest === 'number' && Number.isFinite(extraWest)) {
+                lng = lng - extraWest;
+            }
+
+            // 전체 범위 클램프
+            lng = clamp(lng, GANGWON_SW[1], GANGWON_NE[1]);
+            return { lat, lng };
+        }
+
+        function buildSite(r) {
+            const seed = rowKey(r);
+            const id = `gw_${fnv1a32(seed).toString(36)}`;
+            const address = buildAddress(r);
+            const { lat, lng } = deriveLatLng(r, seed);
+            const grade5 = deriveGrade5(seed);
+            const g = gradeInfo(grade5);
+            const lastCheck = deriveLastCheck(grade5, seed);
+
+            return {
+                id,
+                name: (r['급경사지명'] || '').trim() || '급경사지',
+                sido: (r['시도'] || '').trim(),
+                sigungu: (r['시군구'] || '').trim(),
+                eupmyeondong: (r['읍면동'] || '').trim(),
+                ri: (r['리'] || '').trim(),
+                isMountain: (r['산여부'] || '').trim(),
+                mainJibun: (r['주지번'] || '').trim(),
+                subJibun: (r['부지번'] || '').trim(),
+                address,
+                lat,
+                lng,
+                grade5,
+                gradeLabel: g.gradeOnly,
+                badgeClass: g.badgeClass,
+                markerColor: g.color,
+                statusText: g.status,
+                statusClass: g.statusClass,
+                lastCheck,
+            };
+        }
+
+        function clearMarkers() {
+            markerLayer.clearLayers();
+            markerById.clear();
+        }
+
+        function addMarkers(sites) {
+            clearMarkers();
+
+            (sites || []).forEach((site) => {
+                const marker = L.circleMarker([site.lat, site.lng], {
+                    radius: 7,
+                    fillColor: site.markerColor,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.85,
+                    renderer: canvasRenderer,
+                });
+
+                const popupHtml = [
+                    `<div style="min-width: 220px;">`,
+                    `<div style="font-weight: 700; margin-bottom: 4px;">${escapeHtml(site.name)}</div>`,
+                    `<div style="font-size: 12px; color: #475569; margin-bottom: 6px;">${escapeHtml(site.address)}</div>`,
+                    `<div style="display:flex; align-items:center; gap:8px; font-size:12px;">`,
+                    `<span style="display:inline-block; width:10px; height:10px; border-radius:999px; background:${escapeHtml(site.markerColor)};"></span>`,
+                    `<span>${escapeHtml(gradeInfo(site.grade5).label)}</span>`,
+                    `</div>`,
+                    `</div>`,
+                ].join('');
+
+                marker.bindPopup(popupHtml);
+                marker.on('click', () => {
+                    selectedSiteId = site.id;
+                    renderTable();
+                });
+
+                marker.addTo(markerLayer);
+                markerById.set(site.id, marker);
+            });
+        }
+
+        function focusSite(siteId) {
+            const site = allSites.find((s) => s.id === siteId);
+            if (!site) return;
+            selectedSiteId = siteId;
+
+            map.setView([site.lat, site.lng], Math.max(map.getZoom(), 12), { animate: true });
+            const m = markerById.get(siteId);
+            if (m) m.openPopup();
+            renderTable();
+        }
+
+        function matchesQuery(site, query) {
+            const q = String(query || '').trim().toLowerCase();
+            if (!q) return true;
+            const hay = [
+                site.name,
+                site.address,
+                site.sigungu,
+                site.eupmyeondong,
+                site.ri,
+            ].join(' ').toLowerCase();
+            return hay.includes(q);
+        }
+
+        function renderTable() {
+            if (!tableBodyEl) return;
+
+            const bounds = map.getBounds();
+            const query = searchInputEl ? (searchInputEl.value || '') : '';
+
+            // 1) 지도 bounds 안에 있는 항목만
+            let visible = (allSites || []).filter((s) => bounds.contains([s.lat, s.lng]));
+
+            // 2) 검색어 적용
+            visible = visible.filter((s) => matchesQuery(s, query));
+
+            // 3) 위험도(등급) 높은 순 + 지역명 정렬
+            visible.sort((a, b) => {
+                const dg = (b.grade5 || 0) - (a.grade5 || 0);
+                if (dg !== 0) return dg;
+                const sa = (a.sigungu || '').localeCompare((b.sigungu || ''), 'ko');
+                if (sa !== 0) return sa;
+                return (a.name || '').localeCompare((b.name || ''), 'ko');
+            });
+
+            tableBodyEl.innerHTML = '';
+
+            if (!visible.length) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 7;
+                td.className = 'text-center text-slate-500 py-10';
+                td.textContent = '현재 지도 화면에서 조건에 맞는 급경사지가 없습니다.';
+                tr.appendChild(td);
+                tableBodyEl.appendChild(tr);
+                return;
+            }
+
+            visible.forEach((site, idx) => {
+                const tr = document.createElement('tr');
+                if (site.id === selectedSiteId) tr.classList.add('site-row-selected');
+
+                tr.addEventListener('click', () => focusSite(site.id));
+
+                const tdNo = document.createElement('td');
+                tdNo.textContent = String(idx + 1);
+
+                const tdName = document.createElement('td');
+                tdName.style.fontWeight = '600';
+                tdName.textContent = `${site.sigungu} ${site.eupmyeondong}`.trim() ? `${site.sigungu} ${site.eupmyeondong} · ${site.name}` : site.name;
+
+                const tdAddr = document.createElement('td');
+                tdAddr.textContent = site.address || '-';
+
+                const tdGrade = document.createElement('td');
+                const badge = document.createElement('span');
+                badge.className = `badge ${site.badgeClass || 'badge-info'}`;
+                badge.textContent = site.gradeLabel || '등급 미상';
+                tdGrade.appendChild(badge);
+
+                const tdLast = document.createElement('td');
+                tdLast.textContent = site.lastCheck || '-';
+
+                const tdStatus = document.createElement('td');
+                tdStatus.className = `font-medium ${site.statusClass || 'text-slate-600'}`;
+                tdStatus.textContent = site.statusText || '모니터링';
+
+                const tdAction = document.createElement('td');
+                const a = document.createElement('a');
+                a.href = `mn1_detail.html?site=${encodeURIComponent(site.id)}`;
+                a.className = 'btn btn-secondary btn-sm';
+                a.textContent = '상세';
+                a.addEventListener('click', () => {
+                    try {
+                        localStorage.setItem('m1_integrated_selected_site_v1', JSON.stringify(site));
+                        localStorage.setItem('m1_integrated_sites_cache_v1', JSON.stringify(allSites));
+                    } catch {
+                        // ignore
+                    }
+                });
+                tdAction.appendChild(a);
+
+                tr.appendChild(tdNo);
+                tr.appendChild(tdName);
+                tr.appendChild(tdAddr);
+                tr.appendChild(tdGrade);
+                tr.appendChild(tdLast);
+                tr.appendChild(tdStatus);
+                tr.appendChild(tdAction);
+
+                tableBodyEl.appendChild(tr);
+            });
+        }
+
+        function bindEventsOnce() {
+            if (eventsBound) return;
+            eventsBound = true;
+
+            // 이벤트: 지도 이동/줌 → 현재 화면에 보이는 것만 목록 표시
+            map.on('moveend', () => renderTable());
+
+            // 이벤트: 검색
+            if (searchInputEl) {
+                searchInputEl.addEventListener('input', () => renderTable());
+            }
+        }
+
+        function applySlopeRows(rows, sourceLabel, error) {
+            const gangwonRows = (rows || []).filter((r) => String(r['시도'] || '').includes('강원'));
+            const sampled = pickSample(gangwonRows, SAMPLE_LIMIT);
+
+            allSites = sampled.map(buildSite);
+
+            // detail 페이지에서 재사용 가능하도록 캐시 (옵션)
+            try {
+                localStorage.setItem('m1_integrated_sites_cache_v1', JSON.stringify(allSites));
+            } catch {
+                // ignore
+            }
+
+            addMarkers(allSites);
+            renderTable();
+        }
+
+        async function init() {
+            if (tableBodyEl) {
+                tableBodyEl.innerHTML = `<tr><td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td></tr>`;
+            }
+
+            bindEventsOnce();
+
+            const { rows, sourceLabel, error } = await loadSlopeRows({ force: true });
+            applySlopeRows(rows, sourceLabel, error);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

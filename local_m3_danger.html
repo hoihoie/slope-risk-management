@@ -1,0 +1,2413 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>붕괴위험지역 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+
+            .grid-2 { @apply grid gap-6 lg:grid-cols-2; }
+            .grid-2 > .card { @apply mb-0; }
+
+            .alert-list { @apply divide-y divide-slate-100; }
+            .alert-item { @apply flex items-start gap-4 px-6 py-4; }
+            .alert-item-icon { @apply mt-0.5; }
+            .alert-content p { @apply text-sm font-semibold text-slate-900; }
+            .alert-content span { @apply text-xs text-slate-500; }
+        }
+    </style>
+    <!-- 3D GLB Viewer (no framework) -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@3.2.0/dist/model-viewer.min.js"></script>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_newlogo.png" alt="Orbital" class="h-10 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+            <div class="sidebar-nav">
+                <!-- Navigation items -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="local_dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                    <a href="local_ndms_linkage.html" class="nav-item">
+                        <i class="fas fa-link"></i>
+                        <span>NDMS 연계</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="local_m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="local_m2_satellite.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="local_m2_scenario.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="local_m3_danger.html" class="nav-item active">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="local_r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="local_sensor_threshold.html" class="nav-item">
+                        <i class="fas fa-sliders"></i>
+                        <span>임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2>붕괴 위험 관리</h2>
+                    <p>3D 모델링 기반 정밀 안전 진단 및 위험도 분석</p>
+                </div>
+                <div class="header-actions">
+                    <span class="badge badge-success">NDMS 연계 정상</span>
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="grid-2" style="grid-template-columns: 350px 1fr; margin-bottom: 24px;">
+                <!-- Sidebar List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-list-ul text-slate-400"></i> 관리 대상 목록</h3>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div id="siteList" class="alert-list"></div>
+                        <div id="siteListLoadMoreWrap" class="border-t border-slate-100 px-6 py-3">
+                            <button id="siteListLoadMoreBtn" type="button" class="btn btn-secondary btn-sm w-full">
+                                <i class="fas fa-ellipsis"></i> 더보기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3D Viewer & Simulation -->
+                <div style="display: flex; flex-direction: column; gap: 24px;">
+                    <!-- 3D Viewer -->
+                    <div class="card"
+                        style="flex: 1; margin-bottom: 0; min-height: 500px; display: flex; flex-direction: column;">
+                        <div class="card-header">
+                            <h3><i class="fas fa-cube text-slate-400"></i> 3D 디지털 트윈 뷰어</h3>
+                            <div style="display: flex; gap: 8px;">
+                                <button id="toggleHeatmapBtn" type="button" class="btn btn-secondary btn-sm"
+                                    title="지형 위험도 히트맵(지면 오버레이: 고도/경사 기반)" aria-pressed="false">
+                                    <i class="fas fa-layer-group"></i> 히트맵
+                                </button>
+                                <button class="btn btn-secondary btn-sm" title="회전"><i
+                                        class="fas fa-arrows-rotate"></i></button>
+                                <button class="btn btn-secondary btn-sm" title="확대/축소"><i
+                                        class="fas fa-magnifying-glass"></i></button>
+                                <button class="btn btn-secondary btn-sm" title="초기화"><i
+                                        class="fas fa-compress"></i></button>
+                            </div>
+                        </div>
+                        <div class="card-body"
+                            style="padding: 0; flex: 1; background: #111827; position: relative; overflow: hidden; min-height: 420px;">
+                            <!-- GLB Digital Twin Viewer -->
+                            <model-viewer id="digitalTwinViewer" src="maps3d-2026-01-28_10-38-45.glb" alt="3D 지형 모델"
+                                camera-controls auto-rotate shadow-intensity="0.9" exposure="1"
+                                min-camera-orbit="auto auto 5m" max-camera-orbit="auto auto 20000m"
+                                input-sensitivity="2.5"
+                                style="position: absolute; inset: 0; width: 100%; height: 100%; background: #111827;">
+                                <!-- 클릭한 지점 표시 핀(핫스팟) -->
+                                <button id="terrainPickHotspot" slot="hotspot-picked" data-position="0 0 0"
+                                    data-normal="0 1 0"
+                                    style="display:none; width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(245, 158, 11, 0.95); box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
+                                </button>
+
+                                <!-- 고정 핫스팟(파란 점) 3개: 사용자는 추가/저장 불가 -->
+                                <button id="poiHotspotA" data-poi-id="a" slot="hotspot-poi-a"
+                                    data-position="2567.20m 57.70m 4000.23m" data-normal="0 1 0" title="봉양리 (지점 A)"
+                                    style="width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(59, 130, 246, 0.95); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
+                                </button>
+                                <button id="poiHotspotB" data-poi-id="b" slot="hotspot-poi-b"
+                                    data-position="-5315.00m 57.70m 1505.00m" data-normal="0 1 0" title="용탄리 (지점 B)"
+                                    style="width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(59, 130, 246, 0.95); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
+                                </button>
+                                <button id="poiHotspotC" data-poi-id="c" slot="hotspot-poi-c"
+                                    data-position="4505.00m 57.70m 1615.00m" data-normal="0 1 0" title="덕송리 (지점 C)"
+                                    style="width:14px; height:14px; border-radius:999px; border:2px solid #fff; background: rgba(59, 130, 246, 0.95); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35); transform: translate(-50%, -50%); cursor: pointer;">
+                                </button>
+                            </model-viewer>
+                        </div>
+
+                        <!-- 핀(파란 점) 클릭 시 표시되는 정보 박스 (뷰어 아래) -->
+                        <div id="poiInfoPanel" class="border-t border-slate-200 p-4" style="display:none;">
+                            <div class="rounded-none bg-white/90 p-4 ring-1 ring-slate-200 backdrop-blur">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <div id="poiInfoTitle" class="font-bold text-slate-900">지점을 선택하세요</div>
+                                            <span id="poiRiskBadge" class="badge badge-info">분석 대기</span>
+                                        </div>
+                                        <div id="poiInfoSub" class="mt-1 text-xs text-slate-500">
+                                            파란 핀(지점)을 클릭하면 CSV 기반 위험도가 표시됩니다.
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button id="poiRunModel" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-bolt"></i> AI 재산출
+                                        </button>
+                                        <button id="poiInfoClose" class="btn btn-secondary btn-sm">닫기</button>
+                                    </div>
+                                </div>
+
+                                <!-- AI 추론(가짜) 진행 표시 -->
+                                <div id="poiInferencePanel" class="mt-4 hidden rounded-none bg-slate-900/95 p-3 text-slate-100 ring-1 ring-slate-900/40">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <div class="text-sm font-semibold">AI 위험도 산출 중…</div>
+                                        <div id="poiInferenceStep" class="text-xs text-slate-300">-</div>
+                                    </div>
+                                    <div class="mt-2 h-2 w-full rounded bg-slate-700">
+                                        <div id="poiInferenceBar" class="h-2 rounded bg-sky-400" style="width: 0%;"></div>
+                                    </div>
+                                    <div id="poiInferenceLog" class="mt-2 space-y-1 text-xs text-slate-300"></div>
+                                </div>
+
+                                <!-- 결과 요약 -->
+                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    <div class="rounded-none bg-slate-50 p-3 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">RiskScore</div>
+                                        <div id="poiRiskScore" class="mt-1 text-xl font-bold text-slate-900">--</div>
+                                    </div>
+                                    <div class="rounded-none bg-slate-50 p-3 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">Susceptibility</div>
+                                        <div id="poiSusceptibility" class="mt-1 text-xl font-bold text-slate-900">--</div>
+                                    </div>
+                                </div>
+
+                                <!-- 피처/메타 -->
+                                <div class="mt-4">
+                                    <div class="mb-2 text-xs font-semibold text-slate-600">모델 입력</div>
+                                    <div id="poiFeatureGrid" class="grid grid-cols-2 gap-2 text-sm">
+                                        <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                            <div class="text-[11px] font-semibold text-slate-500">경사도</div>
+                                            <div id="poiFeatSlope" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                        </div>
+                                        <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                            <div class="text-[11px] font-semibold text-slate-500">곡률</div>
+                                            <div id="poiFeatCurv" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                        </div>
+                                        <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                            <div class="text-[11px] font-semibold text-slate-500">거칠기</div>
+                                            <div id="poiFeatRough" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                        </div>
+                                        <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                            <div class="text-[11px] font-semibold text-slate-500">사면향</div>
+                                            <div id="poiFeatAspect" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                        </div>
+                                        <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                            <div class="text-[11px] font-semibold text-slate-500">지도 모델 점수(S1_transfer)</div>
+                                            <div id="poiFeatS1Transfer" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                        </div>
+                                        <div class="rounded-none bg-white p-2 ring-1 ring-slate-200">
+                                            <div class="text-[11px] font-semibold text-slate-500">비지도 모델 점수(S1_used)</div>
+                                            <div id="poiFeatS1Used" class="mt-0.5 font-semibold text-slate-900">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 위험관리(프로토타입) -->
+                                <div class="mt-4 rounded-none border border-slate-200 bg-white p-4">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <div class="text-sm font-semibold text-slate-900">
+                                            <i class="fas fa-clipboard-check text-slate-400"></i> 위험관리 (프로토타입)
+                                        </div>
+                                        <div id="poiMgmtLastUpdated" class="text-xs text-slate-500"></div>
+                                    </div>
+
+                                    <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                                        <div>
+                                            <label class="mb-1 block text-xs font-semibold text-slate-600">관리 상태</label>
+                                            <select id="poiMgmtStatus" class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                                <option>모니터링</option>
+                                                <option>관심</option>
+                                                <option>주의</option>
+                                                <option>경계</option>
+                                                <option>심각</option>
+                                                <option>조치중</option>
+                                                <option>조치완료</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="mb-1 block text-xs font-semibold text-slate-600">담당자</label>
+                                            <input id="poiMgmtAssignee" type="text" class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20" placeholder="예: 김담당 주무관" />
+                                        </div>
+                                        <div>
+                                            <label class="mb-1 block text-xs font-semibold text-slate-600">우선순위</label>
+                                            <select id="poiMgmtPriority" class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                                <option>높음</option>
+                                                <option selected>중간</option>
+                                                <option>낮음</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <label class="mb-1 block text-xs font-semibold text-slate-600">조치 내용</label>
+                                        <textarea id="poiMgmtNote" rows="2" class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20" placeholder="예: 현장점검 요청 / 통제선 설치 / 배수로 정비 / 주민 안내..."></textarea>
+                                    </div>
+
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        <button id="poiMgmtSave" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-floppy-disk"></i> 저장
+                                        </button>
+                                        <button id="poiMgmtAddLog" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-plus"></i> 조치 이력 추가
+                                        </button>
+                                        <button id="poiMgmtMarkDone" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-check"></i> 조치 완료
+                                        </button>
+                                        <button id="poiMgmtReset" class="btn btn-secondary btn-sm">
+                                            <i class="fas fa-rotate-left"></i> 초기화
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <div class="mb-1 text-xs font-semibold text-slate-600">조치/점검 이력</div>
+                                        <div id="poiMgmtHistory" class="divide-y divide-slate-100 text-sm"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Safety Check History -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-history text-slate-400"></i> 안전점검 이력</h3>
+                            <button id="openSafetyCheckModalBtn" type="button" class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> 점검 결과 등록</button>
+                        </div>
+                        <div class="card-body">
+                            <div id="safetyCheckList" class="alert-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 안전점검 결과 등록 모달 -->
+    <div id="safetyCheckModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+        <div data-safety-check-modal-close class="absolute inset-0 bg-slate-900/55"></div>
+        <div class="relative mx-auto mt-24 w-full max-w-2xl px-4">
+            <div class="card shadow-soft">
+                <div class="card-header">
+                    <h3><i class="fas fa-clipboard-check text-slate-400"></i> 점검 결과 등록</h3>
+                    <button id="safetyCheckModalClose" type="button" class="btn btn-secondary btn-sm">닫기</button>
+                </div>
+                <div class="card-body">
+                    <form id="safetyCheckForm" class="space-y-3">
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-slate-600">점검 유형</label>
+                                <input id="safetyCheckTitle" type="text"
+                                    class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                                    placeholder="예: 현장 정기 점검 / 드론 영상 촬영" required />
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-slate-600">점검 일자</label>
+                                <input id="safetyCheckDate" type="date"
+                                    class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                                    required />
+                            </div>
+                        </div>
+
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-slate-600">수행 주체</label>
+                                <select id="safetyCheckActorType"
+                                    class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                    <option value="user" selected>담당자</option>
+                                    <option value="org">기관</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="mb-1 block text-xs font-semibold text-slate-600">수행자/기관명</label>
+                                <input id="safetyCheckActor" type="text"
+                                    class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                                    placeholder="예: 김담당 주무관 / KT 엔지니어링" required />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">점검 결과</label>
+                            <select id="safetyCheckStatus"
+                                class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                                <option value="done" selected>조치 완료</option>
+                                <option value="ok">특이사항 없음</option>
+                                <option value="need">조치 필요</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">결과 요약</label>
+                            <textarea id="safetyCheckSummary" rows="3"
+                                class="w-full rounded-lg border-slate-200 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                                placeholder="예: 배수로 정비 완료 / 낙석 방지망 점검 이상없음 / 현장 통제선 설치 필요"></textarea>
+                        </div>
+
+                        <div class="flex flex-wrap items-center justify-end gap-2 pt-2">
+                            <button id="safetyCheckCancel" type="button" class="btn btn-secondary">취소</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> 등록
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 안전점검 결과 보기 모달 -->
+    <div id="safetyCheckViewModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+        <div data-safety-check-view-close class="absolute inset-0 bg-slate-900/55"></div>
+        <div class="relative mx-auto mt-24 w-full max-w-2xl px-4">
+            <div class="card shadow-soft">
+                <div class="card-header">
+                    <h3><i class="fas fa-file-lines text-slate-400"></i> 점검 결과</h3>
+                    <button id="safetyCheckViewClose" type="button" class="btn btn-secondary btn-sm">닫기</button>
+                </div>
+                <div class="card-body">
+                    <div id="safetyCheckViewContent" class="space-y-3 text-sm"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        (function () {
+            const viewer = document.getElementById('digitalTwinViewer');
+            const pickedInfoEl = document.getElementById('pickedTerrainInfo');
+            const poiInfoPanelEl = document.getElementById('poiInfoPanel');
+            const poiInfoTitleEl = document.getElementById('poiInfoTitle');
+            const poiRiskBadgeEl = document.getElementById('poiRiskBadge');
+            const poiInfoSubEl = document.getElementById('poiInfoSub');
+            const poiRunModelBtn = document.getElementById('poiRunModel');
+            const poiInfoCloseBtn = document.getElementById('poiInfoClose');
+
+            const siteListEl = document.getElementById('siteList');
+            const siteListLoadMoreWrapEl = document.getElementById('siteListLoadMoreWrap');
+            const siteListLoadMoreBtn = document.getElementById('siteListLoadMoreBtn');
+
+            const safetyCheckOpenBtn = document.getElementById('openSafetyCheckModalBtn');
+            const safetyCheckListEl = document.getElementById('safetyCheckList');
+            const safetyCheckModalEl = document.getElementById('safetyCheckModal');
+            const safetyCheckModalCloseBtn = document.getElementById('safetyCheckModalClose');
+            const safetyCheckCancelBtn = document.getElementById('safetyCheckCancel');
+            const safetyCheckFormEl = document.getElementById('safetyCheckForm');
+            const safetyCheckTitleEl = document.getElementById('safetyCheckTitle');
+            const safetyCheckDateEl = document.getElementById('safetyCheckDate');
+            const safetyCheckActorTypeEl = document.getElementById('safetyCheckActorType');
+            const safetyCheckActorEl = document.getElementById('safetyCheckActor');
+            const safetyCheckStatusEl = document.getElementById('safetyCheckStatus');
+            const safetyCheckSummaryEl = document.getElementById('safetyCheckSummary');
+
+            const safetyCheckViewModalEl = document.getElementById('safetyCheckViewModal');
+            const safetyCheckViewCloseBtn = document.getElementById('safetyCheckViewClose');
+            const safetyCheckViewContentEl = document.getElementById('safetyCheckViewContent');
+
+            const poiInferencePanelEl = document.getElementById('poiInferencePanel');
+            const poiInferenceStepEl = document.getElementById('poiInferenceStep');
+            const poiInferenceBarEl = document.getElementById('poiInferenceBar');
+            const poiInferenceLogEl = document.getElementById('poiInferenceLog');
+
+            const poiRiskScoreEl = document.getElementById('poiRiskScore');
+            const poiSusceptibilityEl = document.getElementById('poiSusceptibility');
+            const poiDataSourceEl = document.getElementById('poiDataSource');
+            const poiFeatSlopeEl = document.getElementById('poiFeatSlope');
+            const poiFeatCurvEl = document.getElementById('poiFeatCurv');
+            const poiFeatRoughEl = document.getElementById('poiFeatRough');
+            const poiFeatAspectEl = document.getElementById('poiFeatAspect');
+            const poiFeatS1TransferEl = document.getElementById('poiFeatS1Transfer');
+            const poiFeatS1UsedEl = document.getElementById('poiFeatS1Used');
+
+            const poiMgmtLastUpdatedEl = document.getElementById('poiMgmtLastUpdated');
+            const poiMgmtStatusEl = document.getElementById('poiMgmtStatus');
+            const poiMgmtAssigneeEl = document.getElementById('poiMgmtAssignee');
+            const poiMgmtPriorityEl = document.getElementById('poiMgmtPriority');
+            const poiMgmtNoteEl = document.getElementById('poiMgmtNote');
+            const poiMgmtSaveBtn = document.getElementById('poiMgmtSave');
+            const poiMgmtAddLogBtn = document.getElementById('poiMgmtAddLog');
+            const poiMgmtMarkDoneBtn = document.getElementById('poiMgmtMarkDone');
+            const poiMgmtResetBtn = document.getElementById('poiMgmtReset');
+            const poiMgmtHistoryEl = document.getElementById('poiMgmtHistory');
+
+            const adminToolsEl = document.getElementById('adminHotspotTools');
+            const adminLastPickEl = document.getElementById('adminLastPick');
+            const adminSetBtns = Array.from(document.querySelectorAll('[data-admin-set-poi]'));
+            const adminLogBtn = document.getElementById('adminLogPoiCoords');
+            const adminPickHotspotEl = document.getElementById('terrainPickHotspot');
+
+            if (!viewer) return;
+
+            // ===== 지면 "천"처럼 붙는 위험도 히트맵(메쉬 오버레이) =====
+            // - GLB 지형 메쉬를 순회해서 동일 지오메트리의 반투명 레이어 메쉬를 한 겹 더 얹습니다.
+            // - 경사/고도 기반 위험도를 버텍스 컬러(R 채널)로 넣고, Additive blending으로 은은하게 표시합니다.
+            const HEATMAP_STORAGE_KEY = 'm3_danger_heatmap_enabled_v1';
+            const heatmapToggleBtn = document.getElementById('toggleHeatmapBtn');
+
+            let heatmapEnabled = true;
+            try {
+                const saved = localStorage.getItem(HEATMAP_STORAGE_KEY);
+                heatmapEnabled = saved == null ? true : saved === '1';
+            } catch (e) {
+                heatmapEnabled = true;
+            }
+
+            const heatmapOverlay = {
+                built: false,
+                meshes: [],
+            };
+
+            const HEATMAP_FADE_MS = 360;
+            const HEATMAP_MIN_VISIBLE_ALPHA = 0.002;
+            let heatmapAlpha = heatmapEnabled ? 1 : 0; // 0..1 (페이드용)
+            let heatmapFadeToken = 0;
+
+            function clamp(v, min, max) {
+                return Math.min(max, Math.max(min, v));
+            }
+
+            function srgbToLinear(c) {
+                const x = clamp(c, 0, 1);
+                return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+            }
+
+            function smoothstep(edge0, edge1, x) {
+                if (edge0 === edge1) return x < edge0 ? 0 : 1;
+                const t = clamp((x - edge0) / (edge1 - edge0), 0, 1);
+                return t * t * (3 - 2 * t);
+            }
+
+            function easeInOutCubic(t) {
+                const x = clamp(t, 0, 1);
+                return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+            }
+
+            function forEachHeatmapMaterial(fn) {
+                heatmapOverlay.meshes.forEach((mesh) => {
+                    if (!mesh) return;
+                    const m = mesh.material;
+                    if (!m) return;
+                    if (Array.isArray(m)) {
+                        m.forEach((mat) => mat && fn(mat));
+                        return;
+                    }
+                    fn(m);
+                });
+            }
+
+            function setHeatmapAlpha(nextAlpha) {
+                heatmapAlpha = clamp(nextAlpha, 0, 1);
+                forEachHeatmapMaterial((mat) => {
+                    if (!mat) return;
+                    mat.userData = mat.userData || {};
+                    const base = (typeof mat.userData.__m3HeatmapBaseOpacity === 'number')
+                        ? mat.userData.__m3HeatmapBaseOpacity
+                        : (typeof mat.opacity === 'number' ? mat.opacity : 1);
+                    if (typeof mat.userData.__m3HeatmapBaseOpacity !== 'number') {
+                        mat.userData.__m3HeatmapBaseOpacity = base;
+                    }
+                    mat.opacity = base * heatmapAlpha;
+                });
+                requestSceneRender();
+            }
+
+            function animateHeatmapToEnabled(targetEnabled) {
+                if (!heatmapOverlay.built) return;
+                const to = targetEnabled ? 1 : 0;
+                const from = heatmapAlpha;
+                if (Math.abs(to - from) < 0.001) {
+                    setHeatmapAlpha(to);
+                    setHeatmapOverlayVisible(to > HEATMAP_MIN_VISIBLE_ALPHA);
+                    return;
+                }
+
+                // 페이드 중에는 항상 렌더되도록 visible 유지
+                setHeatmapOverlayVisible(true);
+
+                const token = ++heatmapFadeToken;
+                const start = performance.now();
+
+                function step(now) {
+                    if (token !== heatmapFadeToken) return;
+                    const t = (now - start) / HEATMAP_FADE_MS;
+                    const eased = easeInOutCubic(t);
+                    const a = from + (to - from) * eased;
+                    setHeatmapAlpha(a);
+
+                    if (t < 1) {
+                        requestAnimationFrame(step);
+                        return;
+                    }
+
+                    setHeatmapAlpha(to);
+                    setHeatmapOverlayVisible(to > HEATMAP_MIN_VISIBLE_ALPHA);
+                }
+
+                requestAnimationFrame(step);
+            }
+
+            function computeSlopeDegXYZ(nx, ny, nz) {
+                const len = Math.hypot(nx, ny, nz) || 1;
+                const nyAbs = Math.abs(ny / len);
+                const dot = clamp(nyAbs, 0, 1);
+                return Math.acos(dot) * 180 / Math.PI; // 0=평지, 90=수직
+            }
+
+            // model-viewer는 내부적으로 심볼 프로퍼티에 ModelScene을 보관합니다.
+            // dist 번들 + 개별 모듈 import 조합에서는 동일 심볼을 직접 import 해와도 키가 달라질 수 있어,
+            // 런타임에서 실제 심볼을 "탐색"해서 내부 씬을 얻습니다.
+            function getInternalModelScene() {
+                try {
+                    const syms = Object.getOwnPropertySymbols(viewer);
+                    for (const sym of syms) {
+                        const v = viewer[sym];
+                        if (!v || typeof v !== 'object') continue;
+                        // ModelScene에 있는 대표 메서드(버전 호환용)
+                        if (typeof v.positionAndNormalFromPoint === 'function' && typeof v.queueRender === 'function') {
+                            return v;
+                        }
+                        if (typeof v.positionAndNormalFromPoint === 'function' && 'model' in v) {
+                            return v;
+                        }
+                    }
+                } catch (e) { }
+                return null;
+            }
+
+            function requestSceneRender() {
+                const scene = getInternalModelScene();
+                if (scene && typeof scene.queueRender === 'function') {
+                    scene.queueRender();
+                    return;
+                }
+                if (typeof viewer.requestUpdate === 'function') {
+                    viewer.requestUpdate();
+                }
+            }
+
+            function getThreeModelRoot() {
+                const scene = getInternalModelScene();
+                if (!scene) return null;
+                try {
+                    return scene.model || null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function setHeatmapOverlayVisible(visible) {
+                heatmapOverlay.meshes.forEach((m) => {
+                    if (m) m.visible = !!visible;
+                });
+            }
+
+            function buildHeatmapOverlayIfNeeded() {
+                if (heatmapOverlay.built) return true;
+
+                const root = getThreeModelRoot();
+                if (!root || typeof root.traverse !== 'function') return false;
+
+                const baseMeshes = [];
+                root.traverse((obj) => {
+                    if (!obj) return;
+                    if (obj.userData && obj.userData.__m3RiskHeatmapOverlay) return;
+                    if (obj.isMesh && obj.geometry && obj.geometry.attributes && obj.geometry.attributes.position) {
+                        baseMeshes.push(obj);
+                    }
+                });
+
+                if (!baseMeshes.length) return false;
+
+                // 전체 모델 기준 고도 범위(한 번만 계산) → 카메라 움직여도 패턴이 흔들리지 않도록
+                let globalMinY = Infinity;
+                let globalMaxY = -Infinity;
+
+                // "지형"에 가까운 메쉬만 고르기(평면적이 큰 메쉬 위주)
+                const meshStats = [];
+
+                baseMeshes.forEach((mesh) => {
+                    const pos = mesh.geometry.attributes.position;
+                    const arr = pos && pos.array;
+                    if (!arr) return;
+
+                    let minX = Infinity, maxX = -Infinity;
+                    let minZ = Infinity, maxZ = -Infinity;
+                    let minY = Infinity, maxY = -Infinity;
+
+                    for (let i = 0; i < arr.length; i += 3) {
+                        const x = arr[i];
+                        const y = arr[i + 1];
+                        const z = arr[i + 2];
+                        if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z)) continue;
+
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                        minZ = Math.min(minZ, z);
+                        maxZ = Math.max(maxZ, z);
+                        minY = Math.min(minY, y);
+                        maxY = Math.max(maxY, y);
+                    }
+
+                    globalMinY = Math.min(globalMinY, minY);
+                    globalMaxY = Math.max(globalMaxY, maxY);
+
+                    const footprint = Number.isFinite(minX) && Number.isFinite(maxX) && Number.isFinite(minZ) && Number.isFinite(maxZ)
+                        ? Math.abs((maxX - minX) * (maxZ - minZ))
+                        : 0;
+                    meshStats.push({ mesh, footprint });
+                });
+
+                if (!Number.isFinite(globalMinY) || !Number.isFinite(globalMaxY)) return false;
+
+                const elevRange = Math.max(0.0001, globalMaxY - globalMinY);
+                const slopeStart = 22;
+                const slopeEnd = 42;
+                const overlayOpacity = 0.48;
+
+                // 그라데이션 기준 색 (sRGB -> Linear 변환)
+                // 노랑(#FDE047) → 연한빨강(#FDA4AF) → 빨강(#EF4444)
+                const c0 = { r: srgbToLinear(253 / 255), g: srgbToLinear(224 / 255), b: srgbToLinear(71 / 255) };
+                const c1 = { r: srgbToLinear(253 / 255), g: srgbToLinear(164 / 255), b: srgbToLinear(175 / 255) };
+                const c2 = { r: srgbToLinear(239 / 255), g: srgbToLinear(68 / 255), b: srgbToLinear(68 / 255) };
+
+                // 너무 넓게 칠해지는 것을 막기 위해, 이 구간부터 서서히 표시
+                const riskShowStart = 0.38;
+                const riskShowEnd = 0.88;
+
+                const maxFootprint = meshStats.reduce((acc, s) => Math.max(acc, s.footprint || 0), 0);
+                const targetMeshes = maxFootprint > 0
+                    ? meshStats.filter((s) => (s.footprint || 0) >= maxFootprint * 0.45).map((s) => s.mesh)
+                    : baseMeshes;
+
+                function toOverlayMaterial(mat) {
+                    if (!mat) return mat;
+                    const out = typeof mat.clone === 'function' ? mat.clone() : mat;
+
+                    // 텍스처/라이팅 영향 최소화: "지면 위 얇은 색 레이어" 느낌
+                    if (out.map) out.map = null;
+                    if (out.emissive && typeof out.emissive.setRGB === 'function') out.emissive.setRGB(0, 0, 0);
+                    if (out.color && typeof out.color.setRGB === 'function') out.color.setRGB(1, 1, 1);
+
+                    out.vertexColors = true;
+                    out.transparent = true;
+                    out.opacity = overlayOpacity * heatmapAlpha;
+                    out.userData = out.userData || {};
+                    out.userData.__m3HeatmapBaseOpacity = overlayOpacity;
+                    out.depthWrite = false;
+                    out.depthTest = true;
+
+                    // z-fighting 방지(천을 지면에 살짝 띄워 얹은 느낌)
+                    out.polygonOffset = true;
+                    out.polygonOffsetFactor = -1;
+                    out.polygonOffsetUnits = -1;
+
+                    // THREE.AdditiveBlending === 2, THREE.DoubleSide === 2
+                    // 원 텍스처를 가리지 않고 "살짝 얹힌" 느낌을 위해 Additive로(색이 탁해지는 현상 완화)
+                    out.blending = 2;
+                    out.side = 2;
+                    out.toneMapped = true;
+
+                    if (typeof out.metalness === 'number') out.metalness = 0;
+                    if (typeof out.roughness === 'number') out.roughness = 1;
+
+                    out.needsUpdate = true;
+                    return out;
+                }
+
+                targetMeshes.forEach((mesh) => {
+                    const srcGeom = mesh.geometry;
+                    if (!srcGeom || typeof srcGeom.clone !== 'function') return;
+
+                    const geom = srcGeom.clone();
+                    if (!geom.attributes.normal && typeof geom.computeVertexNormals === 'function') {
+                        geom.computeVertexNormals();
+                    }
+
+                    const posAttr = geom.attributes.position;
+                    const normAttr = geom.attributes.normal;
+                    if (!posAttr || !posAttr.array) return;
+
+                    const vCount = typeof posAttr.count === 'number' ? posAttr.count : Math.floor(posAttr.array.length / 3);
+                    const colors = new Float32Array(vCount * 3);
+
+                    const posArr = posAttr.array;
+                    const normArr = normAttr && normAttr.array ? normAttr.array : null;
+
+                    for (let i = 0; i < vCount; i++) {
+                        const y = posArr[i * 3 + 1];
+                        const elevNorm = clamp((y - globalMinY) / elevRange, 0, 1);
+
+                        let slopeDeg = 0;
+                        if (normArr) {
+                            const nx = normArr[i * 3 + 0];
+                            const ny = normArr[i * 3 + 1];
+                            const nz = normArr[i * 3 + 2];
+                            slopeDeg = computeSlopeDegXYZ(nx, ny, nz);
+                        }
+
+                        const slopeRisk = smoothstep(slopeStart, slopeEnd, slopeDeg);
+                        const elevRisk = smoothstep(0.62, 0.9, elevNorm);
+                        const damageRisk = slopeRisk * elevNorm;
+
+                        const risk = clamp(0.55 * slopeRisk + 0.25 * elevRisk + 0.2 * damageRisk, 0, 1);
+                        // 표시 강도(저위험은 거의 0, 위험할수록 빠르게 증가)
+                        const vis = smoothstep(riskShowStart, riskShowEnd, risk);
+                        const intensity = Math.pow(vis, 1.25);
+
+                        // 색상 그라데이션: 노랑(낮음) → 연한 빨강(중간) → 빨강(높음)
+                        const tHue = clamp((risk - riskShowStart) / Math.max(0.0001, (riskShowEnd - riskShowStart)), 0, 1);
+
+                        let cr = 0, cg = 0, cb = 0;
+                        if (tHue < 0.55) {
+                            const t = smoothstep(0, 0.55, tHue);
+                            cr = c0.r + (c1.r - c0.r) * t;
+                            cg = c0.g + (c1.g - c0.g) * t;
+                            cb = c0.b + (c1.b - c0.b) * t;
+                        } else {
+                            const t = smoothstep(0.55, 1, tHue);
+                            cr = c1.r + (c2.r - c1.r) * t;
+                            cg = c1.g + (c2.g - c1.g) * t;
+                            cb = c1.b + (c2.b - c1.b) * t;
+                        }
+
+                        colors[i * 3 + 0] = cr * intensity;
+                        colors[i * 3 + 1] = cg * intensity;
+                        colors[i * 3 + 2] = cb * intensity;
+                    }
+
+                    const AttrCtor = posAttr.constructor;
+                    geom.setAttribute('color', new AttrCtor(colors, 3));
+                    if (geom.attributes.color) geom.attributes.color.needsUpdate = true;
+
+                    const overlayMat = Array.isArray(mesh.material)
+                        ? mesh.material.map(toOverlayMaterial)
+                        : toOverlayMaterial(mesh.material);
+
+                    const overlayMesh = new mesh.constructor(geom, overlayMat);
+                    overlayMesh.userData = overlayMesh.userData || {};
+                    overlayMesh.userData.__m3RiskHeatmapOverlay = true;
+                    overlayMesh.renderOrder = 999;
+                    overlayMesh.visible = heatmapAlpha > HEATMAP_MIN_VISIBLE_ALPHA;
+                    overlayMesh.frustumCulled = mesh.frustumCulled;
+
+                    // 원본 메쉬에 자식으로 붙이면(동일 로컬 좌표) 지면에 정확히 밀착
+                    overlayMesh.position.set(0, 0, 0);
+                    overlayMesh.rotation.set(0, 0, 0);
+                    overlayMesh.scale.set(1, 1, 1);
+
+                    mesh.add(overlayMesh);
+                    heatmapOverlay.meshes.push(overlayMesh);
+                });
+
+                heatmapOverlay.built = heatmapOverlay.meshes.length > 0;
+                if (heatmapOverlay.built) {
+                    // 생성 직후 현재 알파 상태를 즉시 반영(토글 시에는 애니메이션으로 변화)
+                    setHeatmapAlpha(heatmapAlpha);
+                    requestSceneRender();
+                }
+                return heatmapOverlay.built;
+            }
+
+            function applyHeatmapUI(options = {}) {
+                const animate = options && options.animate === true;
+
+                if (heatmapToggleBtn) {
+                    heatmapToggleBtn.classList.toggle('btn-danger', heatmapEnabled);
+                    heatmapToggleBtn.classList.toggle('btn-secondary', !heatmapEnabled);
+                    heatmapToggleBtn.setAttribute('aria-pressed', heatmapEnabled ? 'true' : 'false');
+                }
+                if (!heatmapOverlay.built) {
+                    if (heatmapEnabled) buildHeatmapOverlayIfNeeded();
+                }
+
+                if (!heatmapOverlay.built) {
+                    // 모델 로드 전 등으로 아직 생성 불가 → 버튼 UI만 반영
+                    return;
+                }
+
+                if (animate) {
+                    animateHeatmapToEnabled(heatmapEnabled);
+                    return;
+                }
+
+                setHeatmapAlpha(heatmapEnabled ? 1 : 0);
+                setHeatmapOverlayVisible(heatmapEnabled);
+            }
+
+            function setHeatmapEnabled(next, options = {}) {
+                heatmapEnabled = !!next;
+                try {
+                    localStorage.setItem(HEATMAP_STORAGE_KEY, heatmapEnabled ? '1' : '0');
+                } catch (e) { }
+
+                if (heatmapEnabled) {
+                    buildHeatmapOverlayIfNeeded();
+                }
+                applyHeatmapUI({ animate: !!options.animate });
+            }
+
+            if (heatmapToggleBtn) {
+                heatmapToggleBtn.addEventListener('click', () => {
+                    setHeatmapEnabled(!heatmapEnabled, { animate: true });
+                });
+            }
+
+            // GLB 로딩 완료 후 오버레이 생성(켜져 있는 경우)
+            viewer.addEventListener('load', () => {
+                if (heatmapEnabled) buildHeatmapOverlayIfNeeded();
+                applyHeatmapUI({ animate: false });
+            });
+
+            // 초기 UI 반영(모델 로드 전)
+            applyHeatmapUI({ animate: false });
+
+            const poiEls = Array.from(document.querySelectorAll('[data-poi-id]'));
+
+            const CSV_PATH = 'risk_scored_정선_v2(라벨없음).csv';
+            const MGMT_STORAGE_KEY = 'm3_danger_management_v1';
+
+            const POI_META = {
+                a: { label: 'A', ri: '봉양리' },
+                b: { label: 'B', ri: '용탄리' },
+                c: { label: 'C', ri: '덕송리' },
+            };
+
+            // 좌측 "관리 대상 목록" 더보기(페이지네이션)
+            const SITE_LIST_PAGE_SIZE = 5;
+            const MAX_EXTRA_SITES = 30;
+            let extraVisibleCount = 0;
+
+            if (siteListLoadMoreBtn) {
+                siteListLoadMoreBtn.addEventListener('click', () => {
+                    extraVisibleCount += SITE_LIST_PAGE_SIZE;
+                    loadRiskRows().then(({ rows, sourceLabel }) => renderSiteList(rows, sourceLabel));
+                });
+            }
+
+            // CSV 로딩이 막히는 환경(file:// 등)에서도 동작하도록 최소 fallback(각 리 내 최고 RiskScore 1건)
+            const FALLBACK_ROWS_BY_POI = {
+                a: {
+                    '관리번호': '7',
+                    '급경사지명': '봉양5지구',
+                    '소재지': '정선읍 봉양리 821-2전',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '10.0',
+                    '곡률(Curvature)': '-0.93',
+                    '거칠기(Roughness)': '57.03',
+                    '사면향(Aspect)': '102.83',
+                    'S1_transfer': '0.8025741576571698',
+                    'S1_used': '0.7680371121099365',
+                    'Susceptibility': '0.6144296896879493',
+                    'RiskScore': '61.442969',
+                    'risk_grade5_by_region': '5'
+                },
+                b: {
+                    '관리번호': '47',
+                    '급경사지명': '강원 정선 정선 용탄 N2지구',
+                    '소재지': '정선읍 용탄리 산1임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '8.98',
+                    '곡률(Curvature)': '-0.83',
+                    '거칠기(Roughness)': '66.08',
+                    '사면향(Aspect)': '116.24',
+                    'S1_transfer': '0.8585486705105906',
+                    'S1_used': '0.8327562561457694',
+                    'Susceptibility': '0.6662050049166156',
+                    'RiskScore': '66.6205',
+                    'risk_grade5_by_region': '5'
+                },
+                c: {
+                    '관리번호': '14',
+                    '급경사지명': '덕송3지구',
+                    '소재지': '정선읍 덕송리 산66임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '13.7',
+                    '곡률(Curvature)': '0.78',
+                    '거칠기(Roughness)': '72.28',
+                    '사면향(Aspect)': '140.69',
+                    'S1_transfer': '0.7932846366983243',
+                    'S1_used': '0.757381778157062',
+                    'Susceptibility': '0.6059054225256496',
+                    'RiskScore': '60.590542',
+                    'risk_grade5_by_region': '5'
+                }
+            };
+
+            // CSV fetch가 막힐 때(file:// 등)에도 "더보기"가 동작하도록 일부 샘플 지점 추가
+            const FALLBACK_EXTRA_ROWS = [
+                {
+                    '관리번호': '10',
+                    '급경사지명': '북실지구',
+                    '소재지': '정선읍 북실리 산3-14 도',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '14.79',
+                    '곡률(Curvature)': '-0.11',
+                    '거칠기(Roughness)': '51.63',
+                    '사면향(Aspect)': '358.94',
+                    'S1_transfer': '0.952035900758356',
+                    'S1_used': '0.9427227568213443',
+                    'Susceptibility': '0.7541782054570755',
+                    'RiskScore': '75.417821',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '12',
+                    '급경사지명': '강원 정선 정선 북실 N1지구',
+                    '소재지': '정선읍 북실리 산129임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '19.32',
+                    '곡률(Curvature)': '-0.0',
+                    '거칠기(Roughness)': '85.15',
+                    '사면향(Aspect)': '332.86',
+                    'S1_transfer': '0.8310844928874084',
+                    'S1_used': '0.8008924778926865',
+                    'Susceptibility': '0.6407139823141492',
+                    'RiskScore': '64.071398',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '23',
+                    '급경사지명': '강원 정선 정선 애산 N1지구',
+                    '소재지': '정선읍 애산리 산50-1임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '23.61',
+                    '곡률(Curvature)': '-0.66',
+                    '거칠기(Roughness)': '105.54',
+                    '사면향(Aspect)': '185.41',
+                    'S1_transfer': '0.7354660347981191',
+                    'S1_used': '0.6916321058349332',
+                    'Susceptibility': '0.5533056846679466',
+                    'RiskScore': '55.330568',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '27',
+                    '급경사지명': '정선 17km890(중)',
+                    '소재지': '정선읍 신월리 산198-2임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '16.09',
+                    '곡률(Curvature)': '-0.14',
+                    '거칠기(Roughness)': '60.49',
+                    '사면향(Aspect)': '354.43',
+                    'S1_transfer': '0.9409432723277834',
+                    'S1_used': '0.9295572227274033',
+                    'Susceptibility': '0.7436457781819227',
+                    'RiskScore': '74.364578',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '28',
+                    '급경사지명': '강원-정선선10-충',
+                    '소재지': '정선읍 신월리 산202-2임',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '5.54',
+                    '곡률(Curvature)': '-0.85',
+                    '거칠기(Roughness)': '48.38',
+                    '사면향(Aspect)': '332.35',
+                    'S1_transfer': '0.7995193273354956',
+                    'S1_used': '0.7645304019764493',
+                    'Susceptibility': '0.6116243215811594',
+                    'RiskScore': '61.162432',
+                    'risk_grade5_by_region': '5'
+                },
+                {
+                    '관리번호': '29',
+                    '급경사지명': '정선 17km120(중)',
+                    '소재지': '정선읍 신월리 산206-1철',
+                    '비고(Note)': '실측값',
+                    'region': '정선_v2(라벨없음)',
+                    '경사도(Slope)': '8.47',
+                    '곡률(Curvature)': '-0.7',
+                    '거칠기(Roughness)': '63.7',
+                    '사면향(Aspect)': '1.76',
+                    'S1_transfer': '0.9008088540540174',
+                    'S1_used': '0.8821839972649805',
+                    'Susceptibility': '0.7057471978119845',
+                    'RiskScore': '70.57472',
+                    'risk_grade5_by_region': '5'
+                }
+            ];
+
+            let selectedTargetId = null;
+            let riskRowsCache = null;
+            let riskRowsSourceLabel = null;
+            let inferenceRunToken = 0;
+
+            function sleep(ms) {
+                return new Promise((resolve) => setTimeout(resolve, ms));
+            }
+
+            function safeText(el, value) {
+                if (!el) return;
+                el.textContent = value == null ? '' : String(value);
+            }
+
+            function toNumber(value) {
+                const n = Number.parseFloat(value);
+                return Number.isFinite(n) ? n : null;
+            }
+
+            function formatNumber(value, digits = 2) {
+                const n = toNumber(value);
+                if (n == null) return '--';
+                return n.toFixed(digits);
+            }
+
+            function formatPercent01(value, digits = 1) {
+                const n = toNumber(value);
+                if (n == null) return '--';
+                return `${(n * 100).toFixed(digits)}%`;
+            }
+
+            function formatKST(iso) {
+                if (!iso) return '';
+                const d = new Date(iso);
+                if (Number.isNaN(d.getTime())) return '';
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const hh = String(d.getHours()).padStart(2, '0');
+                const mi = String(d.getMinutes()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+            }
+
+            function parseCsvLine(line) {
+                const out = [];
+                let cur = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (ch === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cur += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                        continue;
+                    }
+                    if (ch === ',' && !inQuotes) {
+                        out.push(cur);
+                        cur = '';
+                        continue;
+                    }
+                    cur += ch;
+                }
+                out.push(cur);
+                return out;
+            }
+
+            function parseCsv(text) {
+                const normalized = String(text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                const lines = normalized.split('\n').filter((l) => l.trim() !== '');
+                if (!lines.length) return [];
+                const header = parseCsvLine(lines[0]).map((h) => h.trim());
+                const rows = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCsvLine(lines[i]);
+                    const obj = {};
+                    for (let j = 0; j < header.length; j++) {
+                        obj[header[j]] = (cols[j] ?? '').trim();
+                    }
+                    rows.push(obj);
+                }
+                return rows;
+            }
+
+            async function loadRiskRows(options = {}) {
+                const force = options && options.force === true;
+                if (riskRowsCache && !force) {
+                    return { rows: riskRowsCache, sourceLabel: riskRowsSourceLabel || 'CSV 캐시' };
+                }
+
+                // 1) 가능하면 CSV 파일을 fetch로 로딩
+                try {
+                    const res = await fetch(encodeURI(CSV_PATH), { cache: 'no-store' });
+                    if (!res.ok) throw new Error(`CSV 로딩 실패 (HTTP ${res.status})`);
+                    const text = await res.text();
+                    const rows = parseCsv(text);
+                    if (!rows.length) throw new Error('CSV가 비어있습니다.');
+
+                    riskRowsCache = rows;
+                    riskRowsSourceLabel = `CSV 파일 (${CSV_PATH})`;
+                    return { rows, sourceLabel: riskRowsSourceLabel };
+                } catch (e) {
+                    // 2) file:// 등에서 fetch가 막히면 fallback(내장 샘플)
+                    const fallbackRows = [...Object.values(FALLBACK_ROWS_BY_POI), ...FALLBACK_EXTRA_ROWS];
+                    riskRowsCache = fallbackRows;
+                    riskRowsSourceLabel = '내장 샘플(오프라인 fallback)';
+                    return { rows: fallbackRows, sourceLabel: riskRowsSourceLabel, error: e };
+                }
+            }
+
+            function gradeInfo(grade5) {
+                const g = Number.parseInt(String(grade5 ?? ''), 10);
+                if (g === 5) return { label: 'E등급 (심각)', gradeOnly: 'E등급', badgeClass: 'badge-danger', iconClass: 'fa-circle-exclamation', iconColorClass: 'text-rose-600', defaultStatus: '심각' };
+                if (g === 4) return { label: 'D등급 (경계)', gradeOnly: 'D등급', badgeClass: 'badge-warning', iconClass: 'fa-triangle-exclamation', iconColorClass: 'text-amber-600', defaultStatus: '경계' };
+                if (g === 3) return { label: 'C등급 (주의)', gradeOnly: 'C등급', badgeClass: 'badge-warning', iconClass: 'fa-triangle-exclamation', iconColorClass: 'text-yellow-500', defaultStatus: '주의' };
+                if (g === 2) return { label: 'B등급 (관심)', gradeOnly: 'B등급', badgeClass: 'badge-info', iconClass: 'fa-circle-info', iconColorClass: 'text-sky-600', defaultStatus: '관심' };
+                if (g === 1) return { label: 'A등급 (안전)', gradeOnly: 'A등급', badgeClass: 'badge-success', iconClass: 'fa-circle-check', iconColorClass: 'text-emerald-600', defaultStatus: '모니터링' };
+                return { label: '등급 미상', gradeOnly: '등급 미상', badgeClass: 'badge-info', iconClass: 'fa-circle-question', iconColorClass: 'text-slate-500', defaultStatus: '모니터링' };
+            }
+
+            function pickBestRowForPoi(poiId, rows) {
+                const meta = POI_META[poiId];
+                if (!meta) return null;
+
+                const ri = meta.ri;
+                const candidates = (rows || []).filter((r) => String(r['소재지'] || '').includes(ri));
+                if (!candidates.length) return FALLBACK_ROWS_BY_POI[poiId] || null;
+
+                let best = candidates[0];
+                let bestScore = toNumber(best['RiskScore']) ?? -Infinity;
+                for (const r of candidates) {
+                    const s = toNumber(r['RiskScore']);
+                    if (s != null && s > bestScore) {
+                        best = r;
+                        bestScore = s;
+                    }
+                }
+                return best;
+            }
+
+            function loadAllMgmt() {
+                try {
+                    const raw = localStorage.getItem(MGMT_STORAGE_KEY);
+                    if (!raw) return {};
+                    const parsed = JSON.parse(raw);
+                    return parsed && typeof parsed === 'object' ? parsed : {};
+                } catch {
+                    return {};
+                }
+            }
+
+            function saveAllMgmt(all) {
+                try {
+                    localStorage.setItem(MGMT_STORAGE_KEY, JSON.stringify(all || {}));
+                } catch {
+                    // ignore
+                }
+            }
+
+            function getMgmtForPoi(poiId, defaults) {
+                const all = loadAllMgmt();
+                const cur = all[poiId];
+                const base = defaults || {};
+                const merged = {
+                    status: cur && typeof cur.status === 'string' ? cur.status : base.status || '모니터링',
+                    assignee: cur && typeof cur.assignee === 'string' ? cur.assignee : base.assignee || '김담당 주무관',
+                    priority: cur && typeof cur.priority === 'string' ? cur.priority : base.priority || '중간',
+                    lastUpdated: cur && typeof cur.lastUpdated === 'string' ? cur.lastUpdated : base.lastUpdated || null,
+                    history: Array.isArray(cur && cur.history) ? cur.history : Array.isArray(base.history) ? base.history : []
+                };
+                all[poiId] = merged;
+                saveAllMgmt(all);
+                return merged;
+            }
+
+            function setMgmtForPoi(poiId, mgmt) {
+                const all = loadAllMgmt();
+                all[poiId] = mgmt;
+                saveAllMgmt(all);
+            }
+
+            function resetMgmtForPoi(poiId) {
+                const all = loadAllMgmt();
+                delete all[poiId];
+                saveAllMgmt(all);
+            }
+
+            function renderMgmt(poiId, gradeDefaults) {
+                if (!poiId) return;
+                const defaults = {
+                    status: (gradeDefaults && gradeDefaults.defaultStatus) || '모니터링',
+                    assignee: '김담당 주무관',
+                    priority: '중간',
+                    lastUpdated: null,
+                    history: []
+                };
+
+                const mgmt = getMgmtForPoi(poiId, defaults);
+
+                if (poiMgmtStatusEl) poiMgmtStatusEl.value = mgmt.status;
+                if (poiMgmtAssigneeEl) poiMgmtAssigneeEl.value = mgmt.assignee;
+                if (poiMgmtPriorityEl) poiMgmtPriorityEl.value = mgmt.priority;
+
+                safeText(poiMgmtLastUpdatedEl, mgmt.lastUpdated ? `마지막 업데이트: ${formatKST(mgmt.lastUpdated)}` : '마지막 업데이트: -');
+
+                if (!poiMgmtHistoryEl) return;
+                poiMgmtHistoryEl.innerHTML = '';
+
+                if (!mgmt.history || !mgmt.history.length) {
+                    const empty = document.createElement('div');
+                    empty.className = 'py-2 text-sm text-slate-500';
+                    empty.textContent = '이력이 없습니다. (조치 이력 추가로 기록해 보세요)';
+                    poiMgmtHistoryEl.appendChild(empty);
+                    return;
+                }
+
+                mgmt.history.slice(0, 10).forEach((h) => {
+                    const row = document.createElement('div');
+                    row.className = 'py-2';
+
+                    const top = document.createElement('div');
+                    top.className = 'flex flex-wrap items-center justify-between gap-2';
+
+                    const left = document.createElement('div');
+                    left.className = 'text-sm font-semibold text-slate-900';
+                    left.textContent = h && h.text ? String(h.text) : '(내용 없음)';
+
+                    const right = document.createElement('div');
+                    right.className = 'text-xs text-slate-500';
+                    const who = h && h.user ? String(h.user) : '담당 미지정';
+                    const when = h && h.ts ? formatKST(h.ts) : '';
+                    right.textContent = when ? `${when} · ${who}` : who;
+
+                    top.appendChild(left);
+                    top.appendChild(right);
+                    row.appendChild(top);
+                    poiMgmtHistoryEl.appendChild(row);
+                });
+            }
+
+            function showInferenceUI(isVisible) {
+                if (!poiInferencePanelEl) return;
+                if (isVisible) {
+                    poiInferencePanelEl.classList.remove('hidden');
+                } else {
+                    poiInferencePanelEl.classList.add('hidden');
+                }
+            }
+
+            function setInferenceProgress(stepText, percent, logLines) {
+                safeText(poiInferenceStepEl, stepText || '-');
+                if (poiInferenceBarEl) poiInferenceBarEl.style.width = `${Math.max(0, Math.min(100, percent || 0))}%`;
+                if (!poiInferenceLogEl) return;
+                poiInferenceLogEl.innerHTML = '';
+                (logLines || []).forEach((line) => {
+                    const div = document.createElement('div');
+                    div.textContent = line;
+                    poiInferenceLogEl.appendChild(div);
+                });
+            }
+
+            function openPoiPanel() {
+                if (poiInfoPanelEl) poiInfoPanelEl.style.display = 'block';
+            }
+
+            function hidePoiPanel() {
+                if (poiInfoPanelEl) poiInfoPanelEl.style.display = 'none';
+            }
+
+            function updatePoiPanelPlaceholders(poiId) {
+                const meta = POI_META[poiId];
+                safeText(poiInfoTitleEl, meta ? `지점 ${meta.label} · AI 분석 준비 중…` : '지점을 선택하세요');
+                safeText(poiInfoSubEl, meta ? `${meta.ri} 권역 데이터를 불러오는 중입니다.` : '파란 핀(지점)을 클릭하면 CSV 기반 위험도가 표시됩니다.');
+                if (poiRiskBadgeEl) {
+                    poiRiskBadgeEl.className = 'badge badge-info';
+                    poiRiskBadgeEl.textContent = '분석 중';
+                }
+                safeText(poiRiskScoreEl, '--');
+                safeText(poiSusceptibilityEl, '--');
+                safeText(poiDataSourceEl, '--');
+                safeText(poiFeatSlopeEl, '--');
+                safeText(poiFeatCurvEl, '--');
+                safeText(poiFeatRoughEl, '--');
+                safeText(poiFeatAspectEl, '--');
+                safeText(poiFeatS1TransferEl, '--');
+                safeText(poiFeatS1UsedEl, '--');
+
+                // 관리 폼은 일단 기본값으로 초기화 (완료 후 저장값으로 덮어씀)
+                if (poiMgmtStatusEl) poiMgmtStatusEl.value = '모니터링';
+                if (poiMgmtAssigneeEl) poiMgmtAssigneeEl.value = '김담당 주무관';
+                if (poiMgmtPriorityEl) poiMgmtPriorityEl.value = '중간';
+                safeText(poiMgmtLastUpdatedEl, '마지막 업데이트: -');
+                if (poiMgmtNoteEl) poiMgmtNoteEl.value = '';
+                if (poiMgmtHistoryEl) poiMgmtHistoryEl.innerHTML = '<div class="py-2 text-sm text-slate-500">관리 이력을 불러오는 중…</div>';
+            }
+
+            function applyBadge(el, text, badgeVariantClass) {
+                if (!el) return;
+                el.className = `badge ${badgeVariantClass || 'badge-info'}`;
+                el.textContent = text || '';
+            }
+
+            function renderPoiResult(poiId, row, sourceLabel) {
+                const meta = POI_META[poiId];
+                if (!meta || !row) return;
+
+                const g = gradeInfo(row['risk_grade5_by_region']);
+                const siteName = row['급경사지명'] || `${meta.ri} 지구`;
+                const addr = row['소재지'] || `정선읍 ${meta.ri}`;
+                const id = row['관리번호'] ? `관리번호 ${row['관리번호']}` : '관리번호 -';
+                const note = row['비고(Note)'] || '-';
+
+                safeText(poiInfoTitleEl, `지점 ${meta.label} · ${siteName}`);
+                safeText(poiInfoSubEl, `${addr} · ${id} · ${note}`);
+                applyBadge(poiRiskBadgeEl, g.label, g.badgeClass);
+
+                safeText(poiRiskScoreEl, formatNumber(row['RiskScore'], 2));
+                safeText(poiSusceptibilityEl, formatPercent01(row['Susceptibility'], 1));
+                safeText(poiDataSourceEl, sourceLabel || 'CSV');
+
+                safeText(poiFeatSlopeEl, `${formatNumber(row['경사도(Slope)'], 2)}°`);
+                safeText(poiFeatCurvEl, formatNumber(row['곡률(Curvature)'], 2));
+                safeText(poiFeatRoughEl, formatNumber(row['거칠기(Roughness)'], 2));
+                safeText(poiFeatAspectEl, `${formatNumber(row['사면향(Aspect)'], 2)}°`);
+                safeText(poiFeatS1TransferEl, formatNumber(row['S1_transfer'], 3));
+                safeText(poiFeatS1UsedEl, formatNumber(row['S1_used'], 3));
+
+                if (pickedInfoEl) {
+                    pickedInfoEl.textContent = `선택 지점: 지점 ${meta.label} (${meta.ri}) · ${g.label} · RiskScore ${formatNumber(row['RiskScore'], 2)}`;
+                }
+
+                renderMgmt(poiId, g);
+            }
+
+            function updateExtraPanelPlaceholders(mngNo) {
+                safeText(poiInfoTitleEl, `추가 지점 · AI 분석 준비 중…`);
+                safeText(poiInfoSubEl, mngNo ? `관리번호 ${mngNo} 데이터를 불러오는 중입니다.` : 'CSV 기반 위험도를 불러오는 중입니다.');
+                if (poiRiskBadgeEl) {
+                    poiRiskBadgeEl.className = 'badge badge-info';
+                    poiRiskBadgeEl.textContent = '분석 중';
+                }
+
+                safeText(poiRiskScoreEl, '--');
+                safeText(poiSusceptibilityEl, '--');
+                safeText(poiDataSourceEl, '--');
+                safeText(poiFeatSlopeEl, '--');
+                safeText(poiFeatCurvEl, '--');
+                safeText(poiFeatRoughEl, '--');
+                safeText(poiFeatAspectEl, '--');
+                safeText(poiFeatS1TransferEl, '--');
+                safeText(poiFeatS1UsedEl, '--');
+
+                // 관리 폼은 일단 기본값으로 초기화 (완료 후 저장값으로 덮어씀)
+                if (poiMgmtStatusEl) poiMgmtStatusEl.value = '모니터링';
+                if (poiMgmtAssigneeEl) poiMgmtAssigneeEl.value = '김담당 주무관';
+                if (poiMgmtPriorityEl) poiMgmtPriorityEl.value = '중간';
+                safeText(poiMgmtLastUpdatedEl, '마지막 업데이트: -');
+                if (poiMgmtNoteEl) poiMgmtNoteEl.value = '';
+                if (poiMgmtHistoryEl) poiMgmtHistoryEl.innerHTML = '<div class="py-2 text-sm text-slate-500">관리 이력을 불러오는 중…</div>';
+            }
+
+            function renderExtraResult(targetId, row, sourceLabel) {
+                if (!row) {
+                    safeText(poiInfoTitleEl, '추가 지점 · 데이터 없음');
+                    safeText(poiInfoSubEl, '해당 관리번호의 데이터를 찾지 못했습니다.');
+                    applyBadge(poiRiskBadgeEl, '분석 실패', 'badge-danger');
+                    renderMgmt(targetId, gradeInfo(null));
+                    return;
+                }
+
+                const g = gradeInfo(row['risk_grade5_by_region']);
+                const siteName = row['급경사지명'] || '대상 지점';
+                const addr = row['소재지'] || '-';
+                const id = row['관리번호'] ? `관리번호 ${row['관리번호']}` : '관리번호 -';
+                const note = row['비고(Note)'] || '-';
+
+                safeText(poiInfoTitleEl, `추가 지점 · ${siteName}`);
+                safeText(poiInfoSubEl, `${addr} · ${id} · ${note}`);
+                applyBadge(poiRiskBadgeEl, g.label, g.badgeClass);
+
+                safeText(poiRiskScoreEl, formatNumber(row['RiskScore'], 2));
+                safeText(poiSusceptibilityEl, formatPercent01(row['Susceptibility'], 1));
+                safeText(poiDataSourceEl, sourceLabel || 'CSV');
+
+                safeText(poiFeatSlopeEl, `${formatNumber(row['경사도(Slope)'], 2)}°`);
+                safeText(poiFeatCurvEl, formatNumber(row['곡률(Curvature)'], 2));
+                safeText(poiFeatRoughEl, formatNumber(row['거칠기(Roughness)'], 2));
+                safeText(poiFeatAspectEl, `${formatNumber(row['사면향(Aspect)'], 2)}°`);
+                safeText(poiFeatS1TransferEl, formatNumber(row['S1_transfer'], 3));
+                safeText(poiFeatS1UsedEl, formatNumber(row['S1_used'], 3));
+
+                if (pickedInfoEl) {
+                    pickedInfoEl.textContent = `선택 지점: ${siteName} · ${g.label} · RiskScore ${formatNumber(row['RiskScore'], 2)}`;
+                }
+
+                renderMgmt(targetId, g);
+            }
+
+            async function runFakeInferenceForMngNo(mngNo, options = {}) {
+                const token = ++inferenceRunToken;
+                const force = options && options.force === true;
+                const id = String(mngNo ?? '').trim();
+                if (!id) return;
+
+                openPoiPanel();
+                updateExtraPanelPlaceholders(id);
+                showInferenceUI(true);
+
+                const logs = [];
+                function push(step, percent) {
+                    logs.push(step);
+                    setInferenceProgress(step, percent, logs.slice(-5));
+                }
+
+                push('입력 데이터 로딩', 10);
+                await sleep(220);
+                if (token !== inferenceRunToken) return;
+
+                const { rows, sourceLabel } = await loadRiskRows({ force });
+                if (token !== inferenceRunToken) return;
+
+                const row = (rows || []).find((r) => String(r && r['관리번호']) === id) || null;
+
+                push('전처리/피처 엔지니어링', 30);
+                await sleep(240);
+                if (token !== inferenceRunToken) return;
+
+                push(`지도학습 모델 추론 (S1_transfer=${formatNumber(row && row['S1_transfer'], 3)})`, 55);
+                await sleep(240);
+                if (token !== inferenceRunToken) return;
+
+                push(`비지도 이상탐지 (S1_used=${formatNumber(row && row['S1_used'], 3)})`, 75);
+                await sleep(240);
+                if (token !== inferenceRunToken) return;
+
+                push(`앙상블/리스크 스코어 산출 (Sus=${formatPercent01(row && row['Susceptibility'], 1)}, Risk=${formatNumber(row && row['RiskScore'], 2)})`, 92);
+                await sleep(220);
+                if (token !== inferenceRunToken) return;
+
+                renderExtraResult(`mng:${id}`, row, sourceLabel);
+                push('결과 반영 완료', 100);
+                await sleep(350);
+                if (token !== inferenceRunToken) return;
+
+                showInferenceUI(false);
+                renderSiteList(rows, sourceLabel);
+            }
+
+            function selectExtraSite(mngNo, options = {}) {
+                const id = String(mngNo ?? '').trim();
+                if (!id) return;
+                selectedTargetId = `mng:${id}`;
+                runFakeInferenceForMngNo(id, { force: options && options.force === true });
+            }
+
+            async function runFakeInference(poiId, options = {}) {
+                const token = ++inferenceRunToken;
+                const force = options && options.force === true;
+
+                openPoiPanel();
+                updatePoiPanelPlaceholders(poiId);
+                showInferenceUI(true);
+
+                const logs = [];
+                function push(step, percent) {
+                    logs.push(step);
+                    setInferenceProgress(step, percent, logs.slice(-5));
+                }
+
+                push('입력 데이터 로딩', 10);
+                await sleep(220);
+                if (token !== inferenceRunToken) return;
+
+                const { rows, sourceLabel } = await loadRiskRows({ force });
+                if (token !== inferenceRunToken) return;
+                const best = pickBestRowForPoi(poiId, rows);
+
+                push('전처리/피처 엔지니어링', 30);
+                await sleep(240);
+                if (token !== inferenceRunToken) return;
+
+                push(`지도학습 모델 추론 (S1_transfer=${formatNumber(best && best['S1_transfer'], 3)})`, 55);
+                await sleep(240);
+                if (token !== inferenceRunToken) return;
+
+                push(`비지도 이상탐지 (S1_used=${formatNumber(best && best['S1_used'], 3)})`, 75);
+                await sleep(240);
+                if (token !== inferenceRunToken) return;
+
+                push(`앙상블/리스크 스코어 산출 (Sus=${formatPercent01(best && best['Susceptibility'], 1)}, Risk=${formatNumber(best && best['RiskScore'], 2)})`, 92);
+                await sleep(220);
+                if (token !== inferenceRunToken) return;
+
+                renderPoiResult(poiId, best, sourceLabel);
+                push('결과 반영 완료', 100);
+                await sleep(350);
+                if (token !== inferenceRunToken) return;
+                showInferenceUI(false);
+
+                // 좌측 목록도 함께 갱신 (상태/선택표시 반영)
+                renderSiteList(rows, sourceLabel);
+            }
+
+            function focusOnPoi(el) {
+                if (!el) return;
+                const pos = el.getAttribute('data-position');
+                if (!pos) return;
+
+                // 카메라 타깃을 핀 위치로 이동
+                viewer.cameraTarget = pos;
+
+                // 현재 각도는 유지하고, 거리만 줄여서 "줌인" 느낌
+                if (typeof viewer.getCameraOrbit === 'function') {
+                    const orbit = viewer.getCameraOrbit();
+                    const theta = orbit && typeof orbit.theta === 'number' ? orbit.theta : 0;
+                    const phi = orbit && typeof orbit.phi === 'number' ? orbit.phi : 1.0;
+                    const radius = orbit && typeof orbit.radius === 'number' ? orbit.radius : 100;
+
+                    // 너무 과하게 가까워지지 않도록 하한선 + 비율 기반
+                    const nextRadius = Math.max(radius * 0.35, 30);
+                    viewer.cameraOrbit = `${theta}rad ${phi}rad ${nextRadius}m`;
+                }
+            }
+
+            function selectPoi(poiId, options = {}) {
+                const meta = POI_META[poiId];
+                if (!meta) return;
+                selectedTargetId = poiId;
+
+                const doFocus = options && options.focus !== false;
+                if (doFocus) {
+                    const el = document.querySelector(`[data-poi-id="${poiId}"]`);
+                    focusOnPoi(el);
+                }
+
+                runFakeInference(poiId, { force: false });
+            }
+
+            function getPoiTitleForList(poiId, row) {
+                const meta = POI_META[poiId];
+                if (!meta) return '지점';
+                const site = row && row['급경사지명'] ? row['급경사지명'] : `${meta.ri} 지구`;
+                return `지점 ${meta.label} · ${site}`;
+            }
+
+            function renderSiteList(rows, sourceLabel) {
+                if (!siteListEl) return;
+                const poiIds = Object.keys(POI_META);
+                siteListEl.innerHTML = '';
+
+                // ===== 1) 고정 지점(A/B/C) =====
+                poiIds.forEach((poiId) => {
+                    const row = pickBestRowForPoi(poiId, rows) || FALLBACK_ROWS_BY_POI[poiId];
+                    const g = gradeInfo(row && row['risk_grade5_by_region']);
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `alert-item w-full text-left no-underline text-slate-900 hover:bg-slate-50 ${selectedTargetId === poiId ? 'border-l-4 border-sky-500 bg-sky-50/70 hover:bg-sky-50/70' : ''}`;
+                    btn.setAttribute('data-site-poi', poiId);
+
+                    const iconWrap = document.createElement('div');
+                    iconWrap.className = `alert-item-icon ${g.iconColorClass || 'text-slate-400'}`;
+                    const icon = document.createElement('i');
+                    icon.className = `fas ${g.iconClass || 'fa-location-dot'}`;
+                    iconWrap.appendChild(icon);
+
+                    const content = document.createElement('div');
+                    content.className = 'alert-content';
+
+                    const title = document.createElement('p');
+                    if (selectedTargetId === poiId) title.className = 'text-sky-800';
+                    title.textContent = getPoiTitleForList(poiId, row);
+
+                    const addr = document.createElement('span');
+                    addr.className = 'block';
+                    addr.textContent = (row && row['소재지']) ? row['소재지'] : `정선읍 ${POI_META[poiId].ri}`;
+
+                    const badge = document.createElement('span');
+                    badge.className = `badge mt-1 ${g.badgeClass || 'badge-info'}`;
+                    badge.textContent = g.gradeOnly || g.label;
+
+                    content.appendChild(title);
+                    content.appendChild(addr);
+                    content.appendChild(badge);
+
+                    const chev = document.createElement('i');
+                    chev.className = `fas fa-chevron-right ${selectedTargetId === poiId ? 'text-sky-700' : 'text-slate-400'}`;
+
+                    btn.appendChild(iconWrap);
+                    btn.appendChild(content);
+                    btn.appendChild(chev);
+
+                    btn.addEventListener('click', () => {
+                        selectPoi(poiId, { focus: true });
+                    });
+
+                    siteListEl.appendChild(btn);
+                });
+
+                // ===== 2) "더보기"용 추가 지점 (RiskScore 상위) =====
+                const pinnedMgmtNos = new Set();
+                poiIds.forEach((poiId) => {
+                    const r = pickBestRowForPoi(poiId, rows) || FALLBACK_ROWS_BY_POI[poiId];
+                    if (r && r['관리번호'] != null) pinnedMgmtNos.add(String(r['관리번호']));
+                });
+
+                const extraCandidates = (rows || []).filter((r) => {
+                    const mng = r && r['관리번호'] != null ? String(r['관리번호']) : '';
+                    if (!mng) return false;
+                    if (pinnedMgmtNos.has(mng)) return false;
+                    return true;
+                });
+
+                extraCandidates.sort((a, b) => {
+                    const av = toNumber(a && a['RiskScore']) ?? -Infinity;
+                    const bv = toNumber(b && b['RiskScore']) ?? -Infinity;
+                    return bv - av;
+                });
+
+                const extraRows = [];
+                const seenNos = new Set();
+                for (const r of extraCandidates) {
+                    const mng = r && r['관리번호'] != null ? String(r['관리번호']) : '';
+                    if (!mng || seenNos.has(mng)) continue;
+                    seenNos.add(mng);
+                    extraRows.push(r);
+                    if (extraRows.length >= MAX_EXTRA_SITES) break;
+                }
+
+                extraVisibleCount = Math.min(extraVisibleCount, extraRows.length);
+                extraRows.slice(0, extraVisibleCount).forEach((r) => {
+                    const mng = String(r && r['관리번호'] != null ? r['관리번호'] : '').trim();
+                    if (!mng) return;
+
+                    const targetId = `mng:${mng}`;
+                    const g = gradeInfo(r && r['risk_grade5_by_region']);
+                    const siteName = (r && r['급경사지명']) ? String(r['급경사지명']) : '대상 지점';
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = `alert-item w-full text-left no-underline text-slate-900 hover:bg-slate-50 ${selectedTargetId === targetId ? 'border-l-4 border-sky-500 bg-sky-50/70 hover:bg-sky-50/70' : ''}`;
+                    btn.setAttribute('data-site-mng', mng);
+
+                    const iconWrap = document.createElement('div');
+                    iconWrap.className = `alert-item-icon ${g.iconColorClass || 'text-slate-400'}`;
+                    const icon = document.createElement('i');
+                    icon.className = `fas ${g.iconClass || 'fa-location-dot'}`;
+                    iconWrap.appendChild(icon);
+
+                    const content = document.createElement('div');
+                    content.className = 'alert-content';
+
+                    const title = document.createElement('p');
+                    if (selectedTargetId === targetId) title.className = 'text-sky-800';
+                    title.textContent = `추가 지점 · ${siteName}`;
+
+                    const addr = document.createElement('span');
+                    addr.className = 'block';
+                    addr.textContent = (r && r['소재지']) ? String(r['소재지']) : `관리번호 ${mng}`;
+
+                    const badge = document.createElement('span');
+                    badge.className = `badge mt-1 ${g.badgeClass || 'badge-info'}`;
+                    badge.textContent = g.gradeOnly || g.label;
+
+                    content.appendChild(title);
+                    content.appendChild(addr);
+                    content.appendChild(badge);
+
+                    const chev = document.createElement('i');
+                    chev.className = `fas fa-chevron-right ${selectedTargetId === targetId ? 'text-sky-700' : 'text-slate-400'}`;
+
+                    btn.appendChild(iconWrap);
+                    btn.appendChild(content);
+                    btn.appendChild(chev);
+
+                    btn.addEventListener('click', () => {
+                        selectExtraSite(mng, { force: false });
+                    });
+
+                    siteListEl.appendChild(btn);
+                });
+
+                // ===== 3) "더보기" 버튼 상태 =====
+                if (siteListLoadMoreWrapEl) {
+                    if (extraRows.length <= 0) {
+                        siteListLoadMoreWrapEl.style.display = 'none';
+                    } else {
+                        siteListLoadMoreWrapEl.style.display = '';
+                        const remaining = Math.max(0, extraRows.length - extraVisibleCount);
+                        if (siteListLoadMoreBtn) {
+                            if (remaining > 0) {
+                                const nextCount = Math.min(SITE_LIST_PAGE_SIZE, remaining);
+                                siteListLoadMoreBtn.disabled = false;
+                                siteListLoadMoreBtn.innerHTML = `<i class="fas fa-ellipsis"></i> 더보기 (${nextCount}개)`;
+                            } else {
+                                siteListLoadMoreBtn.disabled = true;
+                                siteListLoadMoreBtn.innerHTML = `<i class="fas fa-check"></i> 모두 표시됨`;
+                            }
+                        }
+                    }
+                }
+
+                if (poiDataSourceEl && sourceLabel && !selectedTargetId) {
+                    poiDataSourceEl.textContent = sourceLabel;
+                }
+            }
+
+            // 핫스팟(파란 점) 클릭 → 선택 + AI 추론 연출
+            poiEls.forEach((el) => {
+                el.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+                el.addEventListener('pointerup', (ev) => ev.stopPropagation());
+                el.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    const poiId = el.dataset.poiId;
+                    if (!poiId) return;
+                    selectPoi(poiId, { focus: true });
+                });
+            });
+
+            // 닫기
+            if (poiInfoCloseBtn) {
+                poiInfoCloseBtn.addEventListener('click', () => {
+                    selectedTargetId = null;
+                    showInferenceUI(false);
+                    hidePoiPanel();
+                    // 선택 해제 표시를 위해 목록 리렌더
+                    loadRiskRows().then(({ rows, sourceLabel }) => renderSiteList(rows, sourceLabel));
+                });
+            }
+
+            // AI 재산출 (선택 지점 기준)
+            if (poiRunModelBtn) {
+                poiRunModelBtn.addEventListener('click', () => {
+                    if (!selectedTargetId) {
+                        alert('먼저 지점을 선택해 주세요.');
+                        return;
+                    }
+                    if (String(selectedTargetId).startsWith('mng:')) {
+                        const mngNo = String(selectedTargetId).slice(4);
+                        runFakeInferenceForMngNo(mngNo, { force: true });
+                        return;
+                    }
+                    runFakeInference(selectedTargetId, { force: true });
+                });
+            }
+
+            // 위험관리 저장/이력
+            if (poiMgmtSaveBtn) {
+                poiMgmtSaveBtn.addEventListener('click', () => {
+                    if (!selectedTargetId) return;
+                    const all = loadAllMgmt();
+                    const cur = all[selectedTargetId] || {};
+                    const next = {
+                        ...cur,
+                        status: poiMgmtStatusEl ? poiMgmtStatusEl.value : cur.status,
+                        assignee: poiMgmtAssigneeEl ? poiMgmtAssigneeEl.value.trim() : cur.assignee,
+                        priority: poiMgmtPriorityEl ? poiMgmtPriorityEl.value : cur.priority,
+                        lastUpdated: new Date().toISOString(),
+                        history: Array.isArray(cur.history) ? cur.history : []
+                    };
+                    all[selectedTargetId] = next;
+                    saveAllMgmt(all);
+                    renderMgmt(selectedTargetId, gradeInfo(null));
+                    loadRiskRows().then(({ rows, sourceLabel }) => renderSiteList(rows, sourceLabel));
+                });
+            }
+
+            if (poiMgmtAddLogBtn) {
+                poiMgmtAddLogBtn.addEventListener('click', () => {
+                    if (!selectedTargetId) return;
+                    const note = poiMgmtNoteEl ? poiMgmtNoteEl.value.trim() : '';
+                    if (!note) {
+                        alert('조치 내용을 입력해 주세요.');
+                        return;
+                    }
+                    const all = loadAllMgmt();
+                    const cur = all[selectedTargetId] || {};
+                    const history = Array.isArray(cur.history) ? cur.history : [];
+                    const user = poiMgmtAssigneeEl ? poiMgmtAssigneeEl.value.trim() : (cur.assignee || '담당 미지정');
+                    history.unshift({ ts: new Date().toISOString(), text: note, user });
+
+                    const next = {
+                        ...cur,
+                        status: poiMgmtStatusEl ? poiMgmtStatusEl.value : cur.status,
+                        assignee: poiMgmtAssigneeEl ? poiMgmtAssigneeEl.value.trim() : cur.assignee,
+                        priority: poiMgmtPriorityEl ? poiMgmtPriorityEl.value : cur.priority,
+                        lastUpdated: new Date().toISOString(),
+                        history
+                    };
+                    all[selectedTargetId] = next;
+                    saveAllMgmt(all);
+                    if (poiMgmtNoteEl) poiMgmtNoteEl.value = '';
+                    renderMgmt(selectedTargetId, gradeInfo(null));
+                    loadRiskRows().then(({ rows, sourceLabel }) => renderSiteList(rows, sourceLabel));
+                });
+            }
+
+            if (poiMgmtMarkDoneBtn) {
+                poiMgmtMarkDoneBtn.addEventListener('click', () => {
+                    if (!selectedTargetId) return;
+                    const all = loadAllMgmt();
+                    const cur = all[selectedTargetId] || {};
+                    const history = Array.isArray(cur.history) ? cur.history : [];
+                    const user = poiMgmtAssigneeEl ? poiMgmtAssigneeEl.value.trim() : (cur.assignee || '담당 미지정');
+                    history.unshift({ ts: new Date().toISOString(), text: '조치 완료 처리', user });
+
+                    const next = {
+                        ...cur,
+                        status: '조치완료',
+                        assignee: poiMgmtAssigneeEl ? poiMgmtAssigneeEl.value.trim() : cur.assignee,
+                        priority: poiMgmtPriorityEl ? poiMgmtPriorityEl.value : cur.priority,
+                        lastUpdated: new Date().toISOString(),
+                        history
+                    };
+                    all[selectedTargetId] = next;
+                    saveAllMgmt(all);
+                    if (poiMgmtStatusEl) poiMgmtStatusEl.value = '조치완료';
+                    renderMgmt(selectedTargetId, gradeInfo(null));
+                    loadRiskRows().then(({ rows, sourceLabel }) => renderSiteList(rows, sourceLabel));
+                });
+            }
+
+            if (poiMgmtResetBtn) {
+                poiMgmtResetBtn.addEventListener('click', () => {
+                    if (!selectedTargetId) return;
+                    if (!confirm('해당 지점의 관리 정보를 초기화할까요? (로컬 저장값 삭제)')) return;
+                    resetMgmtForPoi(selectedTargetId);
+
+                    // 화면은 기본값으로만 초기화 (삭제 직후 재저장을 피함)
+                    if (poiMgmtStatusEl) poiMgmtStatusEl.value = '모니터링';
+                    if (poiMgmtAssigneeEl) poiMgmtAssigneeEl.value = '김담당 주무관';
+                    if (poiMgmtPriorityEl) poiMgmtPriorityEl.value = '중간';
+                    safeText(poiMgmtLastUpdatedEl, '마지막 업데이트: -');
+                    if (poiMgmtNoteEl) poiMgmtNoteEl.value = '';
+                    if (poiMgmtHistoryEl) poiMgmtHistoryEl.innerHTML = '<div class="py-2 text-sm text-slate-500">이력이 없습니다. (조치 이력 추가로 기록해 보세요)</div>';
+                    loadRiskRows().then(({ rows, sourceLabel }) => renderSiteList(rows, sourceLabel));
+                });
+            }
+
+            // 최초 로딩 시: 목록만 먼저 채우고, 선택은 사용자가 하도록 둠
+            loadRiskRows().then(({ rows, sourceLabel }) => {
+                renderSiteList(rows, sourceLabel);
+                if (poiMgmtHistoryEl) poiMgmtHistoryEl.innerHTML = '<div class="py-2 text-sm text-slate-500">지점을 선택하면 관리 이력이 표시됩니다.</div>';
+            });
+
+            // URL 파라미터로 지점 자동 선택 지원 (시나리오/딥링크용)
+            // - 예: m3_danger.html?poi=a  /  m3_danger.html?poi=b  /  m3_danger.html?poi=c
+            // - 예: m3_danger.html?mng=10 (관리번호 기반 추가 지점)
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const qPoi = params.get('poi');
+                const qMng = params.get('mng');
+
+                if (qPoi && POI_META[qPoi]) {
+                    // 목록 로딩과는 독립적으로, 바로 선택(패널 오픈 + AI 연출)
+                    selectPoi(qPoi, { focus: true });
+                } else if (qMng) {
+                    selectExtraSite(qMng, { force: true });
+                }
+            } catch { }
+
+            // ===== 안전점검 이력(등록/저장/보기) =====
+            const SAFETY_CHECK_STORAGE_KEY = 'm3_danger_safety_checks_v1';
+
+            function formatDateYYYYMMDD(d) {
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            function loadSafetyChecks() {
+                try {
+                    const raw = localStorage.getItem(SAFETY_CHECK_STORAGE_KEY);
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed)) return parsed;
+                    }
+                } catch { }
+
+                const seed = [
+                    {
+                        id: 'seed-2026-01-15',
+                        title: '현장 정기 점검',
+                        date: '2026-01-15',
+                        actorType: 'user',
+                        actor: '박안전 주무관',
+                        status: 'done',
+                        summary: '현장 정기 점검 결과, 주요 위험 요소 조치 완료.',
+                        createdAt: '2026-01-15T00:00:00.000Z'
+                    },
+                    {
+                        id: 'seed-2026-01-01',
+                        title: '드론 영상 촬영',
+                        date: '2026-01-01',
+                        actorType: 'org',
+                        actor: 'KT 엔지니어링',
+                        status: 'ok',
+                        summary: '드론 영상 기반 점검 결과, 특이사항 없음.',
+                        createdAt: '2026-01-01T00:00:00.000Z'
+                    }
+                ];
+
+                try {
+                    localStorage.setItem(SAFETY_CHECK_STORAGE_KEY, JSON.stringify(seed));
+                } catch { }
+
+                return seed;
+            }
+
+            function saveSafetyChecks(list) {
+                try {
+                    localStorage.setItem(SAFETY_CHECK_STORAGE_KEY, JSON.stringify(list || []));
+                } catch { }
+            }
+
+            function statusMeta(code) {
+                if (code === 'done') return { text: '조치 완료', cls: 'text-emerald-600', iconClass: 'fas fa-check' };
+                if (code === 'need') return { text: '조치 필요', cls: 'text-amber-600', iconClass: 'fas fa-triangle-exclamation' };
+                return { text: '특이사항 없음', cls: 'text-slate-500', iconClass: 'fas fa-circle-minus' };
+            }
+
+            function openModal(el) {
+                if (!el) return;
+                el.classList.remove('hidden');
+                el.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeModal(el) {
+                if (!el) return;
+                el.classList.add('hidden');
+                el.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+            }
+
+            let safetyChecks = loadSafetyChecks();
+
+            function renderSafetyCheckList() {
+                if (!safetyCheckListEl) return;
+                safetyCheckListEl.innerHTML = '';
+
+                if (!Array.isArray(safetyChecks) || safetyChecks.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'px-6 py-4 text-sm text-slate-500';
+                    empty.textContent = '등록된 안전점검 이력이 없습니다. (점검 결과 등록으로 추가해 보세요)';
+                    safetyCheckListEl.appendChild(empty);
+                    return;
+                }
+
+                safetyChecks.slice(0, 30).forEach((item) => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'alert-item';
+
+                    const content = document.createElement('div');
+                    content.className = 'alert-content';
+
+                    const title = document.createElement('span');
+                    title.className = 'font-semibold text-slate-900';
+                    title.textContent = item && item.title ? String(item.title) : '점검';
+
+                    const metaRow = document.createElement('div');
+                    metaRow.className = 'mt-1 flex flex-wrap gap-3 text-xs text-slate-600';
+
+                    const dateSpan = document.createElement('span');
+                    const dateIcon = document.createElement('i');
+                    dateIcon.className = 'far fa-calendar';
+                    dateSpan.appendChild(dateIcon);
+                    dateSpan.appendChild(document.createTextNode(` ${item && item.date ? String(item.date) : '-'}`));
+
+                    const actorSpan = document.createElement('span');
+                    const actorIcon = document.createElement('i');
+                    actorIcon.className = (item && item.actorType === 'org') ? 'far fa-building' : 'far fa-user';
+                    actorSpan.appendChild(actorIcon);
+                    actorSpan.appendChild(document.createTextNode(` ${item && item.actor ? String(item.actor) : '-'}`));
+
+                    const st = statusMeta(item && item.status);
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = st.cls;
+                    const stIcon = document.createElement('i');
+                    stIcon.className = st.iconClass;
+                    statusSpan.appendChild(stIcon);
+                    statusSpan.appendChild(document.createTextNode(` ${st.text}`));
+
+                    metaRow.appendChild(dateSpan);
+                    metaRow.appendChild(actorSpan);
+                    metaRow.appendChild(statusSpan);
+
+                    content.appendChild(title);
+                    content.appendChild(metaRow);
+
+                    const viewBtn = document.createElement('button');
+                    viewBtn.type = 'button';
+                    viewBtn.className = 'btn btn-secondary btn-sm';
+                    viewBtn.textContent = '결과 보기';
+                    viewBtn.addEventListener('click', () => {
+                        openSafetyCheckView(item && item.id ? String(item.id) : '');
+                    });
+
+                    wrap.appendChild(content);
+                    wrap.appendChild(viewBtn);
+                    safetyCheckListEl.appendChild(wrap);
+                });
+            }
+
+            function openSafetyCheckCreate() {
+                if (!safetyCheckModalEl) return;
+                if (safetyCheckFormEl) safetyCheckFormEl.reset();
+
+                if (safetyCheckTitleEl) safetyCheckTitleEl.value = '';
+                if (safetyCheckDateEl) safetyCheckDateEl.value = formatDateYYYYMMDD(new Date());
+                if (safetyCheckActorTypeEl) safetyCheckActorTypeEl.value = 'user';
+                if (safetyCheckActorEl) safetyCheckActorEl.value = '김담당 주무관';
+                if (safetyCheckStatusEl) safetyCheckStatusEl.value = 'done';
+                if (safetyCheckSummaryEl) safetyCheckSummaryEl.value = '';
+
+                openModal(safetyCheckModalEl);
+                if (safetyCheckTitleEl) safetyCheckTitleEl.focus();
+            }
+
+            function openSafetyCheckView(id) {
+                if (!safetyCheckViewModalEl || !safetyCheckViewContentEl) return;
+                const item = (Array.isArray(safetyChecks) ? safetyChecks : []).find((x) => x && String(x.id) === String(id));
+
+                safetyCheckViewContentEl.innerHTML = '';
+                if (!item) {
+                    const p = document.createElement('div');
+                    p.className = 'text-sm text-slate-500';
+                    p.textContent = '점검 결과를 찾을 수 없습니다.';
+                    safetyCheckViewContentEl.appendChild(p);
+                    openModal(safetyCheckViewModalEl);
+                    return;
+                }
+
+                const title = document.createElement('div');
+                title.className = 'text-base font-bold text-slate-900';
+                title.textContent = String(item.title || '점검 결과');
+
+                const meta = document.createElement('div');
+                meta.className = 'flex flex-wrap gap-3 text-xs text-slate-600';
+
+                const date = document.createElement('span');
+                const dateIcon = document.createElement('i');
+                dateIcon.className = 'far fa-calendar';
+                date.appendChild(dateIcon);
+                date.appendChild(document.createTextNode(` ${String(item.date || '-')}`));
+
+                const actor = document.createElement('span');
+                const actorIcon = document.createElement('i');
+                actorIcon.className = item.actorType === 'org' ? 'far fa-building' : 'far fa-user';
+                actor.appendChild(actorIcon);
+                actor.appendChild(document.createTextNode(` ${String(item.actor || '-')}`));
+
+                const st = statusMeta(item.status);
+                const status = document.createElement('span');
+                status.className = st.cls;
+                const stIcon = document.createElement('i');
+                stIcon.className = st.iconClass;
+                status.appendChild(stIcon);
+                status.appendChild(document.createTextNode(` ${st.text}`));
+
+                meta.appendChild(date);
+                meta.appendChild(actor);
+                meta.appendChild(status);
+
+                const summaryWrap = document.createElement('div');
+                summaryWrap.className = 'rounded-none bg-slate-50 p-3 ring-1 ring-slate-200';
+                const summaryLabel = document.createElement('div');
+                summaryLabel.className = 'text-[11px] font-semibold text-slate-500';
+                summaryLabel.textContent = '결과 요약';
+                const summary = document.createElement('div');
+                summary.className = 'mt-1 text-sm text-slate-900 whitespace-pre-wrap';
+                summary.textContent = item.summary ? String(item.summary) : '-';
+                summaryWrap.appendChild(summaryLabel);
+                summaryWrap.appendChild(summary);
+
+                safetyCheckViewContentEl.appendChild(title);
+                safetyCheckViewContentEl.appendChild(meta);
+                safetyCheckViewContentEl.appendChild(summaryWrap);
+
+                openModal(safetyCheckViewModalEl);
+            }
+
+            // 이벤트 바인딩
+            if (safetyCheckOpenBtn) {
+                safetyCheckOpenBtn.addEventListener('click', () => openSafetyCheckCreate());
+            }
+            if (safetyCheckModalCloseBtn) safetyCheckModalCloseBtn.addEventListener('click', () => closeModal(safetyCheckModalEl));
+            if (safetyCheckCancelBtn) safetyCheckCancelBtn.addEventListener('click', () => closeModal(safetyCheckModalEl));
+            if (safetyCheckViewCloseBtn) safetyCheckViewCloseBtn.addEventListener('click', () => closeModal(safetyCheckViewModalEl));
+
+            if (safetyCheckModalEl) {
+                safetyCheckModalEl.addEventListener('click', (e) => {
+                    const t = e && e.target;
+                    if (t && t.hasAttribute && t.hasAttribute('data-safety-check-modal-close')) {
+                        closeModal(safetyCheckModalEl);
+                    }
+                });
+            }
+
+            if (safetyCheckViewModalEl) {
+                safetyCheckViewModalEl.addEventListener('click', (e) => {
+                    const t = e && e.target;
+                    if (t && t.hasAttribute && t.hasAttribute('data-safety-check-view-close')) {
+                        closeModal(safetyCheckViewModalEl);
+                    }
+                });
+            }
+
+            if (safetyCheckFormEl) {
+                safetyCheckFormEl.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const title = safetyCheckTitleEl ? safetyCheckTitleEl.value.trim() : '';
+                    const date = safetyCheckDateEl ? safetyCheckDateEl.value : '';
+                    const actorType = safetyCheckActorTypeEl ? safetyCheckActorTypeEl.value : 'user';
+                    const actor = safetyCheckActorEl ? safetyCheckActorEl.value.trim() : '';
+                    const status = safetyCheckStatusEl ? safetyCheckStatusEl.value : 'ok';
+                    const summary = safetyCheckSummaryEl ? safetyCheckSummaryEl.value.trim() : '';
+
+                    if (!title || !date || !actor) {
+                        alert('점검 유형/점검 일자/수행자(기관명)는 필수입니다.');
+                        return;
+                    }
+
+                    const item = {
+                        id: `chk-${Date.now()}`,
+                        title,
+                        date,
+                        actorType: actorType === 'org' ? 'org' : 'user',
+                        actor,
+                        status: ['done', 'ok', 'need'].includes(status) ? status : 'ok',
+                        summary,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    safetyChecks = Array.isArray(safetyChecks) ? safetyChecks : [];
+                    safetyChecks.unshift(item);
+                    saveSafetyChecks(safetyChecks);
+                    renderSafetyCheckList();
+                    closeModal(safetyCheckModalEl);
+                });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (!e || e.key !== 'Escape') return;
+                if (safetyCheckViewModalEl && !safetyCheckViewModalEl.classList.contains('hidden')) {
+                    closeModal(safetyCheckViewModalEl);
+                    return;
+                }
+                if (safetyCheckModalEl && !safetyCheckModalEl.classList.contains('hidden')) {
+                    closeModal(safetyCheckModalEl);
+                }
+            });
+
+            // 최초 렌더
+            renderSafetyCheckList();
+
+            // 관리자 모드: 핀 좌표 교정 (사용자에게는 숨김)
+            const isAdmin = new URLSearchParams(window.location.search).get('admin') === '1';
+            if (isAdmin && adminToolsEl) {
+                adminToolsEl.style.display = 'block';
+
+                let pointerDown = null;
+                let lastHit = null;
+
+                function format(n) {
+                    return Number.isFinite(n) ? n.toFixed(2) : String(n);
+                }
+
+                function toPosString(v) {
+                    return `${format(v.x)}m ${format(v.y)}m ${format(v.z)}m`;
+                }
+
+                function toVecString(v) {
+                    return `${format(v.x)} ${format(v.y)} ${format(v.z)}`;
+                }
+
+                // 지형 클릭해서 좌표 얻기
+                viewer.addEventListener('pointerdown', (e) => {
+                    pointerDown = { x: e.clientX, y: e.clientY };
+                });
+
+                viewer.addEventListener('pointerup', (e) => {
+                    if (!pointerDown) return;
+                    const dx = Math.abs(e.clientX - pointerDown.x);
+                    const dy = Math.abs(e.clientY - pointerDown.y);
+                    pointerDown = null;
+
+                    // 드래그(회전/이동)와 구분
+                    if (dx > 6 || dy > 6) return;
+
+                    if (typeof viewer.positionAndNormalFromPoint !== 'function') return;
+                    const rect = viewer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const hit = viewer.positionAndNormalFromPoint(x, y);
+                    if (!hit || !hit.position) return;
+
+                    const p = hit.position;
+                    const n = hit.normal || { x: 0, y: 1, z: 0 };
+                    lastHit = { position: p, normal: n };
+
+                    if (adminLastPickEl) {
+                        adminLastPickEl.textContent = `마지막 클릭 좌표: x ${format(p.x)}, y ${format(p.y)}, z ${format(p.z)}`;
+                    }
+
+                    // 주황색 디버그 마커 표시
+                    if (adminPickHotspotEl) {
+                        adminPickHotspotEl.style.display = 'block';
+                        adminPickHotspotEl.setAttribute('data-position', toPosString(p));
+                        adminPickHotspotEl.setAttribute('data-normal', toVecString(n));
+                    }
+                });
+
+                // 핀 위치를 마지막 클릭 좌표로 이동
+                adminSetBtns.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        if (!lastHit) {
+                            alert('먼저 지형을 클릭해서 좌표를 선택해 주세요.');
+                            return;
+                        }
+                        const poiId = btn.getAttribute('data-admin-set-poi');
+                        const el = document.querySelector(`[data-poi-id="${poiId}"]`);
+                        if (!el) return;
+
+                        el.setAttribute('data-position', toPosString(lastHit.position));
+                        el.setAttribute('data-normal', toVecString(lastHit.normal));
+                    });
+                });
+
+                if (adminLogBtn) {
+                    adminLogBtn.addEventListener('click', () => {
+                        const out = {};
+                        ['a', 'b', 'c'].forEach((id) => {
+                            const el = document.querySelector(`[data-poi-id="${id}"]`);
+                            if (!el) return;
+                            out[id] = {
+                                position: el.getAttribute('data-position'),
+                                normal: el.getAttribute('data-normal')
+                            };
+                        });
+                        console.log('[m3_danger] POI 좌표', out);
+                        alert('콘솔에 현재 핀 좌표를 출력했습니다. (F12 → Console)');
+                    });
+                }
+            }
+        })();
+    </script>
+    <script src="assets/js/ndms_mock.js?v=20260204"></script>
+    <script>
+        (function () {
+            if (!window.NDMSMock) return;
+            window.NDMSMock.ensureInit();
+            window.NDMSMock.bootstrapIfEmpty(null, '기본 마스터');
+            window.NDMSMock.startAuto({ intervalMs: 15000 });
+        })();
+    </script>
+</body>
+
+</html>

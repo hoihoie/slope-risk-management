@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>센서별 임계치 상세 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <!-- Tailwind CSS (Play CDN) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        soft: '0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.08)',
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+
+        @layer components {
+            .app-layout { @apply min-h-screen bg-slate-50; }
+
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-slate-50 text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-logo h1 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .sidebar-logo h1 i { @apply text-sky-600; }
+            .sidebar-logo span { @apply mt-2 block text-xs font-medium text-slate-500; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition; }
+            .nav-item i { @apply w-5 text-center text-slate-400; }
+            .nav-item.active { @apply bg-sky-100 text-sky-900 ring-1 ring-sky-200 font-semibold; }
+            .nav-item.active i { @apply text-sky-700; }
+
+            .main-content { @apply min-h-screen ml-72 p-8; }
+
+            .header { @apply mb-6 flex items-end justify-between gap-4; }
+            .header-title h2 { @apply text-2xl font-semibold tracking-tight text-slate-900; }
+            .header-title p { @apply mt-1 text-sm text-slate-600; }
+            .header-actions { @apply flex items-center gap-3; }
+
+            .user-profile { @apply flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200; }
+            .user-avatar { @apply flex h-8 w-8 items-center justify-center rounded-full bg-slate-900 text-white text-sm font-semibold; }
+            .user-name { @apply text-sm font-medium text-slate-900; }
+
+            .card { @apply mb-6 rounded-none bg-white shadow-sm ring-1 ring-slate-200/70 overflow-hidden; }
+            .card-header { @apply flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4; }
+            .card-header h3 { @apply text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2; }
+            .card-body { @apply px-6 py-5; }
+
+            .stat-cards { @apply mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4; }
+            .stat-card { @apply rounded-none bg-white p-6 shadow-sm ring-1 ring-slate-200/70 transition hover:-translate-y-0.5 hover:shadow-lg; }
+            .stat-info h4 { @apply text-sm font-medium text-slate-600; }
+            .stat-info .value { @apply mt-2 text-3xl font-semibold tracking-tight text-slate-900; }
+            .stat-icon { @apply flex h-11 w-11 items-center justify-center rounded-none ring-1 ring-inset; }
+            .stat-icon.blue { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+            .stat-icon.red { @apply bg-rose-50 text-rose-700 ring-rose-100; }
+            .stat-icon.yellow { @apply bg-amber-50 text-amber-700 ring-amber-100; }
+            .stat-icon.orange { @apply bg-orange-50 text-orange-700 ring-orange-100; }
+            .stat-icon.green { @apply bg-emerald-50 text-emerald-700 ring-emerald-100; }
+
+            .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500/30 disabled:opacity-50 disabled:pointer-events-none; }
+            .btn-primary { @apply bg-sky-100 text-sky-900 ring-1 ring-inset ring-sky-200 hover:bg-sky-200; }
+            .btn-secondary { @apply bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50; }
+            .btn-danger { @apply bg-rose-100 text-rose-900 ring-1 ring-inset ring-rose-200 hover:bg-rose-200; }
+            .btn-sm { @apply rounded-md px-3 py-1.5 text-xs; }
+
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-800 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+            .badge-info { @apply bg-sky-50 text-sky-700 ring-sky-200; }
+
+            .table-container { @apply overflow-x-auto; }
+            table { @apply w-full border-separate border-spacing-0; }
+            th { @apply bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-slate-200; }
+            td { @apply px-4 py-3 text-sm text-slate-800 border-b border-slate-100; }
+            tr:hover td { @apply bg-slate-50; }
+
+            .grid-2 { @apply grid gap-6 lg:grid-cols-2; }
+            .grid-2 > .card { @apply mb-0; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <img src="assets/images/orbital_newlogo.png" alt="Orbital" class="h-10 w-auto opacity-90">
+                <span>급경사지 안전관리 통합시스템</span>
+            </div>
+
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a href="mois_dashboard.html" class="nav-item">
+                        <i class="fas fa-grid-2"></i>
+                        <span>대시보드</span>
+                    </a>
+                    <a href="mois_ndms_overview.html" class="nav-item">
+                        <i class="fas fa-link"></i>
+                        <span>NDMS 연계</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="mois_m1_integrated.html" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>통합 관제 맵</span>
+                    </a>
+                    <a href="mois_satellite_overview.html" class="nav-item">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>위성 변위 분석</span>
+                    </a>
+                    <a href="mois_drone_overview.html" class="nav-item">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>위성→드론 정밀 위험평가</span>
+                    </a>
+                    <a href="mois_m3_danger.html" class="nav-item">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        <span>붕괴 위험 관리</span>
+                    </a>
+                </div>
+
+                <!-- Added new page to nav -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Reporting</div>
+                    <a href="mois_r1_report.html" class="nav-item">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>보고서 생성</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="mois_sensor_threshold.html" class="nav-item active">
+                        <i class="fas fa-sliders"></i>
+                        <span>센서 임계치 관리</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-800">
+                <a href="login.html" class="nav-item">
+                    <i class="fas fa-arrow-right-from-bracket"></i>
+                    <span>로그아웃</span>
+                </a>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h2>센서별 임계치 상세 정보</h2>
+                    <p>IoT 센서 및 위성 데이터의 위험 단계별 관리 기준 설정</p>
+                </div>
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="user-avatar">김</div>
+                        <span class="user-name">김담당 주무관</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Threshold Summary Cards -->
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div class="stat-info">
+                            <h4>관리 센서</h4>
+                            <div class="value">476</div>
+                        </div>
+                        <div class="stat-icon blue">
+                            <i class="fas fa-rss"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div class="stat-info">
+                            <h4>주의 단계 설정</h4>
+                            <div class="value" style="color: #F59E0B;">Level 1</div>
+                        </div>
+                        <div class="stat-icon yellow">
+                            <i class="fas fa-triangle-exclamation"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-500">변위 발생 초기 감지</div>
+                </div>
+                <div class="stat-card">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div class="stat-info">
+                            <h4>경계 단계 설정</h4>
+                            <div class="value" style="color: #F97316;">Level 2</div>
+                        </div>
+                        <div class="stat-icon orange">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-500">가속화 단계 진입</div>
+                </div>
+                <div class="stat-card">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div class="stat-info">
+                            <h4>심각 단계 설정</h4>
+                            <div class="value text-rose-600">Level 3</div>
+                        </div>
+                        <div class="stat-icon red">
+                            <i class="fas fa-radiation"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-slate-500">대피 명령 발령 기준</div>
+                </div>
+            </div>
+
+            <!-- Main Table Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list-check text-slate-400"></i> 센서 및 구간별 임계치 설정 현황</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-sm"><i class="fas fa-pen"></i> 일괄 수정</button>
+                        <button class="btn btn-primary btn-sm"><i class="fas fa-save"></i> 저장</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">구간명</th>
+                                    <th rowspan="2">센서 유형</th>
+                                    <th rowspan="2">설치 위치</th>
+                                    <th colspan="3" class="text-center border-b border-slate-200">임계치 기준
+                                        (변위/강우량)</th>
+                                    <th rowspan="2">상태</th>
+                                    <th rowspan="2">관리</th>
+                                </tr>
+                                <tr>
+                                    <th style="background: #FFFBEB; color: #D97706;">주의 (Level 1)</th>
+                                    <th style="background: #FFF7ED; color: #EA580C;">경계 (Level 2)</th>
+                                    <th style="background: #FEF2F2; color: #DC2626;">심각 (Level 3)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: 600;">정선읍 A구간</td>
+                                    <td><span class="badge badge-info">지표변위계</span></td>
+                                    <td>상부 사면 No.1</td>
+                                    <td>> 5mm/일</td>
+                                    <td>> 10mm/일</td>
+                                    <td style="font-weight: 700;">> 30mm/일</td>
+                                    <td><span class="badge badge-success">정상</span></td>
+                                    <td><button class="btn btn-secondary btn-sm">수정</button></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">정선읍 A구간</td>
+                                    <td><span class="badge badge-info">강우량계</span></td>
+                                    <td>정선읍 관측소</td>
+                                    <td>> 30mm/시</td>
+                                    <td>> 50mm/시</td>
+                                    <td style="font-weight: 700;">> 80mm/시</td>
+                                    <td><span class="badge badge-danger">초과</span></td>
+                                    <td><button class="btn btn-secondary btn-sm">수정</button></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">신동읍 B구간</td>
+                                    <td><span class="badge">경사계</span></td>
+                                    <td>중부 옹벽부</td>
+                                    <td>> 0.1°</td>
+                                    <td>> 0.5°</td>
+                                    <td style="font-weight: 700;">> 1.0°</td>
+                                    <td><span class="badge badge-success">정상</span></td>
+                                    <td><button class="btn btn-secondary btn-sm">수정</button></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: 600;">화암면 C구간</td>
+                                    <td><span class="badge" style="background: #F3E8FF; color: #7E22CE;">위성(SAR)</span>
+                                    </td>
+                                    <td>전체 영역 평균</td>
+                                    <td>> 3mm/주</td>
+                                    <td>> 5mm/주</td>
+                                    <td style="font-weight: 700;">> 10mm/주</td>
+                                    <td><span class="badge badge-warning">주의</span></td>
+                                    <td><button class="btn btn-secondary btn-sm">수정</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-6 rounded-none bg-slate-50 p-4 ring-1 ring-slate-200">
+                        <h4 class="mb-2 text-sm font-semibold text-slate-900">임계치 설정 가이드라인</h4>
+                        <ul class="ml-5 list-disc text-sm text-slate-600 leading-relaxed">
+                            <li><strong>지표변위계</strong>: 행정안전부 급경사지 재해위험도 평가 기준(2025)에 따름.</li>
+                            <li><strong>강우량계</strong>: 기상청 호우특보 기준 및 해당 지역의 지질 특성을 고려하여 가중치 적용.</li>
+                            <li><strong>위성(SAR)</strong>: 위성 재방문 주기(6일)를 고려하여 주간/월간 변위량 기준으로 설정. 시계열 분석 알고리즘에 의해 자동 보정
+                                가능.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
