@@ -258,7 +258,7 @@
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Monitoring</div>
-                    <a href="m1_integrated.html" class="nav-item">
+                    <a id="mn1-sidebar-map-link" href="m1_integrated.html" class="nav-item">
                         <i class="fas fa-map"></i>
                         <span>통합 관제 맵</span>
                     </a>
@@ -305,7 +305,7 @@
             <header class="header">
                 <div class="header-title">
                     <div class="flex flex-wrap items-center gap-2">
-                        <a href="m1_integrated.html" class="btn btn-secondary btn-sm">
+                        <a id="mn1-back-to-map-btn" href="m1_integrated.html" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left"></i> 목록
                         </a>
                         <h2>통합 상세 분석 <span class="text-slate-400 text-base font-semibold">(MN1)</span></h2>
@@ -481,7 +481,7 @@
                     <div class="card">
                         <div class="card-header">
                             <h3><i class="fas fa-map-location-dot text-slate-400"></i> 위치</h3>
-                            <a href="m1_integrated.html" class="text-sm font-semibold text-sky-700 hover:text-sky-800">큰 지도 보기</a>
+                            <a id="mn1-large-map-link" href="m1_integrated.html" class="text-sm font-semibold text-sky-700 hover:text-sky-800">큰 지도 보기</a>
                         </div>
                         <div class="card-body" style="padding: 0;">
                             <div id="mn1MiniMap"></div>
@@ -857,6 +857,27 @@
             const queryLat = toNumber(urlParams.get('lat'));
             const queryLng = toNumber(urlParams.get('lng'));
             const queryAlarm = urlParams.get('alarm') || '';
+            const mapModeFromQuery = String(urlParams.get('mapMode') || '').trim().toLowerCase() === 'mois' ? 'mois' : 'local';
+            const mapRegionFromQuery = String(urlParams.get('region') || '').trim();
+
+            function buildMapReturnHref() {
+                const params = new URLSearchParams();
+                params.set('mode', mapModeFromQuery);
+                if (mapModeFromQuery !== 'mois') {
+                    let region = mapRegionFromQuery;
+                    if (!region) {
+                        try {
+                            region = String(localStorage.getItem('dashboard_region_v1') || '').trim();
+                        } catch {
+                            region = '';
+                        }
+                    }
+                    if (region) params.set('region', region);
+                }
+                return `m1_integrated.html?${params.toString()}`;
+            }
+
+            const mapReturnHref = buildMapReturnHref();
 
             const site = resolveSite(siteId, siteNameFromQuery, { lat: queryLat, lng: queryLng, alarm: queryAlarm });
             const g = gradeInfo(site.grade5);
@@ -878,6 +899,10 @@
 
             const goM2El = document.getElementById('mn1GoM2');
             const goM3El = document.getElementById('mn1GoM3');
+            const goM1El = document.getElementById('mn1GoM1');
+            const sidebarMapLinkEl = document.getElementById('mn1-sidebar-map-link');
+            const backToMapBtnEl = document.getElementById('mn1-back-to-map-btn');
+            const largeMapLinkEl = document.getElementById('mn1-large-map-link');
             const reportBtnEl = document.getElementById('mn1ReportBtn');
 
             if (gradeBadgeEl) {
@@ -893,6 +918,10 @@
 
             if (goM2El) goM2El.href = `m2_detail.html?site=${encodeURIComponent(site.id)}&name=${encodeURIComponent(site.name)}`;
             if (goM3El) goM3El.href = `m3_danger.html`;
+            if (goM1El) goM1El.href = mapReturnHref;
+            if (sidebarMapLinkEl) sidebarMapLinkEl.href = mapReturnHref;
+            if (backToMapBtnEl) backToMapBtnEl.href = mapReturnHref;
+            if (largeMapLinkEl) largeMapLinkEl.href = mapReturnHref;
             if (reportBtnEl) reportBtnEl.href = `r1_report.html`;
 
             // stage table highlight

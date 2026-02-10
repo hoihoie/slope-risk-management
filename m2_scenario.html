@@ -144,7 +144,7 @@
         .scenario-map-tools {
             position: absolute;
             left: 16px;
-            top: 16px;
+            top: 58px;
             z-index: 1000;
             display: flex;
             align-items: center;
@@ -152,17 +152,130 @@
         }
 
         .scenario-side-panel {
+            position: static;
+            margin: 0 0 12px 0;
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            box-shadow: none;
+            backdrop-filter: none;
+            padding: 12px 12px;
+        }
+
+        .scenario-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .scenario-stat-card {
+            border-radius: 10px;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            background: #fff;
+            padding: 8px 10px;
+        }
+
+        .scenario-stat-card .k {
+            font-size: 11px;
+            line-height: 1.2;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .scenario-stat-card .v {
+            margin-top: 4px;
+            font-size: 13px;
+            line-height: 1.3;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .cluster-priority-list {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .cluster-priority-row {
+            width: 100%;
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            border-radius: 10px;
+            background: #fff;
+            padding: 7px 9px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            cursor: pointer;
+            transition: border-color 120ms ease, box-shadow 120ms ease;
+        }
+
+        .cluster-priority-row:hover {
+            border-color: rgba(14, 165, 233, 0.45);
+            box-shadow: 0 6px 14px rgba(14, 165, 233, 0.12);
+        }
+
+        .cluster-priority-row.is-selected {
+            border-color: rgba(14, 165, 233, 0.52);
+            box-shadow: 0 6px 14px rgba(14, 165, 233, 0.18);
+            background: rgba(14, 165, 233, 0.06);
+        }
+
+        .cluster-priority-rank {
+            width: 20px;
+            height: 20px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: #075985;
+            background: rgba(14, 165, 233, 0.14);
+            flex-shrink: 0;
+        }
+
+        .scenario-heat-legend {
             position: absolute;
-            right: 16px;
-            top: 16px;
+            left: 16px;
+            bottom: 16px;
             z-index: 1000;
-            width: 340px;
-            max-width: calc(100% - 32px);
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(226, 232, 240, 0.92);
-            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16), 0 2px 10px rgba(15, 23, 42, 0.06);
-            backdrop-filter: blur(10px);
-            padding: 14px 14px;
+            width: min(260px, calc(100% - 32px));
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.70);
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            color: #e2e8f0;
+            padding: 8px 10px;
+            backdrop-filter: blur(8px);
+        }
+
+        .scenario-heat-legend .legend-title {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+
+        .scenario-heat-legend .legend-bar {
+            margin-top: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #003cff 0%, #00bfff 18%, #22c55e 45%, #fde047 66%, #fb923c 84%, #ef4444 100%);
+        }
+
+        .scenario-heat-legend .legend-scale {
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 9px;
+            color: rgba(226, 232, 240, 0.9);
+            font-weight: 600;
+        }
+
+        .scenario-heat-legend .legend-note {
+            margin-top: 5px;
+            font-size: 9px;
+            color: rgba(226, 232, 240, 0.82);
         }
 
         .candidate-row {
@@ -336,6 +449,16 @@
             #scenarioMap { height: 520px; }
             .scenario-viewer-stage { min-height: 520px; }
         }
+
+        @media (max-width: 900px) {
+            .scenario-side-panel { margin: 0 0 10px 0; }
+
+            .scenario-heat-legend {
+                left: 10px;
+                bottom: 10px;
+                width: min(220px, calc(100% - 20px));
+            }
+        }
     </style>
 </head>
 
@@ -466,19 +589,64 @@
                                         title="위성 변위 히트맵 오버레이 토글">
                                         <i class="fas fa-layer-group"></i> 히트맵
                                     </button>
+                                    <button id="btnClusterToggle" class="btn btn-secondary btn-sm" aria-pressed="true"
+                                        title="클러스터 권역 오버레이 토글">
+                                        <i class="fas fa-object-group"></i> 클러스터
+                                    </button>
                                     <button id="btnMapFit" class="btn btn-secondary btn-sm" title="영역 맞춤">
                                         <i class="fas fa-up-right-and-down-left-from-center"></i> 맞춤
                                     </button>
                                 </div>
+
+                                <div class="scenario-heat-legend" aria-hidden="true">
+                                    <div class="legend-title">위성 변위 강도(정규화)</div>
+                                    <div class="legend-bar"></div>
+                                    <div class="legend-scale">
+                                        <span>낮음</span>
+                                        <span>중간</span>
+                                        <span>높음</span>
+                                    </div>
+                                    <div class="legend-note">미세 점과 붉은 격자는 변위+급경사 결합 위험 구간을 함께 나타냅니다.</div>
+                                </div>
                             </div>
 
                             <div class="border-t border-slate-200 p-4">
+                                <aside class="scenario-side-panel" aria-live="polite">
+                                    <div class="text-[11px] font-semibold tracking-widest text-slate-400 uppercase">SATELLITE → DRONE</div>
+                                    <div class="mt-1 text-sm font-semibold text-slate-900">변위 핫스팟 클러스터링 기반 정밀탐지 선별</div>
+                                    <p class="mt-1 text-[11px] text-slate-600">
+                                        광역 InSAR 변위장에서 이상 구역을 군집화하고, 클러스터 중심을 드론 정밀탐지 우선 지점으로 추천합니다.
+                                    </p>
+                                    <div class="scenario-stat-grid mt-3">
+                                        <div class="scenario-stat-card">
+                                            <div class="k">관측 격자</div>
+                                            <div id="hmCellCount" class="v">-</div>
+                                        </div>
+                                        <div class="scenario-stat-card">
+                                            <div class="k">전국 급경사 후보 점</div>
+                                            <div id="hmHotspotCount" class="v">-</div>
+                                        </div>
+                                        <div class="scenario-stat-card">
+                                            <div class="k">추출 클러스터</div>
+                                            <div id="hmClusterCount" class="v">-</div>
+                                        </div>
+                                        <div class="scenario-stat-card">
+                                            <div class="k">드론 타깃</div>
+                                            <div id="hmDroneTarget" class="v">미지정</div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3 rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+                                        <div class="text-[11px] font-semibold text-slate-500">우선순위 TOP 클러스터</div>
+                                        <div id="clusterPriorityList" class="cluster-priority-list"></div>
+                                    </div>
+                                </aside>
+
                                 <div class="flex items-start justify-between gap-2">
                                     <div>
                                         <div class="text-xs font-semibold tracking-widest text-slate-400 uppercase">AUTO DETECT</div>
                                         <div class="mt-1 text-sm font-semibold text-slate-900">변위 클러스터(후보지)</div>
                                     </div>
-                                    <span class="badge badge-info">3건</span>
+                                    <span id="candidateCountBadge" class="badge badge-info">3건</span>
                                 </div>
 
                                 <div id="candidateList" class="mt-3 space-y-2"></div>
@@ -707,12 +875,19 @@
 
             const mapEl = document.getElementById('scenarioMap');
             const btnHeatmapToggle = document.getElementById('btnHeatmapToggle');
+            const btnClusterToggle = document.getElementById('btnClusterToggle');
             const btnMapFit = document.getElementById('btnMapFit');
             const satSelectedLabelEl = document.getElementById('satSelectedLabel');
             const droneSelectedLabelEl = document.getElementById('droneSelectedLabel');
 
             const candidateListEl = document.getElementById('candidateList');
+            const candidateCountBadgeEl = document.getElementById('candidateCountBadge');
             const btnReset = document.getElementById('btnScenarioReset');
+            const hmCellCountEl = document.getElementById('hmCellCount');
+            const hmHotspotCountEl = document.getElementById('hmHotspotCount');
+            const hmClusterCountEl = document.getElementById('hmClusterCount');
+            const hmDroneTargetEl = document.getElementById('hmDroneTarget');
+            const clusterPriorityListEl = document.getElementById('clusterPriorityList');
 
             const viewer = document.getElementById('scenarioViewer');
             const btnViewerReset = document.getElementById('btnViewerReset');
@@ -746,7 +921,14 @@
 
             let selectedPoiId = null;
             let isHeatmapVisible = true;
+            let isClusterVisible = false;
             let inferenceToken = 0;
+            let clusterAreaLayer = null;
+            let selectedTargetHalo = null;
+            let selectedTargetMarker = null;
+            let heatmapHotspotPoints = [];
+            let heatmapHotspotCount = 0;
+            let heatmapPointLayer = null;
 
             function safeText(el, value) {
                 if (!el) return;
@@ -812,6 +994,46 @@
                 const trN = clamp(trendWeight(cluster.trend), 0, 1);
                 const score = 100 * clamp((0.52 * dispN) + (0.33 * alarmN) + (0.15 * trN), 0, 1);
                 return score;
+            }
+
+            function formatInt(value) {
+                const n = Math.max(0, Math.round(toNumber(value) ?? 0));
+                return n.toLocaleString('ko-KR');
+            }
+
+            function clusterRadiusMeters(cluster) {
+                const disp = Math.max(0, toNumber(cluster && cluster.dispMm) ?? 0);
+                const alarmN = clamp(alarmRank(cluster && cluster.alarm) / 5, 0, 1);
+                const trN = clamp(trendWeight(cluster && cluster.trend), 0, 1);
+                const radius = 3800 + (alarmN * 2600) + (trN * 1700) + (disp * 80);
+                return Math.round(clamp(radius, 3500, 9800));
+            }
+
+            function clusterHotspotEstimate(cluster) {
+                const disp = Math.max(0, toNumber(cluster && cluster.dispMm) ?? 0);
+                const hot = clamp(disp / DISP_MAX_MM, 0, 1);
+                const alarmN = clamp(alarmRank(cluster && cluster.alarm) / 5, 0, 1);
+                const trN = clamp(trendWeight(cluster && cluster.trend), 0, 1);
+                const estimate = 110 + (hot * 520) + (alarmN * 230) + (trN * 160);
+                return Math.round(estimate);
+            }
+
+            function clusterPriorityScore(cluster) {
+                const sat = satScoreFromCluster(cluster) ?? 0;
+                const alarmBoost = alarmRank(cluster && cluster.alarm) * 4.5;
+                const trendBoost = trendWeight(cluster && cluster.trend) * 7.5;
+                return sat + alarmBoost + trendBoost;
+            }
+
+            function getRankedClusters() {
+                return [...(CLUSTERS || [])]
+                    .map((c) => ({
+                        ...c,
+                        priorityScore: clusterPriorityScore(c),
+                        hotspotEstimate: clusterHotspotEstimate(c),
+                        radiusMeters: clusterRadiusMeters(c),
+                    }))
+                    .sort((a, b) => (b.priorityScore - a.priorityScore));
             }
 
             function integratedScore(baseRisk0to100, satScore0to100) {
@@ -1170,13 +1392,13 @@
             // Displacement overlay 
 
             const DISP_MAX_MM = 25;
+            const HEATMAP_CANVAS_SIZE = 1024;
+            const HEATMAP_CELL_SIZE = 6;
 
             const DISP_SOURCES = (CLUSTERS || []).map((c) => {
                 const sign = c.poiId === 'b' ? -1 : 1;
                 const losMm = sign * (Number(c.dispMm) || 0);
-
-                const sigmaBase = c.alarm === '위험' ? 12000 : c.alarm === '경계' ? 9500 : 8000;
-                const sigmaMeters = sigmaBase * 5.0;
+                const sigmaMeters = 8500;
                 return {
                     id: c.poiId,
                     lat: Number(c.lat),
@@ -1189,6 +1411,9 @@
             const displacementPane = map.createPane('displacementPane');
             displacementPane.style.zIndex = '520';
             displacementPane.style.pointerEvents = 'none';
+            const heatSpotPane = map.createPane('heatSpotPane');
+            heatSpotPane.style.zIndex = '530';
+            heatSpotPane.style.pointerEvents = 'none';
 
             function metersPerPixelAtLat(latDeg, zoom) {
                 const latRad = (Number(latDeg) || 0) * Math.PI / 180;
@@ -1206,7 +1431,7 @@
             function buildDisplacementOverlay() {
                 heatmapBounds = computeDisplacementBounds();
 
-                const size = 1024; // 해상도
+                const size = HEATMAP_CANVAS_SIZE; // 해상도
                 const canvas = document.createElement('canvas');
                 canvas.width = size;
                 canvas.height = size;
@@ -1259,7 +1484,8 @@
                 }
 
                 // 격자 셀 크기(px)
-                const cell = 10; // 1024/10 ≈ 100 x 100 grid
+                const cell = HEATMAP_CELL_SIZE;
+                const hotspotPoints = [];
 
 
                 const KOREA_MAINLAND_POLY = [
@@ -1385,11 +1611,31 @@
                     return clamp(1 - Math.abs(n), 0, 1); // 0..1 
                 }
                 function mountainField(x, y) {
-                    const spineCenter = 0.66 - 0.06 * (y - 0.5); 
-                    const d = Math.abs(x - spineCenter);
-                    const spine = clamp(1 - (d / 0.18), 0, 1);
-                    const r = ridged(x + 0.07, y - 0.04);
-                    const m = clamp((0.60 * spine) + (0.55 * Math.pow(r, 1.35)), 0, 1);
+                    // 전국 산지 분포를 더 넓게 잡기 위한 다중 spine + ridged 결합
+                    // - east: 태백/동해안 산지
+                    // - central: 소백/내륙 산지
+                    // - sw: 남서/지리산권
+                    const eastCenter = 0.68 - 0.05 * (y - 0.5);
+                    const east = clamp(1 - (Math.abs(x - eastCenter) / 0.17), 0, 1);
+
+                    const centralCenter = 0.56 - 0.10 * (y - 0.5);
+                    const central = clamp(1 - (Math.abs(x - centralCenter) / 0.23), 0, 1);
+
+                    const swCenter = 0.46 + 0.06 * (y - 0.5);
+                    const sw = clamp(1 - (Math.abs(x - swCenter) / 0.26), 0, 1);
+
+                    const r1 = ridged(x + 0.07, y - 0.04);
+                    const r2 = ridged(x - 0.12, y + 0.09);
+                    const r = Math.max(r1, r2);
+
+                    const m = clamp(
+                        (0.46 * east) +
+                        (0.34 * central) +
+                        (0.22 * sw) +
+                        (0.48 * Math.pow(r, 1.25)),
+                        0,
+                        1
+                    );
                     return m;
                 }
 
@@ -1422,6 +1668,76 @@
                 }
 
 
+                // === 간결한 히트맵: 파란 배경 + 군데군데 작은 붉은 패치 + 점 ===
+
+                // 1) 전국 여러 곳에 작은 "변위 이상 패치"를 뿌리는 시드 포인트
+                const ANOMALY_SEEDS = [
+                    // 실제 클러스터 3곳 (가장 강하게)
+                    { lat: 37.3805, lng: 128.6608, r: 0.038, str: 1.00 },
+                    { lat: 37.3105, lng: 128.6908, r: 0.032, str: 0.88 },
+                    { lat: 37.2700, lng: 128.6250, r: 0.028, str: 0.76 },
+                    // === 강원 북부 ===
+                    { lat: 38.15, lng: 128.50, r: 0.022, str: 0.58 },
+                    { lat: 37.95, lng: 128.20, r: 0.018, str: 0.48 },
+                    { lat: 37.80, lng: 128.85, r: 0.020, str: 0.55 },
+                    { lat: 37.55, lng: 127.95, r: 0.018, str: 0.44 },
+                    { lat: 37.65, lng: 128.35, r: 0.016, str: 0.50 },
+                    // === 강원 남부~경북 북부 ===
+                    { lat: 36.95, lng: 128.95, r: 0.024, str: 0.60 },
+                    { lat: 37.10, lng: 128.55, r: 0.018, str: 0.52 },
+                    { lat: 36.80, lng: 128.15, r: 0.020, str: 0.48 },
+                    { lat: 36.55, lng: 128.85, r: 0.018, str: 0.46 },
+                    { lat: 36.45, lng: 128.45, r: 0.016, str: 0.42 },
+                    // === 경북~경남 동부 (태백~소백) ===
+                    { lat: 36.10, lng: 129.20, r: 0.018, str: 0.50 },
+                    { lat: 35.80, lng: 128.65, r: 0.022, str: 0.55 },
+                    { lat: 35.50, lng: 129.10, r: 0.016, str: 0.44 },
+                    { lat: 35.20, lng: 128.90, r: 0.018, str: 0.46 },
+                    { lat: 35.35, lng: 128.40, r: 0.015, str: 0.40 },
+                    // === 충북~충남 내륙 ===
+                    { lat: 36.60, lng: 127.50, r: 0.018, str: 0.42 },
+                    { lat: 36.85, lng: 127.85, r: 0.016, str: 0.38 },
+                    { lat: 36.30, lng: 127.90, r: 0.015, str: 0.40 },
+                    { lat: 36.50, lng: 127.15, r: 0.013, str: 0.32 },
+                    // === 경기~수도권 산지 ===
+                    { lat: 37.70, lng: 127.40, r: 0.016, str: 0.38 },
+                    { lat: 37.45, lng: 127.15, r: 0.014, str: 0.34 },
+                    { lat: 37.10, lng: 127.30, r: 0.015, str: 0.36 },
+                    { lat: 37.90, lng: 127.65, r: 0.013, str: 0.32 },
+                    // === 전라~지리산권 ===
+                    { lat: 35.70, lng: 127.70, r: 0.020, str: 0.52 },
+                    { lat: 35.30, lng: 127.55, r: 0.018, str: 0.48 },
+                    { lat: 35.05, lng: 127.60, r: 0.016, str: 0.42 },
+                    { lat: 35.40, lng: 127.20, r: 0.014, str: 0.36 },
+                    { lat: 35.85, lng: 127.15, r: 0.013, str: 0.30 },
+                    { lat: 34.85, lng: 127.50, r: 0.012, str: 0.28 },
+                    // === 남해안~부산권 ===
+                    { lat: 35.10, lng: 129.05, r: 0.016, str: 0.44 },
+                    { lat: 34.80, lng: 128.55, r: 0.016, str: 0.40 },
+                    { lat: 35.00, lng: 128.20, r: 0.014, str: 0.36 },
+                    // === 제주 ===
+                    { lat: 33.45, lng: 126.55, r: 0.022, str: 0.46 },
+                    { lat: 33.30, lng: 126.75, r: 0.015, str: 0.34 },
+                    // === 서해안 산지 소규모 ===
+                    { lat: 36.00, lng: 126.65, r: 0.012, str: 0.26 },
+                    { lat: 35.50, lng: 126.90, r: 0.011, str: 0.24 },
+                    { lat: 37.25, lng: 126.85, r: 0.012, str: 0.28 },
+                ];
+
+                // 패치 영향 함수: 거리 기반 부드러운 감쇠 (상위 2개 합산으로 겹침 강화)
+                function patchInfluence(lat, lng) {
+                    let top1 = 0, top2 = 0;
+                    for (const s of ANOMALY_SEEDS) {
+                        const dLat = (lat - s.lat);
+                        const dLng = (lng - s.lng) * cosLat;
+                        const dist = Math.sqrt(dLat * dLat + dLng * dLng);
+                        const inf = s.str * Math.exp(-(dist * dist) / (1 * s.r * s.r));
+                        if (inf > top1) { top2 = top1; top1 = inf; }
+                        else if (inf > top2) { top2 = inf; }
+                    }
+                    return clamp(top1 + top2 * 0.45, 0, 1);
+                }
+
                 ctx.save();
                 ctx.lineWidth = 1;
                 for (let py = 0; py < size; py += cell) {
@@ -1432,57 +1748,90 @@
                         const lng = sw.lng + (ne.lng - sw.lng) * tX;
 
                         const land = koreaLandMask(lat, lng);
-                        if (land <= 0.02) continue; 
+                        if (land <= 0.02) continue;
 
-                        const m = mountainField(tX, tY); // 0..1
-                        const r1 = ridged(tX * 1.7 + 0.03, tY * 1.55 - 0.02); // 0..1
-                        const r2 = ridged(tX * 3.4 - 0.11, tY * 3.1 + 0.07);  // 0..1
-                        const patch = clamp((0.58 * r1) + (0.42 * r2), 0, 1); // 0..1
-                        const n = fbm(tX + 0.13, tY - 0.09) * 0.10; // [-0.10..0.10]
+                        // 2) 산지 경향 (태백산맥 spine + 노이즈 텍스처)
+                        const m = mountainField(tX, tY);
+                        const tex = clamp((fbm(tX + 0.13, tY - 0.09) + 1) * 0.5, 0, 1);
 
+                        // 3) 패치 영향 (변위 이상 시드)
+                        const patch = patchInfluence(lat, lng);
 
-                        const sp1 = valueNoise(tX + 0.21, tY - 0.17, 22); // [-1,1]
-                        const sp2 = valueNoise(tX - 0.11, tY + 0.09, 34); // [-1,1]
-                        const sp = clamp(
-                            0.55 * Math.pow(clamp((sp1 - 0.10) / 0.90, 0, 1), 3.0) +
-                            0.45 * Math.pow(clamp((sp2 - 0.05) / 0.95, 0, 1), 3.2),
-                            0,
-                            1
-                        ); 
-
-                        let u = 0.50
-                            + 0.10 * (m - 0.5)
-                            + 0.28 * (patch - 0.5)
-                            + 0.32 * (sp * Math.pow(m, 1.25))
-                            + n;
+                        // 4) 최종 변위 강도 u
+                        //    배경: 낮은 파란(~0.08)
+                        //    산지: 살짝 올라감(초록~노랑 영역)
+                        //    패치: 빨간 방향으로 끌어올림
+                        let u = 0.06 + (0.18 * m * tex);
+                        u += 0.78 * patch;
+                        // 산지에서 패치가 약간이라도 있으면 추가 부스트 (빨간 영역 확장)
+                        if (m > 0.35 && patch > 0.08) u += 0.10 * m * patch;
                         u = clamp(u, 0, 1);
 
-                        for (const s of DISP_SOURCES) {
-                            const dxm = lngToMeters(lng - s.lng);
-                            const dym = latToMeters(lat - s.lat);
-                            const d2 = dxm * dxm + dym * dym;
-                            const g = Math.exp(-d2 / (2 * s.sigmaMeters * s.sigmaMeters));
-                            const hot = clamp(Math.abs(s.losMm) / DISP_MAX_MM, 0, 1);
-                            u = clamp(u + (0.16 * hot * g), 0, 1);
+                        // 표시용 강도(가시성 강화): u의 다이내믹 레인지를 확장해서
+                        // 빨/노/파 구간이 한눈에 구분되도록 대비를 올림
+                        let uVis = clamp((u - 0.05) / 0.30, 0, 1);
+                        uVis = Math.pow(uVis, 0.72);
+                        uVis = clamp(((uVis - 0.4) * 1.18) + 0.5, 0, 1);
+
+                        // 5) 점 생성:
+                        //    - 전국 스크리닝(급경사지 후보점): 산지/텍스처 기반으로 넓게 분포
+                        //    - 변위(붉은 구간): u 기반으로 추가 점(더 진하고 더 촘촘)
+                        const cellX = Math.floor(px / cell);
+                        const cellY = Math.floor(py / cell);
+                        const steep = clamp(0.20 + (0.80 * m * tex), 0, 1); // 0..1
+
+                        // (A) 전국 스크리닝 점
+                        // if (steep > 0.26) {
+                        //     const s = clamp((steep - 0.26) / 0.74, 0, 1);
+                        //     const baseProb = 0.006 + (0.028 * Math.pow(s, 1.85));
+                        //     const seedA = hash01(`scr|${cellX}|${cellY}`);
+                        //     if (seedA < (baseProb * land)) {
+                        //         const jx = (hash01(`sjx|${cellX}|${cellY}`) - 0.5) * 0.0032;
+                        //         const jy = (hash01(`sjy|${cellX}|${cellY}`) - 0.5) * 0.0032;
+                        //         // 스크리닝 점은 노랑~주황 정도로 표현
+                        //         const inten = clamp(0.45 + (0.22 * s), 0, 1);
+                        //         hotspotPoints.push({ lat: lat + jy, lng: lng + jx, intensity: inten });
+                        //     }
+                        // }
+
+                        // (B) 붉은(변위) 구간 추가 점
+                        if (u > 0.34) {
+                            const h = clamp((u - 0.34) / 0.66, 0, 1);
+                            const hotProb = 0.010 + (0.060 * Math.pow(h, 1.35));
+                            const seedB = hash01(`hot|${cellX}|${cellY}`);
+                            if (seedB < (hotProb * land)) {
+                                const jx = (hash01(`hjx|${cellX}|${cellY}`) - 0.5) * 0.0030;
+                                const jy = (hash01(`hjy|${cellX}|${cellY}`) - 0.5) * 0.0030;
+                                hotspotPoints.push({ lat: lat + jy, lng: lng + jx, intensity: clamp(Math.max(u, 0.65), 0, 1) });
+                            }
                         }
 
-                        const [rr, gg, bb] = ramp(u);
-                        const a = clamp((0.14 + 0.58 * Math.pow(u, 0.95)) * land, 0.10, 0.76);
+                        // 6) 격자 렌더
+                        const [rr, gg, bb] = ramp(uVis);
+                        const a = clamp((0.06 + 0.66 * Math.pow(uVis, 1.05)) * land, 0.035, 0.82);
                         ctx.fillStyle = `rgba(${rr}, ${gg}, ${bb}, ${a.toFixed(3)})`;
                         ctx.fillRect(px, py, cell, cell);
 
-                        // 격자 라인
-                        const gl = clamp(a * 0.12, 0.03, 0.10);
+                        const gl = clamp(0.04 + (a * 0.12), 0.03, 0.10);
                         ctx.strokeStyle = `rgba(255,255,255,${gl.toFixed(3)})`;
                         ctx.strokeRect(px + 0.5, py + 0.5, cell, cell);
                     }
                 }
                 ctx.restore();
 
+                heatmapHotspotCount = hotspotPoints.length;
+                const maxPoints = 1500;
+                if (hotspotPoints.length > maxPoints) {
+                    hotspotPoints.sort((a, b) => (b.intensity - a.intensity));
+                    heatmapHotspotPoints = hotspotPoints.slice(0, maxPoints);
+                } else {
+                    heatmapHotspotPoints = hotspotPoints;
+                }
+
                 const url = canvas.toDataURL('image/png');
                 const overlay = L.imageOverlay(url, heatmapBounds, {
                     pane: 'displacementPane',
-                    opacity: 0.78,
+                    opacity: 0.72,
                     interactive: false,
                 });
 
@@ -1492,9 +1841,8 @@
                         const img = overlay.getElement();
                         if (img) {
 
-                            img.style.mixBlendMode = 'multiply';
                             img.style.imageRendering = 'pixelated';
-                            img.style.filter = 'saturate(1.18) contrast(1.06)';
+                            img.style.filter = 'saturate(1.10) contrast(1.04)';
                         }
                     } catch { }
                 });
@@ -1502,8 +1850,35 @@
                 return overlay;
             }
 
+            function rebuildHeatmapPointLayer() {
+                if (heatmapPointLayer && map.hasLayer(heatmapPointLayer)) {
+                    map.removeLayer(heatmapPointLayer);
+                }
+                heatmapPointLayer = L.layerGroup();
+
+                (heatmapHotspotPoints || []).forEach((p) => {
+                    const i = clamp(toNumber(p && p.intensity) ?? 0, 0, 1);
+                    const fc = i >= 0.75 ? '#ef4444' : (i >= 0.55 ? '#fb923c' : '#facc15');
+                    const marker = L.circleMarker([p.lat, p.lng], {
+                        pane: 'heatSpotPane',
+                        radius: 1.4 + (i * 1.2),
+                        color: 'rgba(255,255,255,0.80)',
+                        weight: 0.5,
+                        fillColor: fc,
+                        fillOpacity: 0.78,
+                        interactive: false,
+                    });
+                    marker.addTo(heatmapPointLayer);
+                });
+
+                if (isHeatmapVisible && heatmapPointLayer && !map.hasLayer(heatmapPointLayer)) {
+                    heatmapPointLayer.addTo(map);
+                }
+            }
+
             let displacementLayer = buildDisplacementOverlay();
             if (displacementLayer) displacementLayer.addTo(map);
+            rebuildHeatmapPointLayer();
 
             function fitToPoints() {
                 try {
@@ -1521,6 +1896,9 @@
                 map.fitBounds((heatmapBounds || computeDisplacementBounds()).pad(0.08));
             }
             fitToPoints();
+            renderClusterExtentLayer();
+            updateHeatmapOverview();
+            syncDroneTargetOverlay();
 
             function alarmRank(alarm) {
                 if (alarm === '위험') return 5;
@@ -1528,6 +1906,157 @@
                 if (alarm === '주의') return 3;
                 if (alarm === '관심') return 2;
                 return 1;
+            }
+
+            function renderClusterPrioritySummary() {
+                if (!clusterPriorityListEl) return;
+                clusterPriorityListEl.innerHTML = '';
+                const ranked = getRankedClusters();
+                ranked.slice(0, 3).forEach((c, idx) => {
+                    const meta = POI_META[c.poiId];
+                    const row = document.createElement('button');
+                    row.type = 'button';
+                    row.className = `cluster-priority-row ${c.poiId === selectedPoiId ? 'is-selected' : ''}`;
+                    row.dataset.poiId = c.poiId;
+                    row.setAttribute('aria-label', `지점 ${meta ? meta.label : c.poiId} 선택`);
+                    row.addEventListener('click', () => {
+                        selectCluster(c.poiId, { focusMap: true, focus3d: true, autoRisk: true });
+                    });
+
+                    const left = document.createElement('div');
+                    left.className = 'min-w-0 flex items-center gap-2';
+
+                    const rank = document.createElement('span');
+                    rank.className = 'cluster-priority-rank';
+                    rank.textContent = `${idx + 1}`;
+
+                    const body = document.createElement('div');
+                    body.className = 'min-w-0';
+                    const title = document.createElement('div');
+                    title.className = 'text-xs font-semibold text-slate-900 truncate';
+                    title.textContent = meta ? `지점 ${meta.label} · ${c.name}` : c.name;
+                    const sub = document.createElement('div');
+                    sub.className = 'text-[10px] text-slate-500';
+                    sub.textContent = `핫스팟 ${formatInt(c.hotspotEstimate)} · 반경 ${(c.radiusMeters / 1000).toFixed(1)}km`;
+                    body.appendChild(title);
+                    body.appendChild(sub);
+
+                    left.appendChild(rank);
+                    left.appendChild(body);
+
+                    const right = document.createElement('div');
+                    right.className = 'text-right';
+                    const score = document.createElement('div');
+                    score.className = 'text-sm font-extrabold text-slate-900 leading-none';
+                    score.textContent = `${Math.round(c.priorityScore)}`;
+                    const label = document.createElement('div');
+                    label.className = 'text-[10px] font-semibold text-slate-500';
+                    label.textContent = 'Priority';
+                    right.appendChild(score);
+                    right.appendChild(label);
+
+                    row.appendChild(left);
+                    row.appendChild(right);
+                    clusterPriorityListEl.appendChild(row);
+                });
+            }
+
+            function updateHeatmapOverview() {
+                const ranked = getRankedClusters();
+                const cellAxis = Math.floor(HEATMAP_CANVAS_SIZE / HEATMAP_CELL_SIZE);
+                const totalCells = cellAxis * cellAxis;
+                const fallbackHotspotTotal = ranked.reduce((acc, c) => acc + c.hotspotEstimate, 0);
+                const hotspotTotal = (heatmapHotspotCount > 0) ? heatmapHotspotCount : fallbackHotspotTotal;
+
+                safeText(hmCellCountEl, `${formatInt(totalCells)} 셀`);
+                safeText(hmHotspotCountEl, `${formatInt(hotspotTotal)} 점`);
+                safeText(hmClusterCountEl, `${ranked.length}개`);
+                if (candidateCountBadgeEl) candidateCountBadgeEl.textContent = `${ranked.length}건`;
+                if (!selectedPoiId) safeText(hmDroneTargetEl, '미지정');
+                renderClusterPrioritySummary();
+            }
+
+            function syncDroneTargetOverlay() {
+                const cluster = selectedPoiId ? CLUSTERS.find((x) => x.poiId === selectedPoiId) : null;
+                if (!cluster) {
+                    if (selectedTargetHalo && map.hasLayer(selectedTargetHalo)) map.removeLayer(selectedTargetHalo);
+                    if (selectedTargetMarker && map.hasLayer(selectedTargetMarker)) map.removeLayer(selectedTargetMarker);
+                    safeText(hmDroneTargetEl, '미지정');
+                    return;
+                }
+
+                const latlng = [cluster.lat, cluster.lng];
+                if (!selectedTargetHalo) {
+                    selectedTargetHalo = L.circle(latlng, {
+                        radius: 850,
+                        color: '#06B6D4',
+                        weight: 1.6,
+                        opacity: 0.9,
+                        fillColor: '#22D3EE',
+                        fillOpacity: 0.08,
+                        dashArray: '6 5',
+                        interactive: false,
+                    });
+                } else {
+                    selectedTargetHalo.setLatLng(latlng);
+                }
+
+                if (!selectedTargetMarker) {
+                    selectedTargetMarker = L.circleMarker(latlng, {
+                        radius: 8,
+                        color: '#FFFFFF',
+                        weight: 2,
+                        fillColor: '#06B6D4',
+                        fillOpacity: 1,
+                    });
+                } else {
+                    selectedTargetMarker.setLatLng(latlng);
+                }
+
+                const meta = POI_META[selectedPoiId];
+                if (selectedTargetMarker && typeof selectedTargetMarker.bindTooltip === 'function') {
+                    selectedTargetMarker.bindTooltip(`드론 타깃 · 지점 ${meta ? meta.label : selectedPoiId}`, {
+                        direction: 'top',
+                        offset: [0, -8],
+                        opacity: 0.95,
+                    });
+                }
+
+                if (selectedTargetHalo && !map.hasLayer(selectedTargetHalo)) selectedTargetHalo.addTo(map);
+                if (selectedTargetMarker && !map.hasLayer(selectedTargetMarker)) selectedTargetMarker.addTo(map);
+                safeText(hmDroneTargetEl, meta ? `지점 ${meta.label}` : selectedPoiId);
+            }
+
+            function renderClusterExtentLayer() {
+                if (!clusterAreaLayer) clusterAreaLayer = L.layerGroup();
+                clusterAreaLayer.clearLayers();
+
+                const ranked = getRankedClusters();
+                ranked.forEach((c, idx) => {
+                    const color = ALARM_COLORS[c.alarm] || '#3B82F6';
+                    const area = L.circle([c.lat, c.lng], {
+                        radius: c.radiusMeters,
+                        color,
+                        weight: 1.4,
+                        opacity: 0.78,
+                        fillColor: color,
+                        fillOpacity: 0.08,
+                        dashArray: '5 6',
+                        interactive: false,
+                    });
+                    const core = L.circleMarker([c.lat, c.lng], {
+                        radius: Math.max(3, 5 - idx),
+                        color: '#ffffff',
+                        weight: 1.5,
+                        fillColor: color,
+                        fillOpacity: 0.95,
+                        interactive: false,
+                    });
+                    area.addTo(clusterAreaLayer);
+                    core.addTo(clusterAreaLayer);
+                });
+
+                if (isClusterVisible && !map.hasLayer(clusterAreaLayer)) clusterAreaLayer.addTo(map);
             }
 
             function markerSizeForAlarm(alarm) {
@@ -1574,7 +2103,8 @@
             function renderCandidateList() {
                 if (!candidateListEl) return;
                 candidateListEl.innerHTML = '';
-                CLUSTERS.forEach((c) => {
+                const ranked = getRankedClusters();
+                ranked.forEach((c, idx) => {
                     const row = document.createElement('div');
                     row.className = `candidate-row cursor-pointer ${c.poiId === selectedPoiId ? 'is-selected' : ''}`;
                     row.dataset.poiId = c.poiId;
@@ -1601,17 +2131,22 @@
                     dot.className = 'alarm-dot';
                     dot.style.background = ALARM_COLORS[c.alarm] || '#3B82F6';
 
+                    const rankChip = document.createElement('span');
+                    rankChip.className = 'inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-sky-100 px-1.5 text-[10px] font-extrabold text-sky-800';
+                    rankChip.textContent = `#${idx + 1}`;
+
                     const title = document.createElement('div');
                     title.className = 'text-sm font-semibold text-slate-900 truncate';
                     const meta = POI_META[c.poiId];
                     title.textContent = meta ? `지점 ${meta.label} · ${c.name}` : c.name;
 
+                    top.appendChild(rankChip);
                     top.appendChild(dot);
                     top.appendChild(title);
 
                     const sub = document.createElement('div');
                     sub.className = 'mt-1 text-xs text-slate-500';
-                    sub.textContent = `변위 ${c.dispMm.toFixed(1)}mm · 추세 ${c.trend} · 알람 ${c.alarm}`;
+                    sub.textContent = `변위 ${c.dispMm.toFixed(1)}mm · 추세 ${c.trend} · 권역 ${(c.radiusMeters / 1000).toFixed(1)}km · 핫스팟 ${formatInt(c.hotspotEstimate)}`;
 
                     left.appendChild(top);
                     left.appendChild(sub);
@@ -1657,6 +2192,7 @@
                     row.appendChild(right);
                     candidateListEl.appendChild(row);
                 });
+                updateHeatmapOverview();
             }
 
             const VIEW_PRESETS = {
@@ -1717,11 +2253,12 @@
                 selectedPoiId = poiId;
 
                 // Step updates
-                setStep('drone');
+                setStep('cand');
 
                 // labels
                 safeText(satSelectedLabelEl, `선택: 지점 ${meta.label} (${meta.ri})`);
                 safeText(droneSelectedLabelEl, `대상: 지점 ${meta.label} · ${cluster.name}`);
+                safeText(hmDroneTargetEl, `지점 ${meta.label}`);
 
                 if (btnOpenM3) btnOpenM3.href = `m3_danger.html?poi=${encodeURIComponent(poiId)}`;
 
@@ -1735,6 +2272,7 @@
                 // 3D focus
                 if (options.focus3d !== false) {
                     focusOnPoi(poiId);
+                    setStep('drone');
                 }
 
                 // reset risk panel (selection changed)
@@ -1742,6 +2280,7 @@
                 safeText(riskTitleEl, `지점 ${meta.label} · 분석 중…`);
                 safeText(riskSubEl, `${meta.ri} 권역 데이터를 불러오고 있습니다.`);
 
+                syncDroneTargetOverlay();
                 renderCandidateList();
 
                 const autoRisk = !(options && options.autoRisk === false);
@@ -1771,10 +2310,7 @@
 
                     const pid = String(c && c.poiId);
                     if (pid === 'a' || pid === 'b' || pid === 'c') {
-                        try {
-                            map.setView([c.lat, c.lng], Math.max(map.getZoom(), 12), { animate: true });
-                        } catch { }
-                        focusOnPoi(pid);
+                        selectCluster(pid, { focusMap: true, focus3d: true, autoRisk: true });
                     }
                 });
                 markerByPoi.set(c.poiId, marker);
@@ -1787,6 +2323,23 @@
             resetRiskPanel();
 
             if (btnMapFit) btnMapFit.addEventListener('click', fitToBounds);
+            if (btnClusterToggle) {
+                btnClusterToggle.addEventListener('click', () => {
+                    isClusterVisible = !isClusterVisible;
+                    btnClusterToggle.setAttribute('aria-pressed', isClusterVisible ? 'true' : 'false');
+                    btnClusterToggle.classList.toggle('btn-primary', isClusterVisible);
+                    btnClusterToggle.classList.toggle('btn-secondary', !isClusterVisible);
+                    if (isClusterVisible) {
+                        if (!clusterAreaLayer) renderClusterExtentLayer();
+                        if (clusterAreaLayer && !map.hasLayer(clusterAreaLayer)) clusterAreaLayer.addTo(map);
+                    } else {
+                        if (clusterAreaLayer && map.hasLayer(clusterAreaLayer)) map.removeLayer(clusterAreaLayer);
+                    }
+                });
+                btnClusterToggle.setAttribute('aria-pressed', isClusterVisible ? 'true' : 'false');
+                btnClusterToggle.classList.toggle('btn-primary', isClusterVisible);
+                btnClusterToggle.classList.toggle('btn-secondary', !isClusterVisible);
+            }
             if (btnHeatmapToggle) {
                 btnHeatmapToggle.addEventListener('click', () => {
                     isHeatmapVisible = !isHeatmapVisible;
@@ -1794,10 +2347,16 @@
                     btnHeatmapToggle.classList.toggle('btn-danger', isHeatmapVisible);
                     btnHeatmapToggle.classList.toggle('btn-secondary', !isHeatmapVisible);
                     if (isHeatmapVisible) {
-                        if (!displacementLayer) displacementLayer = buildDisplacementOverlay();
+                        if (!displacementLayer) {
+                            displacementLayer = buildDisplacementOverlay();
+                            rebuildHeatmapPointLayer();
+                            updateHeatmapOverview();
+                        }
                         if (displacementLayer && !map.hasLayer(displacementLayer)) displacementLayer.addTo(map);
+                        if (heatmapPointLayer && !map.hasLayer(heatmapPointLayer)) heatmapPointLayer.addTo(map);
                     } else {
                         if (displacementLayer && map.hasLayer(displacementLayer)) map.removeLayer(displacementLayer);
+                        if (heatmapPointLayer && map.hasLayer(heatmapPointLayer)) map.removeLayer(heatmapPointLayer);
                     }
                 });
                 btnHeatmapToggle.classList.add('btn-danger');
@@ -1809,8 +2368,10 @@
                 setStep('sat');
                 safeText(satSelectedLabelEl, '선택: -');
                 safeText(droneSelectedLabelEl, '대상: -');
+                safeText(hmDroneTargetEl, '미지정');
                 if (btnOpenM3) btnOpenM3.href = 'm3_danger.html';
                 resetRiskPanel();
+                syncDroneTargetOverlay();
                 renderCandidateList();
                 fitToBounds();
             }
@@ -1863,13 +2424,7 @@
             const params = new URLSearchParams(window.location.search);
             const qPoi = params.get('poi');
             if (qPoi && POI_META[qPoi]) {
-                const cluster = CLUSTERS.find((x) => x.poiId === qPoi);
-                if (cluster) {
-                    map.setView([cluster.lat, cluster.lng], Math.max(map.getZoom(), 12), { animate: true });
-                    const m = markerByPoi.get(qPoi);
-                    if (m) m.openTooltip();
-                }
-                focusOnPoi(qPoi);
+                selectCluster(qPoi, { focusMap: true, focus3d: true, autoRisk: true });
             }
 
             (function () {

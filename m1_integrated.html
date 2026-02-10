@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>통합관리 - 급경사지 안전관리 통합시스템</title>
+    <title>통합 관제 맵 - 급경사지 안전관리 통합시스템</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" as="style" crossorigin
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
@@ -188,35 +188,35 @@
         <nav class="sidebar">
             <div class="sidebar-logo">
                 <img src="assets/images/orbital_newlogo.png" alt="Orbital" class="h-10 w-auto opacity-90">
-                <span>급경사지 안전관리 통합시스템</span>
+                <span id="sidebar-system-label">급경사지 안전관리 통합시스템</span>
             </div>
             <div class="sidebar-nav">
                 <div class="nav-section">
                     <div class="nav-section-title">Overview</div>
-                    <a href="dashboard.html" class="nav-item">
+                    <a id="nav-dashboard-link" href="dashboard.html" class="nav-item">
                         <i class="fas fa-grid-2"></i>
                         <span>대시보드</span>
                     </a>
-                    <a href="ndms_linkage.html" class="nav-item">
+                    <a id="nav-ndms-link" href="ndms_linkage.html" class="nav-item">
                         <i class="fas fa-link"></i>
                         <span>NDMS 연계</span>
                     </a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Monitoring</div>
-                    <a href="m1_integrated.html" class="nav-item active">
+                    <a id="nav-map-self-link" href="m1_integrated.html" class="nav-item active">
                         <i class="fas fa-map"></i>
                         <span>통합 관제 맵</span>
                     </a>
-                    <a href="m2_satellite.html" class="nav-item">
+                    <a id="nav-m2-link" href="m2_satellite.html" class="nav-item">
                         <i class="fas fa-satellite-dish"></i>
                         <span>위성 변위 분석</span>
                     </a>
-                    <a href="m2_scenario.html" class="nav-item">
+                    <a id="nav-m2-scenario-link" href="m2_scenario.html" class="nav-item">
                         <i class="fas fa-diagram-project"></i>
                         <span>위성→드론 정밀 위험평가</span>
                     </a>
-                    <a href="m3_danger.html" class="nav-item">
+                    <a id="nav-m3-link" href="m3_danger.html" class="nav-item">
                         <i class="fas fa-triangle-exclamation"></i>
                         <span>붕괴 위험 관리</span>
                     </a>
@@ -224,7 +224,7 @@
 
                 <div class="nav-section">
                     <div class="nav-section-title">Reporting</div>
-                    <a href="r1_report.html" class="nav-item">
+                    <a id="nav-report-link" href="r1_report.html" class="nav-item">
                         <i class="fas fa-file-invoice"></i>
                         <span>보고서 생성</span>
                     </a>
@@ -232,7 +232,7 @@
 
                 <div class="nav-section">
                     <div class="nav-section-title">Management</div>
-                    <a href="sensor_threshold.html" class="nav-item">
+                    <a id="nav-threshold-link" href="sensor_threshold.html" class="nav-item">
                         <i class="fas fa-sliders"></i>
                         <span>임계치 관리</span>
                     </a>
@@ -250,13 +250,14 @@
         <main class="main-content">
             <header class="header">
                 <div class="header-title">
-                    <h2>통합 관제 맵</h2>
-                    <p>GIS 기반 전체 급경사지 위치 및 위험도 모니터링</p>
+                    <h2 id="map-page-title">통합 관제 맵</h2>
+                    <p id="map-page-subtitle">GIS 기반 전체 급경사지 위치 및 위험도 모니터링</p>
                 </div>
                 <div class="header-actions">
+                    <span id="map-scope-badge" class="badge badge-info">범위: 강원도</span>
                     <div class="user-profile">
                         <div class="user-avatar">김</div>
-                        <span class="user-name">김담당 주무관</span>
+                        <span id="map-user-name" class="user-name">김담당 주무관</span>
                     </div>
                 </div>
             </header>
@@ -296,7 +297,7 @@
             <!-- Detail List below map -->
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
+                    <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
                     <div class="flex items-center gap-2">
                         <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
                     </div>
@@ -334,10 +335,31 @@
     <script src="m1_embedded_slope_rows.js"></script>
     <script>
 
-        // 통합 관제 맵 
+        // 통합 관제 맵
         const EMBEDDED_SLOPE_ROWS = Array.isArray(window.__M1_EMBEDDED_SLOPE_ROWS__) ? window.__M1_EMBEDDED_SLOPE_ROWS__ : [];
-        const SAMPLE_LIMIT = 800; 
+        const SAMPLE_LIMIT = 800;
+        const DEFAULT_LOCAL_REGION = '강원특별자치도 정선군';
+        const PAGE_PARAMS = new URLSearchParams(window.location.search);
 
+        const MODE_FROM_QUERY = String(PAGE_PARAMS.get('mode') || '').trim().toLowerCase();
+        const REGION_FROM_QUERY = String(PAGE_PARAMS.get('region') || '').trim();
+
+        let STORED_ROLE = '';
+        let STORED_REGION = '';
+        try {
+            STORED_ROLE = String(localStorage.getItem('dashboard_role_v1') || '').trim().toLowerCase();
+            STORED_REGION = String(localStorage.getItem('dashboard_region_v1') || '').trim();
+        } catch {
+            // ignore
+        }
+
+        const MAP_MODE = MODE_FROM_QUERY === 'mois'
+            ? 'mois'
+            : MODE_FROM_QUERY === 'local'
+                ? 'local'
+                : (STORED_ROLE === 'mois' ? 'mois' : 'local');
+        const IS_MOIS_MODE = MAP_MODE === 'mois';
+        const ACTIVE_REGION = IS_MOIS_MODE ? '' : (REGION_FROM_QUERY || STORED_REGION || DEFAULT_LOCAL_REGION);
 
         const GANGWON_SW = [36.90, 127.00];
         const GANGWON_NE = [38.65, 129.45];
@@ -429,7 +451,130 @@
             '양양군': [38.0755, 128.6191],
         };
 
-        
+        function normalizeText(value) {
+            return String(value || '').replace(/\s+/g, '').trim();
+        }
+
+        function extractSigungu(regionText) {
+            const text = String(regionText || '').trim();
+            if (!text) return '';
+            const known = Object.keys(COUNTY_CENTER).find((name) => text.includes(name));
+            if (known) return known;
+            const tokens = text.split(/\s+/).filter(Boolean);
+            return tokens.length ? tokens[tokens.length - 1] : '';
+        }
+
+        const ACTIVE_SIGUNGU = extractSigungu(ACTIVE_REGION);
+
+        const sidebarSystemLabelEl = document.getElementById('sidebar-system-label');
+        const navDashboardLinkEl = document.getElementById('nav-dashboard-link');
+        const navNdmsLinkEl = document.getElementById('nav-ndms-link');
+        const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
+        const navM2LinkEl = document.getElementById('nav-m2-link');
+        const navM2ScenarioLinkEl = document.getElementById('nav-m2-scenario-link');
+        const navM3LinkEl = document.getElementById('nav-m3-link');
+        const navReportLinkEl = document.getElementById('nav-report-link');
+        const navThresholdLinkEl = document.getElementById('nav-threshold-link');
+        const mapPageTitleEl = document.getElementById('map-page-title');
+        const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
+        const mapScopeBadgeEl = document.getElementById('map-scope-badge');
+        const mapUserNameEl = document.getElementById('map-user-name');
+        const siteListTitleEl = document.getElementById('site-list-title');
+
+        function setVisible(el, visible) {
+            if (!el) return;
+            el.style.display = visible ? '' : 'none';
+        }
+
+        function setNavLabel(el, text) {
+            if (!el) return;
+            const labelEl = el.querySelector('span');
+            if (labelEl) labelEl.textContent = text;
+        }
+
+        function buildMapSelfHref() {
+            const params = new URLSearchParams();
+            params.set('mode', MAP_MODE);
+            if (!IS_MOIS_MODE && ACTIVE_REGION) params.set('region', ACTIVE_REGION);
+            return `m1_integrated.html?${params.toString()}`;
+        }
+
+        function applyRoleUI() {
+            if (IS_MOIS_MODE) {
+                if (sidebarSystemLabelEl) sidebarSystemLabelEl.textContent = '행정안전부 급경사지 통합 관제 시스템';
+                if (mapPageTitleEl) mapPageTitleEl.textContent = '행정안전부 통합 관제 맵';
+                if (mapPageSubtitleEl) mapPageSubtitleEl.textContent = '전국 급경사지 현황 모니터링';
+                if (mapScopeBadgeEl) mapScopeBadgeEl.textContent = '범위: 전국';
+                if (mapUserNameEl) mapUserNameEl.textContent = '행안부 통합관제실';
+                if (siteListTitleEl) siteListTitleEl.innerHTML = '<i class="fas fa-list text-slate-400"></i>관리 대상 목록 (전국)';
+
+                if (navDashboardLinkEl) navDashboardLinkEl.href = 'dashboard_mois.html';
+                if (navMapSelfLinkEl) navMapSelfLinkEl.href = buildMapSelfHref();
+                if (navReportLinkEl) navReportLinkEl.href = 'dashboard_mois.html#section-national-report';
+                if (navThresholdLinkEl) navThresholdLinkEl.href = 'dashboard_mois.html#section-threshold-policy';
+
+                setNavLabel(navDashboardLinkEl, '통합 대시보드');
+                setNavLabel(navMapSelfLinkEl, '통합 관제 (전국 지도)');
+                setNavLabel(navReportLinkEl, '전국 종합 보고서');
+                setNavLabel(navThresholdLinkEl, '임계치 정책 기준');
+
+                setVisible(navNdmsLinkEl, false);
+                setVisible(navM2LinkEl, false);
+                setVisible(navM2ScenarioLinkEl, false);
+                setVisible(navM3LinkEl, false);
+                if (searchInputEl) searchInputEl.placeholder = '지역명/급경사지명 검색...';
+            } else {
+                const regionLabel = ACTIVE_REGION || DEFAULT_LOCAL_REGION;
+                if (sidebarSystemLabelEl) sidebarSystemLabelEl.textContent = '지자체 급경사지 안전관리 시스템';
+                if (mapPageTitleEl) mapPageTitleEl.textContent = '지자체 통합 관제 맵';
+                if (mapPageSubtitleEl) mapPageSubtitleEl.textContent = `${regionLabel} 급경사지 위치 및 위험도 모니터링`;
+                if (mapScopeBadgeEl) mapScopeBadgeEl.textContent = `관할: ${regionLabel}`;
+                if (mapUserNameEl) mapUserNameEl.textContent = `${regionLabel} 재난담당`;
+                if (siteListTitleEl) siteListTitleEl.innerHTML = `<i class="fas fa-list text-slate-400"></i>관리 대상 목록 (${ACTIVE_SIGUNGU || '관할'})`;
+
+                if (navDashboardLinkEl) {
+                    const p = new URLSearchParams();
+                    p.set('region', regionLabel);
+                    navDashboardLinkEl.href = `dashboard.html?${p.toString()}`;
+                }
+                if (navMapSelfLinkEl) navMapSelfLinkEl.href = buildMapSelfHref();
+                if (navReportLinkEl) navReportLinkEl.href = 'r1_report.html';
+                if (navThresholdLinkEl) navThresholdLinkEl.href = 'sensor_threshold.html';
+
+                setNavLabel(navDashboardLinkEl, '대시보드');
+                setNavLabel(navMapSelfLinkEl, '통합 관제 맵');
+                setNavLabel(navReportLinkEl, '보고서 생성');
+                setNavLabel(navThresholdLinkEl, '임계치 관리');
+
+                setVisible(navNdmsLinkEl, true);
+                setVisible(navM2LinkEl, true);
+                setVisible(navM2ScenarioLinkEl, true);
+                setVisible(navM3LinkEl, true);
+                if (searchInputEl) searchInputEl.placeholder = `${ACTIVE_SIGUNGU || '관할'} 급경사지명 검색...`;
+            }
+
+            try {
+                localStorage.setItem('dashboard_role_v1', MAP_MODE);
+                if (!IS_MOIS_MODE && ACTIVE_REGION) {
+                    localStorage.setItem('dashboard_region_v1', ACTIVE_REGION);
+                }
+            } catch {
+                // ignore
+            }
+        }
+
+        applyRoleUI();
+
+        function applyInitialLocalView() {
+            if (IS_MOIS_MODE) return;
+            if (!ACTIVE_SIGUNGU) return;
+            const center = COUNTY_CENTER[ACTIVE_SIGUNGU];
+            if (!center) return;
+            map.setView(center, 11, { animate: false });
+        }
+
+        applyInitialLocalView();
+
         const COASTAL_LNG_GUARD_BY_SIGUNGU = {
       
             '고성군': { scale: 0.55, westShift: 0.04, westMax: 0.16, eastMax: -0.02 },
@@ -597,13 +742,21 @@
 
 
             const areaKey = `${sigungu}|${eupmyeondong}|${ri}`;
+            const isLocalFocusedSigungu = !IS_MOIS_MODE
+                && ACTIVE_SIGUNGU
+                && normalizeText(sigungu) === normalizeText(ACTIVE_SIGUNGU);
+
+            const areaLatScale = isLocalFocusedSigungu ? 0.07 : 0.18;
+            const areaLngScale = isLocalFocusedSigungu ? 0.10 : 0.28;
+            const pointLatScale = isLocalFocusedSigungu ? 0.02 : 0.04;
+            const pointLngScale = isLocalFocusedSigungu ? 0.03 : 0.06;
 
 
-            const areaLatJ = (hash01(areaKey + '|areaLat') - 0.5) * 0.18;
-            const areaLngJ = (hash01(areaKey + '|areaLng') - 0.5) * 0.28;
+            const areaLatJ = (hash01(areaKey + '|areaLat') - 0.5) * areaLatScale;
+            const areaLngJ = (hash01(areaKey + '|areaLng') - 0.5) * areaLngScale;
 
-            const pointLatJ = (hash01(seed + '|lat') - 0.5) * 0.04;
-            const pointLngJ = (hash01(seed + '|lng') - 0.5) * 0.06;
+            const pointLatJ = (hash01(seed + '|lat') - 0.5) * pointLatScale;
+            const pointLngJ = (hash01(seed + '|lng') - 0.5) * pointLngScale;
 
             const lat = clamp(base[0] + areaLatJ + pointLatJ, GANGWON_SW[0], GANGWON_NE[0]);
             let lng = base[1] + areaLngJ + pointLngJ;
@@ -731,8 +884,10 @@
             const bounds = map.getBounds();
             const query = searchInputEl ? (searchInputEl.value || '') : '';
 
-            // 1) 지도 bounds 안에 있는 항목만
-            let visible = (allSites || []).filter((s) => bounds.contains([s.lat, s.lng]));
+            // 1) 행안부: 지도 bounds 기준 / 지자체: 관할 전체 기준
+            let visible = IS_MOIS_MODE
+                ? (allSites || []).filter((s) => bounds.contains([s.lat, s.lng]))
+                : [...(allSites || [])];
 
             // 2) 검색어 적용
             visible = visible.filter((s) => matchesQuery(s, query));
@@ -753,7 +908,9 @@
                 const td = document.createElement('td');
                 td.colSpan = 7;
                 td.className = 'text-center text-slate-500 py-10';
-                td.textContent = '현재 지도 화면에서 조건에 맞는 급경사지가 없습니다.';
+                td.textContent = IS_MOIS_MODE
+                    ? '현재 지도 화면에서 조건에 맞는 급경사지가 없습니다.'
+                    : '관할 지역에서 조건에 맞는 급경사지가 없습니다.';
                 tr.appendChild(td);
                 tableBodyEl.appendChild(tr);
                 return;
@@ -790,7 +947,11 @@
 
                 const tdAction = document.createElement('td');
                 const a = document.createElement('a');
-                a.href = `mn1_detail.html?site=${encodeURIComponent(site.id)}`;
+                const detailParams = new URLSearchParams();
+                detailParams.set('site', String(site.id));
+                detailParams.set('mapMode', MAP_MODE);
+                if (!IS_MOIS_MODE && ACTIVE_REGION) detailParams.set('region', ACTIVE_REGION);
+                a.href = `mn1_detail.html?${detailParams.toString()}`;
                 a.className = 'btn btn-secondary btn-sm';
                 a.textContent = '상세';
                 a.addEventListener('click', () => {
@@ -829,7 +990,22 @@
 
         function applySlopeRows(rows, sourceLabel, error) {
             const gangwonRows = (rows || []).filter((r) => String(r['시도'] || '').includes('강원'));
-            const sampled = pickSample(gangwonRows, SAMPLE_LIMIT);
+            let scopedRows = gangwonRows;
+
+            if (!IS_MOIS_MODE) {
+                if (ACTIVE_SIGUNGU) {
+                    scopedRows = gangwonRows.filter((r) => normalizeText(r['시군구']) === normalizeText(ACTIVE_SIGUNGU));
+                }
+                if (!scopedRows.length && ACTIVE_REGION) {
+                    const regionNorm = normalizeText(ACTIVE_REGION);
+                    scopedRows = gangwonRows.filter((r) => {
+                        const text = `${r['시도'] || ''} ${r['시군구'] || ''}`;
+                        return normalizeText(text).includes(regionNorm);
+                    });
+                }
+            }
+
+            const sampled = pickSample(scopedRows, SAMPLE_LIMIT);
 
             allSites = sampled.map(buildSite);
 
@@ -840,6 +1016,12 @@
             }
 
             addMarkers(allSites);
+            if (!IS_MOIS_MODE && allSites.length) {
+                const bounds = L.latLngBounds(allSites.map((s) => [s.lat, s.lng]));
+                map.fitBounds(bounds, { padding: [24, 24] });
+                if (map.getZoom() < 10) map.setZoom(10);
+                if (map.getZoom() > 12) map.setZoom(12);
+            }
             renderTable();
         }
 
