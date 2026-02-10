@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>지자체 관리자 대시보드 - 급경사지 안전관리 통합시스템</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'Noto Sans KR', 'Malgun Gothic', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            html { @apply antialiased; }
+            body { @apply bg-slate-50 text-slate-900 font-sans; }
+        }
+        @layer components {
+            .sidebar { @apply fixed inset-y-0 left-0 z-40 w-72 bg-white text-slate-700 border-r border-slate-200 flex flex-col; }
+            .sidebar-logo { @apply px-6 py-6 border-b border-slate-200; }
+            .sidebar-nav { @apply flex-1 overflow-y-auto py-4; }
+            .nav-section { @apply mt-6 first:mt-0; }
+            .nav-section-title { @apply px-6 pb-2 text-[11px] font-semibold tracking-widest text-slate-400 uppercase; }
+            .nav-item { @apply mx-3 my-1 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100; }
+            .nav-item.active { @apply bg-emerald-100 text-emerald-900 ring-1 ring-emerald-200; }
+            .main { @apply ml-72 min-h-screen p-8; }
+            .card { @apply rounded-xl bg-white ring-1 ring-slate-200 shadow-sm; }
+            .stat { @apply rounded-xl bg-white p-6 ring-1 ring-slate-200 shadow-sm; }
+            .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset; }
+            .badge-danger { @apply bg-rose-50 text-rose-700 ring-rose-200; }
+            .badge-warning { @apply bg-amber-50 text-amber-700 ring-amber-200; }
+            .badge-success { @apply bg-emerald-50 text-emerald-700 ring-emerald-200; }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-logo">
+            <h1 class="text-base font-semibold tracking-tight text-slate-900 flex items-center gap-2"><i class="fas fa-mountain-city text-emerald-600"></i>지자체 현장관리</h1>
+            <span id="regionLabel" class="mt-2 block text-xs text-slate-500">현장 점검 중심 운영 화면</span>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Field Ops</div>
+                <a class="nav-item active" href="local_dashboard.html"><i class="fas fa-house-signal"></i><span>지자체 대시보드</span></a>
+                <a class="nav-item" href="m1_integrated.html"><i class="fas fa-map-location-dot"></i><span>관할 통합 맵</span></a>
+                <a class="nav-item" href="m2_satellite.html"><i class="fas fa-satellite"></i><span>위성 이상징후 분석</span></a>
+                <a class="nav-item" href="m2_scenario.html"><i class="fas fa-helicopter"></i><span>드론 정밀 점검</span></a>
+                <a class="nav-item" href="m3_danger.html"><i class="fas fa-triangle-exclamation"></i><span>붕괴 위험 조치관리</span></a>
+            </div>
+            <div class="nav-section">
+                <div class="nav-section-title">Execution</div>
+                <a class="nav-item" href="r1_report.html"><i class="fas fa-clipboard-check"></i><span>점검결과 보고서</span></a>
+                <a class="nav-item" href="sensor_threshold.html"><i class="fas fa-wave-square"></i><span>센서 임계치 조정</span></a>
+            </div>
+        </div>
+        <div class="px-6 py-4 border-t border-slate-200"><a class="nav-item" href="login.html"><i class="fas fa-arrow-right-from-bracket"></i><span>로그아웃</span></a></div>
+    </nav>
+
+    <main class="main">
+        <header class="mb-6 flex items-end justify-between">
+            <div>
+                <h2 class="text-2xl font-semibold tracking-tight">지자체 현장점검 대시보드</h2>
+                <p class="mt-1 text-sm text-slate-600">위성 탐지 → 드론 점검 → 현장 조치까지 관할 구역 중심으로 관리합니다.</p>
+            </div>
+            <div class="rounded-full bg-white px-3 py-2 text-sm ring-1 ring-slate-200">현장 대응반 · 10:20 업데이트</div>
+        </header>
+
+        <section class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="stat"><p class="text-sm text-slate-600">관할 관리 급경사지</p><p class="mt-2 text-3xl font-semibold">238</p><p class="mt-2 text-xs text-slate-500">A~E 등급 전체 관리</p></article>
+            <article class="stat"><p class="text-sm text-slate-600">위성 이상징후 후보</p><p class="mt-2 text-3xl font-semibold text-amber-600">9</p><p class="mt-2 text-xs"><span class="badge badge-warning">우선확인</span> 3개소 신규</p></article>
+            <article class="stat"><p class="text-sm text-slate-600">드론 점검 대기</p><p class="mt-2 text-3xl font-semibold text-rose-600">4</p><p class="mt-2 text-xs"><span class="badge badge-danger">긴급</span> 1개소 금일 출동</p></article>
+            <article class="stat"><p class="text-sm text-slate-600">조치완료율(7일)</p><p class="mt-2 text-3xl font-semibold text-emerald-600">86%</p><p class="mt-2 text-xs"><span class="badge badge-success">양호</span> 평균 복구 2.1일</p></article>
+        </section>
+
+        <section class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+            <article class="card xl:col-span-2">
+                <div class="border-b border-slate-100 px-6 py-4"><h3 class="text-base font-semibold">현장 점검 작업 큐</h3></div>
+                <div class="px-6 py-5 overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-left text-xs text-slate-500">
+                                <th class="py-3">대상지</th><th class="py-3">탐지경로</th><th class="py-3">위험도</th><th class="py-3">현재상태</th><th class="py-3">담당팀</th><th class="py-3">기한</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-slate-100"><td class="py-3">정선읍 북실지구</td><td>위성 InSAR</td><td class="text-rose-600 font-semibold">높음</td><td>드론 재촬영 대기</td><td>정밀점검 2팀</td><td>오늘 16:00</td></tr>
+                            <tr class="border-b border-slate-100"><td class="py-3">고한읍 사북사면</td><td>드론 LiDAR</td><td class="text-amber-600 font-semibold">중간</td><td>현장 안전조치 진행</td><td>시설복구 1팀</td><td>내일 11:00</td></tr>
+                            <tr class="border-b border-slate-100"><td class="py-3">남면 유평리 44-2</td><td>강우+센서</td><td class="text-rose-600 font-semibold">높음</td><td>응급보강 검토중</td><td>예방정비 TF</td><td>오늘 18:00</td></tr>
+                            <tr><td class="py-3">임계면 봉산리</td><td>주기점검</td><td class="text-slate-700 font-semibold">보통</td><td>보고서 작성중</td><td>현장점검 3팀</td><td>2일 후</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="border-b border-slate-100 px-6 py-4"><h3 class="text-base font-semibold">오늘의 현장 우선순위</h3></div>
+                <div class="space-y-3 px-6 py-5 text-sm">
+                    <div class="rounded-lg bg-rose-50 p-3 ring-1 ring-rose-100">
+                        <p class="font-semibold text-rose-700">1순위: 정선읍 북실지구</p>
+                        <p class="mt-1 text-slate-700">누적 변위 32mm. 드론 열화상 + 균열폭 재측정 필요.</p>
+                    </div>
+                    <div class="rounded-lg bg-amber-50 p-3 ring-1 ring-amber-100">
+                        <p class="font-semibold text-amber-700">2순위: 남면 유평리 44-2</p>
+                        <p class="mt-1 text-slate-700">강우 후 배수로 유실 의심. 응급보강 자재 선투입 권고.</p>
+                    </div>
+                    <div class="rounded-lg bg-emerald-50 p-3 ring-1 ring-emerald-100">
+                        <p class="font-semibold text-emerald-700">협업 요청</p>
+                        <p class="mt-1 text-slate-700">주민대피 알림 템플릿 최신본으로 갱신 완료.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const region = params.get('region');
+        if (region) {
+            document.getElementById('regionLabel').textContent = `${region} · 현장 점검 중심 운영 화면`;
+        }
+    </script>
+</body>
+
+</html>
