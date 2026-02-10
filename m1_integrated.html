@@ -118,6 +118,28 @@
             z-index: 1;
         }
 
+        #satelliteMap {
+            height: 680px;
+            width: 100%;
+            border-radius: 0;
+            z-index: 1;
+        }
+
+        .alarm-legend { position: absolute; right: 16px; bottom: 16px; background: rgba(255,255,255,0.92); padding: 12px; border: 1px solid rgba(226,232,240,0.9); box-shadow: 0 12px 32px rgba(15,23,42,0.12),0 2px 10px rgba(15,23,42,0.06); z-index: 1000; width: 140px; }
+        .alarm-legend-title { font-size: .75rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        .alarm-legend-item { display:flex; align-items:center; gap:8px; font-size:.75rem; color:#334155; margin-bottom:6px; }
+        .alarm-legend-item:last-child { margin-bottom:0; }
+        .alarm-dot { width:10px; height:10px; border-radius:999px; border:2px solid rgba(255,255,255,.9); box-shadow:0 0 0 2px rgba(15,23,42,.06); }
+        .map-tools { position:absolute; right:16px; top:16px; z-index:1100; }
+        .map-info-btn { width:34px; height:34px; border-radius:999px; border:1px solid rgba(226,232,240,.95); background:rgba(255,255,255,.92); box-shadow:0 12px 32px rgba(15,23,42,.14),0 2px 10px rgba(15,23,42,.06); color:#0f172a; display:inline-flex; align-items:center; justify-content:center; }
+        .alarm-div-icon, .alarm-div-icon.leaflet-div-icon { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .alarm-marker { width: var(--alarm-size, 26px); height: var(--alarm-size, 26px); position: relative; }
+        .alarm-marker .pulse { position:absolute; inset:0; border-radius:999px; background:var(--alarm-pulse,#93c5fd); opacity:0; transform:scale(.7); }
+        .alarm-marker .core { position:absolute; inset:2px; border-radius:999px; background:var(--alarm-color,#3B82F6); border:2px solid rgba(255,255,255,.9); }
+        .alarm-marker.is-pulsing .pulse { animation: alarmPulse 1.8s ease-out infinite; }
+        .alarm-marker.is-pulsing.fast .pulse { animation-duration: 1.2s; }
+        @keyframes alarmPulse { 0% {transform:scale(.7);opacity:.65;} 70% {transform:scale(1.85);opacity:0;} 100% {transform:scale(1.85);opacity:0;} }
+
         .map-overlay {
             position: absolute;
             top: 20px;
@@ -208,7 +230,7 @@
                         <i class="fas fa-map"></i>
                         <span>통합 관제 맵</span>
                     </a>
-                    <a id="nav-m2-link" href="m2_satellite.html" class="nav-item">
+                    <a id="nav-m2-link" href="m1_integrated.html?view=satellite" class="nav-item">
                         <i class="fas fa-satellite-dish"></i>
                         <span>위성 변위 분석</span>
                     </a>
@@ -262,67 +284,121 @@
                 </div>
             </header>
 
-            <div class="card" style="position: relative;">
-                <div class="card-header">
-                    <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-sm"><i class="fas fa-layer-group"></i> 레이어</button>
-                        <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> 필터</button>
+            <div id="base-monitoring-view">
+                <div class="card" style="position: relative;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-layer-group"></i> 레이어</button>
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> 필터</button>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body" style="padding: 0;">
-                    <div id="map"></div>
+                    <div class="card-body" style="padding: 0;">
+                        <div id="map"></div>
 
-                    <!-- Map Overlay Controls -->
-                    <div class="map-overlay">
-                        <div class="filter-group">
-                            <div class="filter-title">지도 유형</div>
-                            <div style="display: flex; gap: 8px;">
-                                <button id="map-type-base-btn" type="button" class="btn btn-primary btn-sm" style="flex:1;">기본</button>
-                                <button id="map-type-satellite-btn" type="button" class="btn btn-secondary btn-sm" style="flex:1;">위성</button>
+                        <!-- Map Overlay Controls -->
+                        <div class="map-overlay">
+                            <div class="filter-group">
+                                <div class="filter-title">지도 유형</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button id="map-type-base-btn" type="button" class="btn btn-primary btn-sm" style="flex:1;">기본</button>
+                                    <button id="map-type-satellite-btn" type="button" class="btn btn-secondary btn-sm" style="flex:1;">위성</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <div class="filter-title">위험 등급 범례</div>
+                                <div class="legend-item"><span class="dot bg-rose-500"></span> E등급 (심각)</div>
+                                <div class="legend-item"><span class="dot bg-amber-500"></span> D등급 (경계)</div>
+                                <div class="legend-item"><span class="dot" style="background: #FCD34D;"></span> C등급 (주의)</div>
+                                <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
+                                <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
                             </div>
                         </div>
-                        <div class="filter-group">
-                            <div class="filter-title">위험 등급 범례</div>
-                            <div class="legend-item"><span class="dot bg-rose-500"></span> E등급 (심각)</div>
-                            <div class="legend-item"><span class="dot bg-amber-500"></span> D등급 (경계)</div>
-                            <div class="legend-item"><span class="dot" style="background: #FCD34D;"></span> C등급 (주의)</div>
-                            <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
-                            <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
+                    </div>
+                </div>
+
+                <!-- Detail List below map -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
+                        <div class="flex items-center gap-2">
+                            <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container site-table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">No</th>
+                                        <th>지역명</th>
+                                        <th>위치</th>
+                                        <th>위험등급</th>
+                                        <th>최종점검</th>
+                                        <th>상태</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="site-table-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Detail List below map -->
-            <div class="card">
+            <div id="satellite-analysis-view" class="card" style="display: none;">
                 <div class="card-header">
-                    <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
-                    <div class="flex items-center gap-2">
-                        <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                    <h3><i class="fas fa-satellite-dish text-slate-400"></i> 위성 변위 관측 지점</h3>
+                </div>
+                <div class="card-body" style="padding: 0; position: relative;">
+                    <div id="satelliteMap"></div>
+                    <div class="map-tools">
+                        <button id="btnSatelliteInfo" type="button" class="map-info-btn" title="분석 기준 요약" aria-label="분석 기준 요약">
+                            <i class="fas fa-circle-info"></i>
+                        </button>
+                    </div>
+                    <div class="alarm-legend">
+                        <div class="alarm-legend-title">경보 등급</div>
+                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#EF4444"></span>위험</div>
+                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#F97316"></span>경계</div>
+                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#F59E0B"></span>주의</div>
+                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#3B82F6"></span>관심</div>
+                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#22C55E"></span>안전</div>
                     </div>
                 </div>
-                <div class="card-body" style="padding: 0;">
-                    <div class="table-container site-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;">No</th>
-                                    <th>지역명</th>
-                                    <th>위치</th>
-                                    <th>위험등급</th>
-                                    <th>최종점검</th>
-                                    <th>상태</th>
-                                    <th>관리</th>
-                                </tr>
-                            </thead>
-                            <tbody id="site-table-body">
-                                <tr>
-                                    <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
-                                </tr>
-                            </tbody>
-                        </table>
+            </div>
+
+            <div id="satelliteInfoModal" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-slate-900/35 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+                <div class="w-[560px] max-w-[calc(100vw-32px)] rounded-none bg-white p-6 ring-1 ring-slate-200 shadow-xl">
+                    <div class="flex items-start justify-between gap-3">
+                        <h4 class="text-base font-semibold text-slate-900">위성 변위 분석 기준(요약)</h4>
+                        <button id="btnSatelliteInfoClose" type="button" class="btn btn-secondary btn-sm">닫기</button>
                     </div>
+                    <ul class="mt-4 list-disc pl-5 text-sm text-slate-700 space-y-2">
+                        <li>최근 변위량(cum_mm)과 단기 변화율을 조합해 경보 등급을 산정합니다.</li>
+                        <li>지점을 클릭하면 상세 페이지로 이동해 시계열 및 상세 지표를 확인합니다.</li>
+                        <li>CSV 미존재 시 기본 샘플 관측 지점을 사용합니다.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="pageTransitionOverlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-slate-900/35 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+                <div class="w-[360px] rounded-none bg-white p-6 shadow-xl ring-1 ring-slate-200">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-none bg-sky-50 text-sky-700 ring-1 ring-sky-100">
+                            <div class="h-6 w-6 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600"></div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div id="pageTransitionTitle" class="text-sm font-semibold text-slate-900">AI 분석 준비 중…</div>
+                            <div id="pageTransitionStep" class="mt-1 text-xs text-slate-500">데이터를 불러오고 있습니다.</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 h-2 w-full rounded bg-slate-200"><div id="pageTransitionBar" class="h-2 rounded bg-sky-600" style="width: 0%;"></div></div>
+                    <div class="mt-2 text-[11px] text-slate-400">잠시만 기다려 주세요.</div>
                 </div>
             </div>
         </main>
@@ -342,6 +418,7 @@
         const PAGE_PARAMS = new URLSearchParams(window.location.search);
 
         const MODE_FROM_QUERY = String(PAGE_PARAMS.get('mode') || '').trim().toLowerCase();
+        const VIEW_FROM_QUERY = String(PAGE_PARAMS.get('view') || '').trim().toLowerCase();
         const REGION_FROM_QUERY = String(PAGE_PARAMS.get('region') || '').trim();
 
         let STORED_ROLE = '';
@@ -383,41 +460,141 @@
 
         baseTileLayer.addTo(map);
 
-        // Map type toggle (기본/위성)
+        // View toggle (기본/위성)
         const mapTypeBaseBtn = document.getElementById('map-type-base-btn');
         const mapTypeSatBtn = document.getElementById('map-type-satellite-btn');
+        const baseMonitoringViewEl = document.getElementById('base-monitoring-view');
+        const satelliteAnalysisViewEl = document.getElementById('satellite-analysis-view');
+        const mapPageTitleEl = document.getElementById('map-page-title');
+        const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
+        const mapScopeBadgeEl = document.getElementById('map-scope-badge');
+        const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
+        const navM2LinkEl = document.getElementById('nav-m2-link');
+        let satelliteMapInitialized = false;
+
+        function updateHistoryView(view) {
+            const params = new URLSearchParams(window.location.search);
+            if (view === 'satellite') params.set('view', 'satellite');
+            else params.delete('view');
+            const nextQuery = params.toString();
+            const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`;
+            window.history.replaceState(null, '', nextUrl);
+        }
+
+        function setIntegratedView(type) {
+            const next = type === 'satellite' ? 'satellite' : 'base';
+            if (baseMonitoringViewEl) baseMonitoringViewEl.style.display = next === 'base' ? '' : 'none';
+            if (satelliteAnalysisViewEl) satelliteAnalysisViewEl.style.display = next === 'satellite' ? '' : 'none';
+
+            if (next === 'satellite' && !satelliteMapInitialized) {
+                initSatelliteAnalysisView();
+                satelliteMapInitialized = true;
+            }
+
+            if (mapPageTitleEl) mapPageTitleEl.textContent = next === 'satellite' ? '위성 변위 분석' : '통합 관제 맵';
+            if (mapPageSubtitleEl) mapPageSubtitleEl.textContent = next === 'satellite'
+                ? 'SAR 위성 데이터 기반 시계열 지반 변위 모니터링'
+                : 'GIS 기반 전체 급경사지 위치 및 위험도 모니터링';
+            if (mapScopeBadgeEl) mapScopeBadgeEl.textContent = next === 'satellite'
+                ? '범위: 위성 변위 분석'
+                : '범위: 강원도';
+
+            if (navMapSelfLinkEl) navMapSelfLinkEl.classList.toggle('active', next === 'base');
+            if (navM2LinkEl) navM2LinkEl.classList.toggle('active', next === 'satellite');
+
+            if (mapTypeBaseBtn) {
+                mapTypeBaseBtn.classList.toggle('btn-primary', next === 'base');
+                mapTypeBaseBtn.classList.toggle('btn-secondary', next !== 'base');
+            }
+            if (mapTypeSatBtn) {
+                mapTypeSatBtn.classList.toggle('btn-primary', next === 'satellite');
+                mapTypeSatBtn.classList.toggle('btn-secondary', next !== 'satellite');
+            }
+
+            updateHistoryView(next);
+        }
 
         function setMapType(type) {
             const next = type === 'satellite' ? 'satellite' : 'base';
-            if (next === 'satellite') {
-                if (map.hasLayer(baseTileLayer)) map.removeLayer(baseTileLayer);
-                if (!map.hasLayer(satelliteTileLayer)) map.addLayer(satelliteTileLayer);
-
-                if (mapTypeBaseBtn) {
-                    mapTypeBaseBtn.classList.remove('btn-primary');
-                    mapTypeBaseBtn.classList.add('btn-secondary');
-                }
-                if (mapTypeSatBtn) {
-                    mapTypeSatBtn.classList.remove('btn-secondary');
-                    mapTypeSatBtn.classList.add('btn-primary');
-                }
-            } else {
+            if (next === 'base') {
                 if (map.hasLayer(satelliteTileLayer)) map.removeLayer(satelliteTileLayer);
                 if (!map.hasLayer(baseTileLayer)) map.addLayer(baseTileLayer);
-
-                if (mapTypeBaseBtn) {
-                    mapTypeBaseBtn.classList.remove('btn-secondary');
-                    mapTypeBaseBtn.classList.add('btn-primary');
-                }
-                if (mapTypeSatBtn) {
-                    mapTypeSatBtn.classList.remove('btn-primary');
-                    mapTypeSatBtn.classList.add('btn-secondary');
-                }
             }
+            setIntegratedView(next);
         }
 
         if (mapTypeBaseBtn) mapTypeBaseBtn.addEventListener('click', () => setMapType('base'));
         if (mapTypeSatBtn) mapTypeSatBtn.addEventListener('click', () => setMapType('satellite'));
+
+        function initSatelliteAnalysisView() {
+            const ALARM_COLORS = { '위험': '#EF4444', '경계': '#F97316', '주의': '#F59E0B', '관심': '#3B82F6', '안전': '#22C55E' };
+            const DEFAULT_POINTS = [
+                { siteId: 'a1', name: '정선읍 A구간', lat: 37.3805, lng: 128.6608, alarm: '위험' },
+                { siteId: 'a2', name: '신동읍 B구간', lat: 37.3505, lng: 128.6808, alarm: '경계' },
+                { siteId: 'a3', name: '화암면 C구간', lat: 37.4005, lng: 128.6408, alarm: '주의' },
+                { siteId: 'b1', name: '여탄리 관측지점', lat: 37.2330, lng: 128.7380, alarm: '관심' },
+                { siteId: 'b2', name: '북실리 관측지점', lat: 37.4650, lng: 128.7050, alarm: '경계' },
+                { siteId: 'c1', name: '덕송리 관측지점', lat: 37.2700, lng: 128.6250, alarm: '안전' },
+            ];
+
+            const infoBtnEl = document.getElementById('btnSatelliteInfo');
+            const infoModalEl = document.getElementById('satelliteInfoModal');
+            const infoCloseBtnEl = document.getElementById('btnSatelliteInfoClose');
+            const transitionOverlayEl = document.getElementById('pageTransitionOverlay');
+            const transitionStepEl = document.getElementById('pageTransitionStep');
+            const transitionBarEl = document.getElementById('pageTransitionBar');
+            let isNavigating = false;
+
+            function openInfoModal() { if (!infoModalEl) return; infoModalEl.classList.remove('hidden','opacity-0'); infoModalEl.classList.add('flex','opacity-100'); }
+            function closeInfoModal() { if (!infoModalEl) return; infoModalEl.classList.remove('opacity-100'); infoModalEl.classList.add('opacity-0'); setTimeout(()=>{ infoModalEl.classList.add('hidden'); infoModalEl.classList.remove('flex'); },180); }
+            if (infoBtnEl) infoBtnEl.addEventListener('click', openInfoModal);
+            if (infoCloseBtnEl) infoCloseBtnEl.addEventListener('click', closeInfoModal);
+            if (infoModalEl) infoModalEl.addEventListener('click', (e) => { if (e.target === infoModalEl) closeInfoModal(); });
+
+            function showTransition(name) {
+                if (!transitionOverlayEl) return;
+                isNavigating = true;
+                if (transitionStepEl) transitionStepEl.textContent = name ? `${name} 데이터 로딩 중` : '데이터를 불러오고 있습니다.';
+                if (transitionBarEl) transitionBarEl.style.width = '0%';
+                transitionOverlayEl.classList.remove('hidden','opacity-0');
+                transitionOverlayEl.classList.add('flex','opacity-100');
+                [18,52,78,96].forEach((p, i) => setTimeout(() => { if (transitionBarEl && isNavigating) transitionBarEl.style.width = `${p}%`; }, 120 * i));
+            }
+
+            function rank(alarm) { return alarm === '위험' ? 5 : alarm === '경계' ? 4 : alarm === '주의' ? 3 : alarm === '관심' ? 2 : 1; }
+            function createIcon(alarm, color) {
+                const size = rank(alarm) >= 5 ? 34 : rank(alarm) === 4 ? 32 : rank(alarm) === 3 ? 28 : rank(alarm) === 2 ? 24 : 22;
+                const pulse = alarm === '위험' ? 'rgba(239,68,68,.42)' : alarm === '경계' ? 'rgba(249,115,22,.34)' : 'rgba(59,130,246,.25)';
+                return L.divIcon({
+                    className: 'alarm-div-icon',
+                    html: `<div class="alarm-marker ${rank(alarm) >= 4 ? 'is-pulsing' : ''} ${alarm === '위험' ? 'fast' : ''}" style="--alarm-size:${size}px;--alarm-color:${color};--alarm-pulse:${pulse};"><span class="pulse"></span><span class="core"></span></div>`,
+                    iconSize: [size, size], iconAnchor: [size/2, size/2], tooltipAnchor: [0, -size/2]
+                });
+            }
+
+            const satMap = L.map('satelliteMap').setView([37.3805, 128.6608], 10);
+            const layerImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
+            const layerOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' });
+            layerImagery.addTo(satMap);
+            L.control.layers({ '위성(영상)': layerImagery, '일반지도': layerOsm }, null, { position: 'topleft' }).addTo(satMap);
+
+            const markers = [];
+            DEFAULT_POINTS.forEach((p) => {
+                const marker = L.marker([p.lat, p.lng], { icon: createIcon(p.alarm, ALARM_COLORS[p.alarm] || '#3B82F6'), riseOnHover: true }).addTo(satMap);
+                marker.bindTooltip(`<b>${p.name}</b><br>${p.alarm}`, { direction: 'top', offset: [0, -6], opacity: 0.95 });
+                marker.on('click', () => {
+                    if (isNavigating) return;
+                    showTransition(p.name);
+                    setTimeout(() => {
+                        window.location.href = `m2_detail.html?site=${encodeURIComponent(p.siteId)}&name=${encodeURIComponent(p.name)}&lat=${encodeURIComponent(p.lat)}&lng=${encodeURIComponent(p.lng)}&alarm=${encodeURIComponent(p.alarm)}`;
+                    }, 420);
+                });
+                markers.push(marker);
+            });
+            if (markers.length) {
+                satMap.fitBounds(L.latLngBounds(markers.map((m) => m.getLatLng())).pad(0.2));
+            }
+        }
 
         const canvasRenderer = L.canvas({ padding: 0.5 });
         const markerLayer = L.layerGroup().addTo(map);
@@ -469,15 +646,10 @@
         const sidebarSystemLabelEl = document.getElementById('sidebar-system-label');
         const navDashboardLinkEl = document.getElementById('nav-dashboard-link');
         const navNdmsLinkEl = document.getElementById('nav-ndms-link');
-        const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
-        const navM2LinkEl = document.getElementById('nav-m2-link');
         const navM2ScenarioLinkEl = document.getElementById('nav-m2-scenario-link');
         const navM3LinkEl = document.getElementById('nav-m3-link');
         const navReportLinkEl = document.getElementById('nav-report-link');
         const navThresholdLinkEl = document.getElementById('nav-threshold-link');
-        const mapPageTitleEl = document.getElementById('map-page-title');
-        const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
-        const mapScopeBadgeEl = document.getElementById('map-scope-badge');
         const mapUserNameEl = document.getElementById('map-user-name');
         const siteListTitleEl = document.getElementById('site-list-title');
 
@@ -564,6 +736,7 @@
         }
 
         applyRoleUI();
+        if (VIEW_FROM_QUERY === 'satellite') setMapType('satellite');
 
         function applyInitialLocalView() {
             if (IS_MOIS_MODE) return;
