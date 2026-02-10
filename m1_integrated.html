@@ -269,6 +269,17 @@
             }
         }
 
+
+        body.satellite-only-mode .sidebar {
+            display: none;
+        }
+
+        body.satellite-only-mode .main-content {
+            margin-left: 0;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
         tbody tr {
             cursor: pointer;
         }
@@ -578,6 +589,8 @@
 
             if (navMapSelfLinkEl) navMapSelfLinkEl.classList.toggle('active', next === 'base');
             if (navM2LinkEl) navM2LinkEl.classList.toggle('active', next === 'satellite');
+
+            document.body.classList.toggle('satellite-only-mode', next === 'satellite');
 
             if (mapTypeBaseBtn) {
                 mapTypeBaseBtn.classList.toggle('btn-primary', next === 'base');
