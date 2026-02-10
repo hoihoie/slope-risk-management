@@ -414,6 +414,27 @@
                             </div>
                         </div>
                     </div>
+                    <ul class="mt-4 list-disc pl-5 text-sm text-slate-700 space-y-2">
+                        <li>최근 변위량(cum_mm)과 단기 변화율을 조합해 경보 등급을 산정합니다.</li>
+                        <li>지점을 클릭하면 상세 페이지로 이동해 시계열 및 상세 지표를 확인합니다.</li>
+                        <li>CSV 미존재 시 기본 샘플 관측 지점을 사용합니다.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="pageTransitionOverlay" class="fixed inset-0 z-[9999] hidden items-center justify-center bg-slate-900/35 opacity-0 backdrop-blur-sm transition-opacity duration-200">
+                <div class="w-[360px] rounded-none bg-white p-6 shadow-xl ring-1 ring-slate-200">
+                    <div class="flex items-start gap-3">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-none bg-sky-50 text-sky-700 ring-1 ring-sky-100">
+                            <div class="h-6 w-6 animate-spin rounded-full border-2 border-sky-200 border-t-sky-600"></div>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div id="pageTransitionTitle" class="text-sm font-semibold text-slate-900">AI 분석 준비 중…</div>
+                            <div id="pageTransitionStep" class="mt-1 text-xs text-slate-500">데이터를 불러오고 있습니다.</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 h-2 w-full rounded bg-slate-200"><div id="pageTransitionBar" class="h-2 rounded bg-sky-600" style="width: 0%;"></div></div>
+                    <div class="mt-2 text-[11px] text-slate-400">잠시만 기다려 주세요.</div>
                 </div>
             </div>
         </main>
@@ -433,6 +454,7 @@
         const PAGE_PARAMS = new URLSearchParams(window.location.search);
 
         const MODE_FROM_QUERY = String(PAGE_PARAMS.get('mode') || '').trim().toLowerCase();
+        const VIEW_FROM_QUERY = String(PAGE_PARAMS.get('view') || '').trim().toLowerCase();
         const REGION_FROM_QUERY = String(PAGE_PARAMS.get('region') || '').trim();
 
         let STORED_ROLE = '';
@@ -484,35 +506,120 @@
         const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
         function setMapType(type) {
             const next = type === 'satellite' ? 'satellite' : 'base';
-            if (next === 'satellite') {
-                if (map.hasLayer(baseTileLayer)) map.removeLayer(baseTileLayer);
-                if (!map.hasLayer(satelliteTileLayer)) map.addLayer(satelliteTileLayer);
+            if (baseMonitoringViewEl) baseMonitoringViewEl.style.display = next === 'base' ? '' : 'none';
+            if (satelliteAnalysisViewEl) satelliteAnalysisViewEl.style.display = next === 'satellite' ? '' : 'none';
 
-                if (mapTypeBaseBtn) {
-                    mapTypeBaseBtn.classList.remove('btn-primary');
-                    mapTypeBaseBtn.classList.add('btn-secondary');
-                }
-                if (mapTypeSatBtn) {
-                    mapTypeSatBtn.classList.remove('btn-secondary');
-                    mapTypeSatBtn.classList.add('btn-primary');
-                }
-            } else {
+            if (next === 'satellite' && !satelliteMapInitialized) {
+                initSatelliteAnalysisView();
+                satelliteMapInitialized = true;
+            }
+
+            if (mapPageTitleEl) mapPageTitleEl.textContent = next === 'satellite' ? '위성 변위 분석' : '통합 관제 맵';
+            if (mapPageSubtitleEl) mapPageSubtitleEl.textContent = next === 'satellite'
+                ? 'SAR 위성 데이터 기반 시계열 지반 변위 모니터링'
+                : 'GIS 기반 전체 급경사지 위치 및 위험도 모니터링';
+            if (mapScopeBadgeEl) mapScopeBadgeEl.textContent = next === 'satellite'
+                ? '범위: 위성 변위 분석'
+                : '범위: 강원도';
+
+            if (navMapSelfLinkEl) navMapSelfLinkEl.classList.toggle('active', next === 'base');
+            if (navM2LinkEl) navM2LinkEl.classList.toggle('active', next === 'satellite');
+
+            document.body.classList.toggle('satellite-only-mode', next === 'satellite');
+
+            if (mapTypeBaseBtn) {
+                mapTypeBaseBtn.classList.toggle('btn-primary', next === 'base');
+                mapTypeBaseBtn.classList.toggle('btn-secondary', next !== 'base');
+            }
+            if (mapTypeSatBtn) {
+                mapTypeSatBtn.classList.toggle('btn-primary', next === 'satellite');
+                mapTypeSatBtn.classList.toggle('btn-secondary', next !== 'satellite');
+            }
+
+            updateHistoryView(next);
+        }
+
+        function setMapType(type) {
+            const next = type === 'satellite' ? 'satellite' : 'base';
+            if (next === 'base') {
                 if (map.hasLayer(satelliteTileLayer)) map.removeLayer(satelliteTileLayer);
                 if (!map.hasLayer(baseTileLayer)) map.addLayer(baseTileLayer);
-
-                if (mapTypeBaseBtn) {
-                    mapTypeBaseBtn.classList.remove('btn-secondary');
-                    mapTypeBaseBtn.classList.add('btn-primary');
-                }
-                if (mapTypeSatBtn) {
-                    mapTypeSatBtn.classList.remove('btn-primary');
-                    mapTypeSatBtn.classList.add('btn-secondary');
-                }
             }
+            setIntegratedView(next);
         }
 
         if (mapTypeBaseBtn) mapTypeBaseBtn.addEventListener('click', () => setMapType('base'));
         if (mapTypeSatBtn) mapTypeSatBtn.addEventListener('click', () => setMapType('satellite'));
+
+        function initSatelliteAnalysisView() {
+            const ALARM_COLORS = { '위험': '#EF4444', '경계': '#F97316', '주의': '#F59E0B', '관심': '#3B82F6', '안전': '#22C55E' };
+            const DEFAULT_POINTS = [
+                { siteId: 'a1', name: '정선읍 A구간', lat: 37.3805, lng: 128.6608, alarm: '위험' },
+                { siteId: 'a2', name: '신동읍 B구간', lat: 37.3505, lng: 128.6808, alarm: '경계' },
+                { siteId: 'a3', name: '화암면 C구간', lat: 37.4005, lng: 128.6408, alarm: '주의' },
+                { siteId: 'b1', name: '여탄리 관측지점', lat: 37.2330, lng: 128.7380, alarm: '관심' },
+                { siteId: 'b2', name: '북실리 관측지점', lat: 37.4650, lng: 128.7050, alarm: '경계' },
+                { siteId: 'c1', name: '덕송리 관측지점', lat: 37.2700, lng: 128.6250, alarm: '안전' },
+            ];
+
+            const infoBtnEl = document.getElementById('btnSatelliteInfo');
+            const infoModalEl = document.getElementById('satelliteInfoModal');
+            const infoCloseBtnEl = document.getElementById('btnSatelliteInfoClose');
+            const transitionOverlayEl = document.getElementById('pageTransitionOverlay');
+            const transitionStepEl = document.getElementById('pageTransitionStep');
+            const transitionBarEl = document.getElementById('pageTransitionBar');
+            let isNavigating = false;
+
+            function openInfoModal() { if (!infoModalEl) return; infoModalEl.classList.remove('hidden','opacity-0'); infoModalEl.classList.add('flex','opacity-100'); }
+            function closeInfoModal() { if (!infoModalEl) return; infoModalEl.classList.remove('opacity-100'); infoModalEl.classList.add('opacity-0'); setTimeout(()=>{ infoModalEl.classList.add('hidden'); infoModalEl.classList.remove('flex'); },180); }
+            if (infoBtnEl) infoBtnEl.addEventListener('click', openInfoModal);
+            if (infoCloseBtnEl) infoCloseBtnEl.addEventListener('click', closeInfoModal);
+            if (infoModalEl) infoModalEl.addEventListener('click', (e) => { if (e.target === infoModalEl) closeInfoModal(); });
+
+            function showTransition(name) {
+                if (!transitionOverlayEl) return;
+                isNavigating = true;
+                if (transitionStepEl) transitionStepEl.textContent = name ? `${name} 데이터 로딩 중` : '데이터를 불러오고 있습니다.';
+                if (transitionBarEl) transitionBarEl.style.width = '0%';
+                transitionOverlayEl.classList.remove('hidden','opacity-0');
+                transitionOverlayEl.classList.add('flex','opacity-100');
+                [18,52,78,96].forEach((p, i) => setTimeout(() => { if (transitionBarEl && isNavigating) transitionBarEl.style.width = `${p}%`; }, 120 * i));
+            }
+
+            function rank(alarm) { return alarm === '위험' ? 5 : alarm === '경계' ? 4 : alarm === '주의' ? 3 : alarm === '관심' ? 2 : 1; }
+            function createIcon(alarm, color) {
+                const size = rank(alarm) >= 5 ? 34 : rank(alarm) === 4 ? 32 : rank(alarm) === 3 ? 28 : rank(alarm) === 2 ? 24 : 22;
+                const pulse = alarm === '위험' ? 'rgba(239,68,68,.42)' : alarm === '경계' ? 'rgba(249,115,22,.34)' : 'rgba(59,130,246,.25)';
+                return L.divIcon({
+                    className: 'alarm-div-icon',
+                    html: `<div class="alarm-marker ${rank(alarm) >= 4 ? 'is-pulsing' : ''} ${alarm === '위험' ? 'fast' : ''}" style="--alarm-size:${size}px;--alarm-color:${color};--alarm-pulse:${pulse};"><span class="pulse"></span><span class="core"></span></div>`,
+                    iconSize: [size, size], iconAnchor: [size/2, size/2], tooltipAnchor: [0, -size/2]
+                });
+            }
+
+            const satMap = L.map('satelliteMap').setView([37.3805, 128.6608], 10);
+            const layerImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
+            const layerOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' });
+            layerImagery.addTo(satMap);
+            L.control.layers({ '위성(영상)': layerImagery, '일반지도': layerOsm }, null, { position: 'topleft' }).addTo(satMap);
+
+            const markers = [];
+            DEFAULT_POINTS.forEach((p) => {
+                const marker = L.marker([p.lat, p.lng], { icon: createIcon(p.alarm, ALARM_COLORS[p.alarm] || '#3B82F6'), riseOnHover: true }).addTo(satMap);
+                marker.bindTooltip(`<b>${p.name}</b><br>${p.alarm}`, { direction: 'top', offset: [0, -6], opacity: 0.95 });
+                marker.on('click', () => {
+                    if (isNavigating) return;
+                    showTransition(p.name);
+                    setTimeout(() => {
+                        window.location.href = `m2_detail.html?site=${encodeURIComponent(p.siteId)}&name=${encodeURIComponent(p.name)}&lat=${encodeURIComponent(p.lat)}&lng=${encodeURIComponent(p.lng)}&alarm=${encodeURIComponent(p.alarm)}`;
+                    }, 420);
+                });
+                markers.push(marker);
+            });
+            if (markers.length) {
+                satMap.fitBounds(L.latLngBounds(markers.map((m) => m.getLatLng())).pad(0.2));
+            }
+        }
 
         const canvasRenderer = L.canvas({ padding: 0.5 });
         const markerLayer = L.layerGroup().addTo(map);
@@ -652,6 +759,7 @@
         }
 
         applyRoleUI();
+        if (VIEW_FROM_QUERY === 'satellite') setMapType('satellite');
 
         function applyInitialLocalView() {
             if (IS_MOIS_MODE) return;
