@@ -111,6 +111,11 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
+
+        body.embed-mode .sidebar { display: none; }
+        body.embed-mode .main-content { margin-left: 0; padding: 0; min-height: auto; }
+        body.embed-mode .header { display: none; }
+        body.embed-mode .main-content > .card { margin-bottom: 0; border-radius: 0; box-shadow: none; }
         #satelliteMap {
             height: 600px;
             width: 100%;
@@ -470,6 +475,10 @@
     </script>
     <script>
         (function () {
+            const pageParams = new URLSearchParams(window.location.search);
+            const EMBED_MODE = pageParams.get('embed') === '1';
+            if (EMBED_MODE) document.body.classList.add('embed-mode');
+
             const MAP_CSV_PATH = 'm2_satellite_points.csv';
 
             const ALARM_COLORS = {
