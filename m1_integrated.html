@@ -208,7 +208,7 @@
                         <i class="fas fa-map"></i>
                         <span>통합 관제 맵</span>
                     </a>
-                    <a id="nav-m2-link" href="m2_satellite.html" class="nav-item">
+                    <a id="nav-m2-link" href="m1_integrated.html?view=satellite" class="nav-item">
                         <i class="fas fa-satellite-dish"></i>
                         <span>위성 변위 분석</span>
                     </a>
@@ -262,67 +262,78 @@
                 </div>
             </header>
 
-            <div class="card" style="position: relative;">
-                <div class="card-header">
-                    <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-sm"><i class="fas fa-layer-group"></i> 레이어</button>
-                        <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> 필터</button>
+            <div id="base-monitoring-view">
+                <div class="card" style="position: relative;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-layer-group"></i> 레이어</button>
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> 필터</button>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body" style="padding: 0;">
-                    <div id="map"></div>
+                    <div class="card-body" style="padding: 0;">
+                        <div id="map"></div>
 
-                    <!-- Map Overlay Controls -->
-                    <div class="map-overlay">
-                        <div class="filter-group">
-                            <div class="filter-title">지도 유형</div>
-                            <div style="display: flex; gap: 8px;">
-                                <button id="map-type-base-btn" type="button" class="btn btn-primary btn-sm" style="flex:1;">기본</button>
-                                <button id="map-type-satellite-btn" type="button" class="btn btn-secondary btn-sm" style="flex:1;">위성</button>
+                        <!-- Map Overlay Controls -->
+                        <div class="map-overlay">
+                            <div class="filter-group">
+                                <div class="filter-title">지도 유형</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button id="map-type-base-btn" type="button" class="btn btn-primary btn-sm" style="flex:1;">기본</button>
+                                    <button id="map-type-satellite-btn" type="button" class="btn btn-secondary btn-sm" style="flex:1;">위성</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <div class="filter-title">위험 등급 범례</div>
+                                <div class="legend-item"><span class="dot bg-rose-500"></span> E등급 (심각)</div>
+                                <div class="legend-item"><span class="dot bg-amber-500"></span> D등급 (경계)</div>
+                                <div class="legend-item"><span class="dot" style="background: #FCD34D;"></span> C등급 (주의)</div>
+                                <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
+                                <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
                             </div>
                         </div>
-                        <div class="filter-group">
-                            <div class="filter-title">위험 등급 범례</div>
-                            <div class="legend-item"><span class="dot bg-rose-500"></span> E등급 (심각)</div>
-                            <div class="legend-item"><span class="dot bg-amber-500"></span> D등급 (경계)</div>
-                            <div class="legend-item"><span class="dot" style="background: #FCD34D;"></span> C등급 (주의)</div>
-                            <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
-                            <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
+                    </div>
+                </div>
+
+                <!-- Detail List below map -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
+                        <div class="flex items-center gap-2">
+                            <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container site-table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">No</th>
+                                        <th>지역명</th>
+                                        <th>위치</th>
+                                        <th>위험등급</th>
+                                        <th>최종점검</th>
+                                        <th>상태</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="site-table-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Detail List below map -->
-            <div class="card">
+            <div id="satellite-analysis-view" class="card" style="display: none; min-height: 840px;">
                 <div class="card-header">
-                    <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
-                    <div class="flex items-center gap-2">
-                        <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-                    </div>
+                    <h3><i class="fas fa-satellite-dish text-slate-400"></i> 위성 변위 분석</h3>
                 </div>
-                <div class="card-body" style="padding: 0;">
-                    <div class="table-container site-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;">No</th>
-                                    <th>지역명</th>
-                                    <th>위치</th>
-                                    <th>위험등급</th>
-                                    <th>최종점검</th>
-                                    <th>상태</th>
-                                    <th>관리</th>
-                                </tr>
-                            </thead>
-                            <tbody id="site-table-body">
-                                <tr>
-                                    <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="card-body" style="padding: 0; min-height: 760px;">
+                    <iframe id="satellite-analysis-frame" title="위성 변위 분석" src="about:blank" style="display:block;width:100%;height:760px;border:0;"></iframe>
                 </div>
             </div>
         </main>
@@ -342,6 +353,7 @@
         const PAGE_PARAMS = new URLSearchParams(window.location.search);
 
         const MODE_FROM_QUERY = String(PAGE_PARAMS.get('mode') || '').trim().toLowerCase();
+        const VIEW_FROM_QUERY = String(PAGE_PARAMS.get('view') || '').trim().toLowerCase();
         const REGION_FROM_QUERY = String(PAGE_PARAMS.get('region') || '').trim();
 
         let STORED_ROLE = '';
@@ -383,37 +395,70 @@
 
         baseTileLayer.addTo(map);
 
-        // Map type toggle (기본/위성)
+        // View toggle (기본/위성)
         const mapTypeBaseBtn = document.getElementById('map-type-base-btn');
         const mapTypeSatBtn = document.getElementById('map-type-satellite-btn');
+        const baseMonitoringViewEl = document.getElementById('base-monitoring-view');
+        const satelliteAnalysisViewEl = document.getElementById('satellite-analysis-view');
+        const satelliteFrameEl = document.getElementById('satellite-analysis-frame');
+        const mapPageTitleEl = document.getElementById('map-page-title');
+        const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
+        const mapScopeBadgeEl = document.getElementById('map-scope-badge');
+        const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
+        const navM2LinkEl = document.getElementById('nav-m2-link');
+        const SATELLITE_IFRAME_URL = `m2_satellite.html?embed=1${IS_MOIS_MODE ? '&mode=mois' : '&mode=local'}${ACTIVE_REGION ? `&region=${encodeURIComponent(ACTIVE_REGION)}` : ''}`;
+        let currentView = 'base';
+
+        function updateHistoryView(view) {
+            const params = new URLSearchParams(window.location.search);
+            if (view === 'satellite') params.set('view', 'satellite');
+            else params.delete('view');
+            const nextQuery = params.toString();
+            const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`;
+            window.history.replaceState(null, '', nextUrl);
+        }
+
+        function setIntegratedView(type) {
+            const next = type === 'satellite' ? 'satellite' : 'base';
+            currentView = next;
+
+            if (baseMonitoringViewEl) baseMonitoringViewEl.style.display = next === 'base' ? '' : 'none';
+            if (satelliteAnalysisViewEl) satelliteAnalysisViewEl.style.display = next === 'satellite' ? '' : 'none';
+
+            if (next === 'satellite' && satelliteFrameEl && satelliteFrameEl.src === 'about:blank') {
+                satelliteFrameEl.src = SATELLITE_IFRAME_URL;
+            }
+
+            if (mapPageTitleEl) mapPageTitleEl.textContent = next === 'satellite' ? '위성 변위 분석' : '통합 관제 맵';
+            if (mapPageSubtitleEl) mapPageSubtitleEl.textContent = next === 'satellite'
+                ? 'SAR 위성 데이터 기반 시계열 지반 변위 모니터링'
+                : 'GIS 기반 전체 급경사지 위치 및 위험도 모니터링';
+            if (mapScopeBadgeEl) mapScopeBadgeEl.textContent = next === 'satellite'
+                ? '범위: 위성 변위 분석'
+                : '범위: 강원도';
+
+            if (navMapSelfLinkEl) navMapSelfLinkEl.classList.toggle('active', next === 'base');
+            if (navM2LinkEl) navM2LinkEl.classList.toggle('active', next === 'satellite');
+
+            if (mapTypeBaseBtn) {
+                mapTypeBaseBtn.classList.toggle('btn-primary', next === 'base');
+                mapTypeBaseBtn.classList.toggle('btn-secondary', next !== 'base');
+            }
+            if (mapTypeSatBtn) {
+                mapTypeSatBtn.classList.toggle('btn-primary', next === 'satellite');
+                mapTypeSatBtn.classList.toggle('btn-secondary', next !== 'satellite');
+            }
+
+            updateHistoryView(next);
+        }
 
         function setMapType(type) {
             const next = type === 'satellite' ? 'satellite' : 'base';
-            if (next === 'satellite') {
-                if (map.hasLayer(baseTileLayer)) map.removeLayer(baseTileLayer);
-                if (!map.hasLayer(satelliteTileLayer)) map.addLayer(satelliteTileLayer);
-
-                if (mapTypeBaseBtn) {
-                    mapTypeBaseBtn.classList.remove('btn-primary');
-                    mapTypeBaseBtn.classList.add('btn-secondary');
-                }
-                if (mapTypeSatBtn) {
-                    mapTypeSatBtn.classList.remove('btn-secondary');
-                    mapTypeSatBtn.classList.add('btn-primary');
-                }
-            } else {
+            if (next === 'base') {
                 if (map.hasLayer(satelliteTileLayer)) map.removeLayer(satelliteTileLayer);
                 if (!map.hasLayer(baseTileLayer)) map.addLayer(baseTileLayer);
-
-                if (mapTypeBaseBtn) {
-                    mapTypeBaseBtn.classList.remove('btn-secondary');
-                    mapTypeBaseBtn.classList.add('btn-primary');
-                }
-                if (mapTypeSatBtn) {
-                    mapTypeSatBtn.classList.remove('btn-primary');
-                    mapTypeSatBtn.classList.add('btn-secondary');
-                }
             }
+            setIntegratedView(next);
         }
 
         if (mapTypeBaseBtn) mapTypeBaseBtn.addEventListener('click', () => setMapType('base'));
@@ -469,15 +514,10 @@
         const sidebarSystemLabelEl = document.getElementById('sidebar-system-label');
         const navDashboardLinkEl = document.getElementById('nav-dashboard-link');
         const navNdmsLinkEl = document.getElementById('nav-ndms-link');
-        const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
-        const navM2LinkEl = document.getElementById('nav-m2-link');
         const navM2ScenarioLinkEl = document.getElementById('nav-m2-scenario-link');
         const navM3LinkEl = document.getElementById('nav-m3-link');
         const navReportLinkEl = document.getElementById('nav-report-link');
         const navThresholdLinkEl = document.getElementById('nav-threshold-link');
-        const mapPageTitleEl = document.getElementById('map-page-title');
-        const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
-        const mapScopeBadgeEl = document.getElementById('map-scope-badge');
         const mapUserNameEl = document.getElementById('map-user-name');
         const siteListTitleEl = document.getElementById('site-list-title');
 
@@ -564,6 +604,7 @@
         }
 
         applyRoleUI();
+        if (VIEW_FROM_QUERY === 'satellite') setMapType('satellite');
 
         function applyInitialLocalView() {
             if (IS_MOIS_MODE) return;
