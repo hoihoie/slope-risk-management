@@ -4,16 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>위성 변위 분석 - 통합 관제 맵으로 이동</title>
-  <meta http-equiv="refresh" content="0; url=m1_integrated.html?view=satellite" />
+  <meta http-equiv="refresh" content="0; url=m1_integrated.html" />
   <script>
-    (function () {
-      const p = new URLSearchParams(window.location.search);
-      p.set('view', 'satellite');
-      window.location.replace(`m1_integrated.html?${p.toString()}`);
-    })();
+    window.location.replace('m1_integrated.html');
   </script>
 </head>
 <body>
-  <p>통합 관제 맵의 위성 분석 화면으로 이동 중입니다...</p>
+  <p>통합 관제 맵으로 이동 중입니다...</p>
 </body>
 </html>

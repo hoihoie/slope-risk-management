@@ -119,12 +119,6 @@
             z-index: 1;
         }
 
-        #satelliteMap {
-            height: 680px;
-            width: 100%;
-            border-radius: 0;
-            z-index: 1;
-        }
 
         .alarm-legend { position: absolute; right: 16px; bottom: 16px; background: rgba(255,255,255,0.92); padding: 12px; border: 1px solid rgba(226,232,240,0.9); box-shadow: 0 12px 32px rgba(15,23,42,0.12),0 2px 10px rgba(15,23,42,0.06); z-index: 1000; width: 140px; }
         .alarm-legend-title { font-size: .75rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
@@ -269,17 +263,6 @@
             }
         }
 
-
-        body.satellite-only-mode .sidebar {
-            display: none;
-        }
-
-        body.satellite-only-mode .main-content {
-            margin-left: 0;
-            padding-left: 24px;
-            padding-right: 24px;
-        }
-
         tbody tr {
             cursor: pointer;
         }
@@ -319,11 +302,7 @@
                         <i class="fas fa-map"></i>
                         <span>통합 관제 맵</span>
                     </a>
-                    <a id="nav-m2-link" href="m1_integrated.html?view=satellite" class="nav-item">
-                        <i class="fas fa-satellite-dish"></i>
-                        <span>위성 변위 분석</span>
-                    </a>
-                    <a id="nav-m2-scenario-link" href="m2_scenario.html" class="nav-item">
+<a id="nav-m2-scenario-link" href="m2_scenario.html" class="nav-item">
                         <i class="fas fa-diagram-project"></i>
                         <span>위성→드론 정밀 위험평가</span>
                     </a>
@@ -435,37 +414,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div id="satellite-analysis-view" class="card" style="display: none;">
-                <div class="card-header">
-                    <h3><i class="fas fa-satellite-dish text-slate-400"></i> 위성 변위 관측 지점</h3>
-                </div>
-                <div class="card-body" style="padding: 0; position: relative;">
-                    <div id="satelliteMap"></div>
-                    <div class="map-tools">
-                        <button id="btnSatelliteInfo" type="button" class="map-info-btn" title="분석 기준 요약" aria-label="분석 기준 요약">
-                            <i class="fas fa-circle-info"></i>
-                        </button>
-                    </div>
-                    <div class="alarm-legend">
-                        <div class="alarm-legend-title">경보 등급</div>
-                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#EF4444"></span>위험</div>
-                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#F97316"></span>경계</div>
-                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#F59E0B"></span>주의</div>
-                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#3B82F6"></span>관심</div>
-                        <div class="alarm-legend-item"><span class="alarm-dot" style="background:#22C55E"></span>안전</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="satelliteInfoModal" class="fixed inset-0 z-[1200] hidden items-center justify-center bg-slate-900/35 opacity-0 backdrop-blur-sm transition-opacity duration-200">
-                <div class="w-[560px] max-w-[calc(100vw-32px)] rounded-none bg-white p-6 ring-1 ring-slate-200 shadow-xl">
-                    <div class="flex items-start justify-between gap-3">
-                        <h4 class="text-base font-semibold text-slate-900">위성 변위 분석 기준(요약)</h4>
-                        <button id="btnSatelliteInfoClose" type="button" class="btn btn-secondary btn-sm">닫기</button>
-                    </div>
                     <ul class="mt-4 list-disc pl-5 text-sm text-slate-700 space-y-2">
                         <li>최근 변위량(cum_mm)과 단기 변화율을 조합해 경보 등급을 산정합니다.</li>
                         <li>지점을 클릭하면 상세 페이지로 이동해 시계열 및 상세 지표를 확인합니다.</li>
@@ -552,24 +500,11 @@
         const mapTypeBaseBtn = document.getElementById('map-type-base-btn');
         const mapTypeSatBtn = document.getElementById('map-type-satellite-btn');
         const baseMonitoringViewEl = document.getElementById('base-monitoring-view');
-        const satelliteAnalysisViewEl = document.getElementById('satellite-analysis-view');
         const mapPageTitleEl = document.getElementById('map-page-title');
         const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
         const mapScopeBadgeEl = document.getElementById('map-scope-badge');
         const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
-        const navM2LinkEl = document.getElementById('nav-m2-link');
-        let satelliteMapInitialized = false;
-
-        function updateHistoryView(view) {
-            const params = new URLSearchParams(window.location.search);
-            if (view === 'satellite') params.set('view', 'satellite');
-            else params.delete('view');
-            const nextQuery = params.toString();
-            const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}`;
-            window.history.replaceState(null, '', nextUrl);
-        }
-
-        function setIntegratedView(type) {
+        function setMapType(type) {
             const next = type === 'satellite' ? 'satellite' : 'base';
             if (baseMonitoringViewEl) baseMonitoringViewEl.style.display = next === 'base' ? '' : 'none';
             if (satelliteAnalysisViewEl) satelliteAnalysisViewEl.style.display = next === 'satellite' ? '' : 'none';
@@ -781,7 +716,6 @@
                 setNavLabel(navThresholdLinkEl, '임계치 정책 기준');
 
                 setVisible(navNdmsLinkEl, false);
-                setVisible(navM2LinkEl, false);
                 setVisible(navM2ScenarioLinkEl, false);
                 setVisible(navM3LinkEl, false);
                 if (searchInputEl) searchInputEl.placeholder = '지역명/급경사지명 검색...';
@@ -809,7 +743,6 @@
                 setNavLabel(navThresholdLinkEl, '임계치 관리');
 
                 setVisible(navNdmsLinkEl, true);
-                setVisible(navM2LinkEl, true);
                 setVisible(navM2ScenarioLinkEl, true);
                 setVisible(navM3LinkEl, true);
                 if (searchInputEl) searchInputEl.placeholder = `${ACTIVE_SIGUNGU || '관할'} 급경사지명 검색...`;
