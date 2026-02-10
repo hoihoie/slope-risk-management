@@ -112,7 +112,8 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
         #map {
-            height: 600px;
+            height: calc(100vh - 280px);
+            min-height: 560px;
             width: 100%;
             border-radius: 0;
             z-index: 1;
@@ -182,14 +183,15 @@
         /* 기본 모니터링: 좌(목록) / 우(지도) 가독성 개선 */
         .base-monitoring-grid {
             display: grid;
-            grid-template-columns: minmax(420px, 460px) minmax(0, 1fr);
+            grid-template-columns: minmax(460px, 520px) minmax(0, 1fr);
             gap: 18px;
             align-items: stretch;
+            min-height: calc(100vh - 190px);
         }
 
         .base-monitoring-grid > .card {
             margin-bottom: 0;
-            min-height: 680px;
+            min-height: calc(100vh - 190px);
         }
 
         .site-list-card .card-header,
@@ -208,7 +210,8 @@
         /* 목록 테이블: 스크롤 + 헤더 고정 */
         .site-table-wrap {
             max-height: none;
-            height: 616px;
+            height: calc(100vh - 280px);
+            min-height: 560px;
             overflow: auto;
             border-top: 1px solid rgba(226, 232, 240, 0.7);
         }
@@ -219,9 +222,30 @@
             z-index: 2;
         }
 
+        .site-list-card table {
+            table-layout: fixed;
+        }
+
+        .site-list-card th,
+        .site-list-card td {
+            padding-left: 10px;
+            padding-right: 10px;
+            font-size: 12px;
+        }
+
         .site-table-wrap tbody td {
             white-space: nowrap;
             line-height: 1.45;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .site-list-card td:nth-child(2),
+        .site-list-card td:nth-child(3) {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            word-break: keep-all;
         }
 
         .site-table-wrap tbody tr:nth-child(even) td {
@@ -230,7 +254,7 @@
 
         @media (max-width: 1440px) {
             .base-monitoring-grid {
-                grid-template-columns: minmax(380px, 430px) minmax(0, 1fr);
+                grid-template-columns: minmax(420px, 470px) minmax(0, 1fr);
             }
         }
 
@@ -241,6 +265,7 @@
 
             .site-table-wrap {
                 height: 420px;
+                min-height: 420px;
             }
         }
 
@@ -350,13 +375,13 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th style="width: 50px;">No</th>
-                                        <th>지역명</th>
-                                        <th>위치</th>
-                                        <th>위험등급</th>
-                                        <th>최종점검</th>
-                                        <th>상태</th>
-                                        <th>관리</th>
+                                        <th style="width: 52px;">No</th>
+                                        <th style="width: 96px;">지역명</th>
+                                        <th style="width: 160px;">위치</th>
+                                        <th style="width: 84px;">위험등급</th>
+                                        <th style="width: 110px;">최종점검</th>
+                                        <th style="width: 86px;">상태</th>
+                                        <th style="width: 86px;">관리</th>
                                     </tr>
                                 </thead>
                                 <tbody id="site-table-body">
