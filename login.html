@@ -124,16 +124,12 @@
             const region = document.getElementById('region').value;
 
             if (id === '4321' && pw === '4321') {
-                window.sessionStorage.removeItem('userRole');
-                window.sessionStorage.removeItem('userRegion');
                 window.location.href = 'admin_dashboard.html';
                 return;
             }
 
             if (selectedRole === 'mois' && id === 'mois' && pw === 'mois1234') {
-                window.sessionStorage.setItem('userRole', 'mois');
-                window.sessionStorage.removeItem('userRegion');
-                window.location.href = 'dashboard.html?org=mois';
+                window.location.href = 'mois_dashboard.html';
                 return;
             }
 
@@ -142,10 +138,7 @@
                     alert('지자체 소속 로그인의 경우 지역 선택이 필요합니다.');
                     return;
                 }
-                window.sessionStorage.setItem('userRole', 'local');
-                window.sessionStorage.setItem('userRegion', region);
-                const localUrl = `local_dashboard.html?org=local&region=${encodeURIComponent(region)}`;
-                window.location.href = localUrl;
+                window.location.href = 'local_dashboard.html';
                 return;
             }
 
