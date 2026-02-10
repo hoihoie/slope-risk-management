@@ -181,8 +181,26 @@
 
         /* 목록 테이블: 스크롤 + 헤더 고정 */
         .site-table-wrap {
-            max-height: 460px;
+            max-height: none;
+            height: 600px;
             overflow: auto;
+        }
+
+        .base-monitoring-grid {
+            display: grid;
+            grid-template-columns: 420px minmax(0, 1fr);
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .base-monitoring-grid > .card {
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 1280px) {
+            .base-monitoring-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .site-table-wrap thead th {
@@ -284,7 +302,38 @@
                 </div>
             </header>
 
-            <div id="base-monitoring-view">
+            <div id="base-monitoring-view" class="base-monitoring-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
+                        <div class="flex items-center gap-2">
+                            <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-full max-w-[220px] rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container site-table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">No</th>
+                                        <th>지역명</th>
+                                        <th>위치</th>
+                                        <th>위험등급</th>
+                                        <th>최종점검</th>
+                                        <th>상태</th>
+                                        <th>관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="site-table-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card" style="position: relative;">
                     <div class="card-header">
                         <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
@@ -313,38 +362,6 @@
                                 <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
                                 <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Detail List below map -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
-                        <div class="flex items-center gap-2">
-                            <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-                        </div>
-                    </div>
-                    <div class="card-body" style="padding: 0;">
-                        <div class="table-container site-table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th style="width: 50px;">No</th>
-                                        <th>지역명</th>
-                                        <th>위치</th>
-                                        <th>위험등급</th>
-                                        <th>최종점검</th>
-                                        <th>상태</th>
-                                        <th>관리</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="site-table-body">
-                                    <tr>
-                                        <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
