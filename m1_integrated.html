@@ -112,11 +112,28 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
         #map {
-            height: 600px;
+            height: calc(100vh - 280px);
+            min-height: 560px;
             width: 100%;
             border-radius: 0;
             z-index: 1;
         }
+
+
+        .alarm-legend { position: absolute; right: 16px; bottom: 16px; background: rgba(255,255,255,0.92); padding: 12px; border: 1px solid rgba(226,232,240,0.9); box-shadow: 0 12px 32px rgba(15,23,42,0.12),0 2px 10px rgba(15,23,42,0.06); z-index: 1000; width: 140px; }
+        .alarm-legend-title { font-size: .75rem; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+        .alarm-legend-item { display:flex; align-items:center; gap:8px; font-size:.75rem; color:#334155; margin-bottom:6px; }
+        .alarm-legend-item:last-child { margin-bottom:0; }
+        .alarm-dot { width:10px; height:10px; border-radius:999px; border:2px solid rgba(255,255,255,.9); box-shadow:0 0 0 2px rgba(15,23,42,.06); }
+        .map-tools { position:absolute; right:16px; top:16px; z-index:1100; }
+        .map-info-btn { width:34px; height:34px; border-radius:999px; border:1px solid rgba(226,232,240,.95); background:rgba(255,255,255,.92); box-shadow:0 12px 32px rgba(15,23,42,.14),0 2px 10px rgba(15,23,42,.06); color:#0f172a; display:inline-flex; align-items:center; justify-content:center; }
+        .alarm-div-icon, .alarm-div-icon.leaflet-div-icon { background: transparent !important; border: none !important; box-shadow: none !important; }
+        .alarm-marker { width: var(--alarm-size, 26px); height: var(--alarm-size, 26px); position: relative; }
+        .alarm-marker .pulse { position:absolute; inset:0; border-radius:999px; background:var(--alarm-pulse,#93c5fd); opacity:0; transform:scale(.7); }
+        .alarm-marker .core { position:absolute; inset:2px; border-radius:999px; background:var(--alarm-color,#3B82F6); border:2px solid rgba(255,255,255,.9); }
+        .alarm-marker.is-pulsing .pulse { animation: alarmPulse 1.8s ease-out infinite; }
+        .alarm-marker.is-pulsing.fast .pulse { animation-duration: 1.2s; }
+        @keyframes alarmPulse { 0% {transform:scale(.7);opacity:.65;} 70% {transform:scale(1.85);opacity:0;} 100% {transform:scale(1.85);opacity:0;} }
 
         .map-overlay {
             position: absolute;
@@ -157,16 +174,93 @@
             border-radius: 50%;
         }
 
+        /* 기본 모니터링: 좌(목록) / 우(지도) 가독성 개선 */
+        .base-monitoring-grid {
+            display: grid;
+            grid-template-columns: minmax(460px, 520px) minmax(0, 1fr);
+            gap: 18px;
+            align-items: stretch;
+            min-height: calc(100vh - 190px);
+        }
+
+        .base-monitoring-grid > .card {
+            margin-bottom: 0;
+            min-height: calc(100vh - 190px);
+        }
+
+        .site-list-card .card-header,
+        .map-panel-card .card-header {
+            min-height: 64px;
+        }
+
+        .site-list-card .card-header {
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .map-panel-card .card-header {
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+        }
+
         /* 목록 테이블: 스크롤 + 헤더 고정 */
         .site-table-wrap {
-            max-height: 460px;
+            max-height: none;
+            height: calc(100vh - 280px);
+            min-height: 560px;
             overflow: auto;
+            border-top: 1px solid rgba(226, 232, 240, 0.7);
         }
 
         .site-table-wrap thead th {
             position: sticky;
             top: 0;
             z-index: 2;
+        }
+
+        .site-list-card table {
+            table-layout: fixed;
+        }
+
+        .site-list-card th,
+        .site-list-card td {
+            padding-left: 10px;
+            padding-right: 10px;
+            font-size: 12px;
+        }
+
+        .site-table-wrap tbody td {
+            white-space: nowrap;
+            line-height: 1.45;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .site-list-card td:nth-child(2),
+        .site-list-card td:nth-child(3) {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            word-break: keep-all;
+        }
+
+        .site-table-wrap tbody tr:nth-child(even) td {
+            background: rgba(248, 250, 252, 0.55);
+        }
+
+        @media (max-width: 1440px) {
+            .base-monitoring-grid {
+                grid-template-columns: minmax(420px, 470px) minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 1280px) {
+            .base-monitoring-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .site-table-wrap {
+                height: 420px;
+                min-height: 420px;
+            }
         }
 
         tbody tr {
@@ -208,11 +302,7 @@
                         <i class="fas fa-map"></i>
                         <span>통합 관제 맵</span>
                     </a>
-                    <a id="nav-m2-link" href="m2_satellite.html" class="nav-item">
-                        <i class="fas fa-satellite-dish"></i>
-                        <span>위성 변위 분석</span>
-                    </a>
-                    <a id="nav-m2-scenario-link" href="m2_scenario.html" class="nav-item">
+<a id="nav-m2-scenario-link" href="m2_scenario.html" class="nav-item">
                         <i class="fas fa-diagram-project"></i>
                         <span>위성→드론 정밀 위험평가</span>
                     </a>
@@ -262,66 +352,67 @@
                 </div>
             </header>
 
-            <div class="card" style="position: relative;">
-                <div class="card-header">
-                    <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary btn-sm"><i class="fas fa-layer-group"></i> 레이어</button>
-                        <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> 필터</button>
+            <div id="base-monitoring-view" class="base-monitoring-grid">
+                <div class="card site-list-card">
+                    <div class="card-header">
+                        <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
+                        <div class="flex items-center gap-2">
+                            <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-full max-w-[260px] rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div class="table-container site-table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 52px;">No</th>
+                                        <th style="width: 96px;">지역명</th>
+                                        <th style="width: 160px;">위치</th>
+                                        <th style="width: 84px;">위험등급</th>
+                                        <th style="width: 110px;">최종점검</th>
+                                        <th style="width: 86px;">상태</th>
+                                        <th style="width: 86px;">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="site-table-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body" style="padding: 0;">
-                    <div id="map"></div>
 
-                    <!-- Map Overlay Controls -->
-                    <div class="map-overlay">
-                        <div class="filter-group">
-                            <div class="filter-title">지도 유형</div>
-                            <div style="display: flex; gap: 8px;">
-                                <button id="map-type-base-btn" type="button" class="btn btn-primary btn-sm" style="flex:1;">기본</button>
-                                <button id="map-type-satellite-btn" type="button" class="btn btn-secondary btn-sm" style="flex:1;">위성</button>
+                <div class="card map-panel-card" style="position: relative;">
+                    <div class="card-header">
+                        <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-layer-group"></i> 레이어</button>
+                            <button class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> 필터</button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <div id="map"></div>
+
+                        <!-- Map Overlay Controls -->
+                        <div class="map-overlay">
+                            <div class="filter-group">
+                                <div class="filter-title">지도 유형</div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button id="map-type-base-btn" type="button" class="btn btn-primary btn-sm" style="flex:1;">기본</button>
+                                    <button id="map-type-satellite-btn" type="button" class="btn btn-secondary btn-sm" style="flex:1;">위성</button>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <div class="filter-title">위험 등급 범례</div>
+                                <div class="legend-item"><span class="dot bg-rose-500"></span> E등급 (심각)</div>
+                                <div class="legend-item"><span class="dot bg-amber-500"></span> D등급 (경계)</div>
+                                <div class="legend-item"><span class="dot" style="background: #FCD34D;"></span> C등급 (주의)</div>
+                                <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
+                                <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
                             </div>
                         </div>
-                        <div class="filter-group">
-                            <div class="filter-title">위험 등급 범례</div>
-                            <div class="legend-item"><span class="dot bg-rose-500"></span> E등급 (심각)</div>
-                            <div class="legend-item"><span class="dot bg-amber-500"></span> D등급 (경계)</div>
-                            <div class="legend-item"><span class="dot" style="background: #FCD34D;"></span> C등급 (주의)</div>
-                            <div class="legend-item"><span class="dot bg-sky-500"></span> B등급 (관심)</div>
-                            <div class="legend-item"><span class="dot bg-emerald-500"></span> A등급 (안전)</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detail List below map -->
-            <div class="card">
-                <div class="card-header">
-                    <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
-                    <div class="flex items-center gap-2">
-                        <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-64 rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
-                    </div>
-                </div>
-                <div class="card-body" style="padding: 0;">
-                    <div class="table-container site-table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;">No</th>
-                                    <th>지역명</th>
-                                    <th>위치</th>
-                                    <th>위험등급</th>
-                                    <th>최종점검</th>
-                                    <th>상태</th>
-                                    <th>관리</th>
-                                </tr>
-                            </thead>
-                            <tbody id="site-table-body">
-                                <tr>
-                                    <td colspan="7" class="text-center text-slate-500 py-10">데이터 로딩 중…</td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -383,10 +474,14 @@
 
         baseTileLayer.addTo(map);
 
-        // Map type toggle (기본/위성)
+        // View toggle (기본/위성)
         const mapTypeBaseBtn = document.getElementById('map-type-base-btn');
         const mapTypeSatBtn = document.getElementById('map-type-satellite-btn');
-
+        const baseMonitoringViewEl = document.getElementById('base-monitoring-view');
+        const mapPageTitleEl = document.getElementById('map-page-title');
+        const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
+        const mapScopeBadgeEl = document.getElementById('map-scope-badge');
+        const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
         function setMapType(type) {
             const next = type === 'satellite' ? 'satellite' : 'base';
             if (next === 'satellite') {
@@ -469,15 +564,10 @@
         const sidebarSystemLabelEl = document.getElementById('sidebar-system-label');
         const navDashboardLinkEl = document.getElementById('nav-dashboard-link');
         const navNdmsLinkEl = document.getElementById('nav-ndms-link');
-        const navMapSelfLinkEl = document.getElementById('nav-map-self-link');
-        const navM2LinkEl = document.getElementById('nav-m2-link');
         const navM2ScenarioLinkEl = document.getElementById('nav-m2-scenario-link');
         const navM3LinkEl = document.getElementById('nav-m3-link');
         const navReportLinkEl = document.getElementById('nav-report-link');
         const navThresholdLinkEl = document.getElementById('nav-threshold-link');
-        const mapPageTitleEl = document.getElementById('map-page-title');
-        const mapPageSubtitleEl = document.getElementById('map-page-subtitle');
-        const mapScopeBadgeEl = document.getElementById('map-scope-badge');
         const mapUserNameEl = document.getElementById('map-user-name');
         const siteListTitleEl = document.getElementById('site-list-title');
 
@@ -519,7 +609,6 @@
                 setNavLabel(navThresholdLinkEl, '임계치 정책 기준');
 
                 setVisible(navNdmsLinkEl, false);
-                setVisible(navM2LinkEl, false);
                 setVisible(navM2ScenarioLinkEl, false);
                 setVisible(navM3LinkEl, false);
                 if (searchInputEl) searchInputEl.placeholder = '지역명/급경사지명 검색...';
@@ -547,7 +636,6 @@
                 setNavLabel(navThresholdLinkEl, '임계치 관리');
 
                 setVisible(navNdmsLinkEl, true);
-                setVisible(navM2LinkEl, true);
                 setVisible(navM2ScenarioLinkEl, true);
                 setVisible(navM3LinkEl, true);
                 if (searchInputEl) searchInputEl.placeholder = `${ACTIVE_SIGUNGU || '관할'} 급경사지명 검색...`;
