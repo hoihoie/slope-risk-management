@@ -179,34 +179,69 @@
             border-radius: 50%;
         }
 
-        /* 목록 테이블: 스크롤 + 헤더 고정 */
-        .site-table-wrap {
-            max-height: none;
-            height: 600px;
-            overflow: auto;
-        }
-
+        /* 기본 모니터링: 좌(목록) / 우(지도) 가독성 개선 */
         .base-monitoring-grid {
             display: grid;
-            grid-template-columns: 420px minmax(0, 1fr);
-            gap: 16px;
+            grid-template-columns: minmax(420px, 460px) minmax(0, 1fr);
+            gap: 18px;
             align-items: stretch;
         }
 
         .base-monitoring-grid > .card {
             margin-bottom: 0;
+            min-height: 680px;
         }
 
-        @media (max-width: 1280px) {
-            .base-monitoring-grid {
-                grid-template-columns: 1fr;
-            }
+        .site-list-card .card-header,
+        .map-panel-card .card-header {
+            min-height: 64px;
+        }
+
+        .site-list-card .card-header {
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .map-panel-card .card-header {
+            background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+        }
+
+        /* 목록 테이블: 스크롤 + 헤더 고정 */
+        .site-table-wrap {
+            max-height: none;
+            height: 616px;
+            overflow: auto;
+            border-top: 1px solid rgba(226, 232, 240, 0.7);
         }
 
         .site-table-wrap thead th {
             position: sticky;
             top: 0;
             z-index: 2;
+        }
+
+        .site-table-wrap tbody td {
+            white-space: nowrap;
+            line-height: 1.45;
+        }
+
+        .site-table-wrap tbody tr:nth-child(even) td {
+            background: rgba(248, 250, 252, 0.55);
+        }
+
+        @media (max-width: 1440px) {
+            .base-monitoring-grid {
+                grid-template-columns: minmax(380px, 430px) minmax(0, 1fr);
+            }
+        }
+
+        @media (max-width: 1280px) {
+            .base-monitoring-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .site-table-wrap {
+                height: 420px;
+            }
         }
 
         tbody tr {
@@ -303,11 +338,11 @@
             </header>
 
             <div id="base-monitoring-view" class="base-monitoring-grid">
-                <div class="card">
+                <div class="card site-list-card">
                     <div class="card-header">
                         <h3 id="site-list-title"><i class="fas fa-list text-slate-400"></i>관리 대상 목록</h3>
                         <div class="flex items-center gap-2">
-                            <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-full max-w-[220px] rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
+                            <input id="site-search-input" type="text" placeholder="지역명/급경사지명 검색..." class="h-9 w-full max-w-[260px] rounded-lg border border-slate-200 bg-white px-3 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20">
                         </div>
                     </div>
                     <div class="card-body" style="padding: 0;">
@@ -334,7 +369,7 @@
                     </div>
                 </div>
 
-                <div class="card" style="position: relative;">
+                <div class="card map-panel-card" style="position: relative;">
                     <div class="card-header">
                         <h3><i class="fas fa-map-marked-alt text-slate-400"></i> 실시간 모니터링 지도</h3>
                         <div style="display: flex; gap: 8px;">
